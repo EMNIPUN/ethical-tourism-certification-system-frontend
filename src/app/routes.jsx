@@ -4,6 +4,7 @@ import CertificateManagementRoute from '../features/certificate-management/Certi
 import AuditRoute from '../features/audit/AuditRoute'
 import SearchRoute from '../features/search/SearchRoute'
 import LandingPage from '../features/common/LandingPage'
+import AdminRoute from '../features/common/pages/AdminRoute'
 import LoginPage from '../features/common/auth/LoginPage'
 import RegisterPage from '../features/common/auth/RegisterPage'
 import ProtectedRoute from '../features/common/auth/ProtectedRoute'
@@ -14,6 +15,15 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path='/login' element={<LoginPage />} />
       <Route path='/register' element={<RegisterPage />} />
+
+      <Route
+        path='/admin/*'
+        element={
+          <ProtectedRoute roles={['Admin']}>
+            <AdminRoute />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path='/certificate-application/*'

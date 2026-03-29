@@ -16,7 +16,7 @@ export function getDashboardPathByRole(role) {
   const normalizedRole = normalizeRole(role)
 
   if (normalizedRole === 'admin') {
-    return '/certificate-management'
+    return '/admin'
   }
 
   if (normalizedRole === 'tourist') {
