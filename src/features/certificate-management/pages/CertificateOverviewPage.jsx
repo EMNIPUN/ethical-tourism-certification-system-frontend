@@ -153,31 +153,7 @@ function CertificateOverviewPage() {
       ) : null}
 
       <article className='overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm'>
-        <div className='relative bg-gradient-to-r from-slate-900 via-slate-800 to-cyan-900 p-6 text-white'>
-          <div className='pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-cyan-400/30 blur-3xl' />
-          <div className='pointer-events-none absolute -left-16 -bottom-20 h-48 w-48 rounded-full bg-emerald-300/20 blur-3xl' />
-
-          <p className='inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide'>
-            Operations Center
-          </p>
-          <h2 className='mt-3 text-3xl font-black'>Certificate Lifecycle Command View</h2>
-          <p className='mt-2 max-w-3xl text-sm text-slate-200'>
-            Monitor issuance readiness, risk states, and renewal pressure from one place.
-          </p>
-
-          <div className='mt-5 flex flex-wrap gap-2'>
-            <Link to='eligible-hotels' className='rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20'>
-              Review eligible hotels
-            </Link>
-            <Link to='issue' className='rounded-lg border border-cyan-200 bg-cyan-100 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-white'>
-              Issue certificate
-            </Link>
-            <Link to='certificates' className='rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100'>
-              Open registry
-            </Link>
-          </div>
-        </div>
-
+      
         <div className='grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-5'>
           <article className='rounded-2xl border border-blue-200 bg-blue-50 p-4'>
             <p className='text-xs font-semibold uppercase tracking-wide text-blue-700'>Total Certificates</p>

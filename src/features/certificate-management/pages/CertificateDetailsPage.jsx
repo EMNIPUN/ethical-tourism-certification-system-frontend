@@ -275,175 +275,216 @@ function CertificateDetailsPage() {
           <p className='text-sm text-slate-500'>Loading certificate details...</p>
         </article>
       ) : certificate ? (
-        <>
-          <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
-            <div className='grid gap-3 text-sm text-slate-700 md:grid-cols-2'>
-              <p><span className='font-semibold'>Certificate Number:</span> {certificate.certificateNumber}</p>
-              <p className='flex items-center gap-2'>
-                <span className='font-semibold'>Status:</span> <StatusBadge status={certificate.status} />
-              </p>
-              <p><span className='font-semibold'>Trust Score:</span> {certificate.trustScore ?? 'N/A'}</p>
-              <p className='flex items-center gap-2'>
-                <span className='font-semibold'>Level:</span> <LevelBadge level={certificate.level} />
-              </p>
-              <p><span className='font-semibold'>Issued Date:</span> {certificate.issuedDate ? new Date(certificate.issuedDate).toLocaleString() : 'N/A'}</p>
-              <p><span className='font-semibold'>Expiry Date:</span> {certificate.expiryDate ? new Date(certificate.expiryDate).toLocaleString() : 'N/A'}</p>
-              <p><span className='font-semibold'>Hotel Name:</span> {certificate.hotelId?.businessInfo?.name || 'N/A'}</p>
-              <p><span className='font-semibold'>Hotel ID:</span> {hotelId || 'N/A'}</p>
-            </div>
-          </article>
-
-          <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
-            <div className='flex flex-wrap items-center justify-between gap-3'>
-              <h3 className='text-lg font-bold text-slate-900'>Activity Timeline</h3>
-              <p className='text-xs text-slate-500'>
-                {timelineTotal ? `Total events: ${timelineTotal}` : 'No events'}
-              </p>
-            </div>
-
-            <form className='mt-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-5' onSubmit={applyTimelineFilters}>
-              <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                Event Type
-                <select
-                  value={timelineFilters.eventType}
-                  onChange={(event) => updateTimelineFilter('eventType', event.target.value)}
-                  className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
-                >
-                  {TIMELINE_EVENT_OPTIONS.map((eventType) => (
-                    <option key={eventType || 'ALL'} value={eventType}>
-                      {eventType ? formatEventType(eventType) : 'All events'}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                From
-                <input
-                  type='date'
-                  value={timelineFilters.from}
-                  onChange={(event) => updateTimelineFilter('from', event.target.value)}
-                  className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
-                />
-              </label>
-
-              <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                To
-                <input
-                  type='date'
-                  value={timelineFilters.to}
-                  onChange={(event) => updateTimelineFilter('to', event.target.value)}
-                  className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
-                />
-              </label>
-
-              <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
-                Order
-                <select
-                  value={timelineFilters.order}
-                  onChange={(event) => updateTimelineFilter('order', event.target.value)}
-                  className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
-                >
-                  <option value='desc'>Newest first</option>
-                  <option value='asc'>Oldest first</option>
-                </select>
-              </label>
-
-              <div className='flex items-end'>
-                <button
-                  type='submit'
-                  disabled={isTimelineLoading}
-                  className='w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60'
-                >
-                  {isTimelineLoading ? 'Loading...' : 'Apply Filters'}
-                </button>
+        <div className='grid gap-4 xl:grid-cols-12'>
+          <div className='space-y-4 xl:col-span-8'>
+            <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
+              <h3 className='text-lg font-bold text-slate-900'>Certificate Details</h3>
+              <div className='mt-3 grid gap-3 text-sm text-slate-700 md:grid-cols-2'>
+                <p><span className='font-semibold'>Certificate Number:</span> {certificate.certificateNumber}</p>
+                <p className='flex items-center gap-2'>
+                  <span className='font-semibold'>Status:</span> <StatusBadge status={certificate.status} />
+                </p>
+                <p><span className='font-semibold'>Trust Score:</span> {certificate.trustScore ?? 'N/A'}</p>
+                <p className='flex items-center gap-2'>
+                  <span className='font-semibold'>Level:</span> <LevelBadge level={certificate.level} />
+                </p>
+                <p><span className='font-semibold'>Issued Date:</span> {certificate.issuedDate ? new Date(certificate.issuedDate).toLocaleString() : 'N/A'}</p>
+                <p><span className='font-semibold'>Expiry Date:</span> {certificate.expiryDate ? new Date(certificate.expiryDate).toLocaleString() : 'N/A'}</p>
+                <p><span className='font-semibold'>Renewal Count:</span> {certificate.renewalCount ?? 0}</p>
+                <p><span className='font-semibold'>Updated At:</span> {certificate.updatedAt ? new Date(certificate.updatedAt).toLocaleString() : 'N/A'}</p>
               </div>
-            </form>
+            </article>
 
-            {timelineError ? (
-              <p className='mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{timelineError}</p>
-            ) : null}
-
-            {isTimelineLoading && !timeline.length ? (
-              <p className='mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500'>Loading activity timeline...</p>
-            ) : timeline.length ? (
-              <>
-                <ol className='mt-5 space-y-5'>
-                  {timeline.map((event, index) => {
-                    const tone = getEventTone(event.eventType)
-                    const changes = event?.changes && typeof event.changes === 'object' ? Object.entries(event.changes) : []
-
-                    return (
-                      <li key={event._id || `${event.eventType}-${index}`} className='relative pl-8'>
-                        {index < timeline.length - 1 ? (
-                          <span className='absolute left-2.75 top-6 h-[calc(100%+0.75rem)] w-px bg-slate-200' aria-hidden='true' />
-                        ) : null}
-
-                        <span className={`absolute left-0 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-white ${tone.dot}`} aria-hidden='true'>
-                          <span className='h-2 w-2 rounded-full bg-white' />
-                        </span>
-
-                        <div className='rounded-xl border border-slate-200 bg-slate-50/70 p-4'>
-                          <div className='flex flex-wrap items-center gap-2'>
-                            <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${tone.badge}`}>
-                              {formatEventType(event.eventType)}
-                            </span>
-                            <span className='text-xs text-slate-500'>
-                              {event.eventTime ? new Date(event.eventTime).toLocaleString() : 'Unknown time'}
-                            </span>
-                          </div>
-
-                          <p className='mt-2 text-sm text-slate-800'>{event.summary || 'No summary provided.'}</p>
-
-                          <div className='mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500'>
-                            <span>Source: {event.source || 'N/A'}</span>
-                            <span>Actor: {event.actorType || 'N/A'}</span>
-                            <span>Actor ID: {event.actorId || 'SYSTEM'}</span>
-                          </div>
-
-                          {changes.length ? (
-                            <div className='mt-3 rounded-lg border border-slate-200 bg-white p-3'>
-                              <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>Changes</p>
-                              <ul className='mt-2 space-y-1 text-xs text-slate-700'>
-                                {changes.map(([field, diff]) => (
-                                  <li key={field}>
-                                    <span className='font-semibold'>{field}:</span>{' '}
-                                    <span className='text-slate-500'>{renderValue(diff?.before)}</span>
-                                    {' -> '}
-                                    <span>{renderValue(diff?.after)}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ) : null}
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ol>
-
-                {timelineHasNext ? (
-                  <div className='mt-4'>
-                    <button
-                      type='button'
-                      onClick={loadMoreTimeline}
-                      disabled={isTimelineLoading}
-                      className='rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60'
+            <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
+              <h3 className='text-lg font-bold text-slate-900'>Hotel Details</h3>
+              <div className='mt-3 grid gap-3 text-sm text-slate-700 md:grid-cols-2'>
+                <p><span className='font-semibold'>Hotel Name:</span> {certificate.hotelId?.businessInfo?.name || 'N/A'}</p>
+                <p><span className='font-semibold'>Business Type:</span> {certificate.hotelId?.businessInfo?.businessType || 'N/A'}</p>
+                <p><span className='font-semibold'>Established Year:</span> {certificate.hotelId?.businessInfo?.yearEstablished || 'N/A'}</p>
+                <p><span className='font-semibold'>Owner Name:</span> {certificate.hotelId?.businessInfo?.contact?.ownerName || 'N/A'}</p>
+                <p><span className='font-semibold'>Contact Email:</span> {certificate.hotelId?.businessInfo?.contact?.email || 'N/A'}</p>
+                <p><span className='font-semibold'>Phone:</span> {certificate.hotelId?.businessInfo?.contact?.phone || 'N/A'}</p>
+                <p>
+                  <span className='font-semibold'>Website:</span>{' '}
+                  {certificate.hotelId?.businessInfo?.contact?.website ? (
+                    <a
+                      href={certificate.hotelId.businessInfo.contact.website}
+                      target='_blank'
+                      rel='noreferrer'
+                      className='text-cyan-700 underline underline-offset-2 hover:text-cyan-600'
                     >
-                      {isTimelineLoading ? 'Loading...' : 'Load more'}
-                    </button>
-                  </div>
-                ) : null}
-              </>
-            ) : (
-              <p className='mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500'>
-                No timeline events found for the current filters.
-              </p>
-            )}
-          </article>
+                      {certificate.hotelId.businessInfo.contact.website}
+                    </a>
+                  ) : (
+                    'N/A'
+                  )}
+                </p>
+                <p>
+                  <span className='font-semibold'>GPS:</span>{' '}
+                  {certificate.hotelId?.businessInfo?.contact?.gps?.latitude !== undefined &&
+                  certificate.hotelId?.businessInfo?.contact?.gps?.longitude !== undefined
+                    ? `${certificate.hotelId.businessInfo.contact.gps.latitude}, ${certificate.hotelId.businessInfo.contact.gps.longitude}`
+                    : 'N/A'}
+                </p>
+                <p className='md:col-span-2'>
+                  <span className='font-semibold'>Address:</span> {certificate.hotelId?.businessInfo?.contact?.address || 'N/A'}
+                </p>
+              </div>
+            </article>
 
-          {isAdmin ? (
-            <div className='grid gap-4 xl:grid-cols-2'>
+            <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
+              <div className='flex flex-wrap items-center justify-between gap-3'>
+                <h3 className='text-lg font-bold text-slate-900'>Activity Timeline</h3>
+                <p className='text-xs text-slate-500'>
+                  {timelineTotal ? `Total events: ${timelineTotal}` : 'No events'}
+                </p>
+              </div>
+
+              <form className='mt-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-5' onSubmit={applyTimelineFilters}>
+                <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
+                  Event Type
+                  <select
+                    value={timelineFilters.eventType}
+                    onChange={(event) => updateTimelineFilter('eventType', event.target.value)}
+                    className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
+                  >
+                    {TIMELINE_EVENT_OPTIONS.map((eventType) => (
+                      <option key={eventType || 'ALL'} value={eventType}>
+                        {eventType ? formatEventType(eventType) : 'All events'}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
+                  From
+                  <input
+                    type='date'
+                    value={timelineFilters.from}
+                    onChange={(event) => updateTimelineFilter('from', event.target.value)}
+                    className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
+                  />
+                </label>
+
+                <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
+                  To
+                  <input
+                    type='date'
+                    value={timelineFilters.to}
+                    onChange={(event) => updateTimelineFilter('to', event.target.value)}
+                    className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
+                  />
+                </label>
+
+                <label className='text-xs font-semibold uppercase tracking-wide text-slate-600'>
+                  Order
+                  <select
+                    value={timelineFilters.order}
+                    onChange={(event) => updateTimelineFilter('order', event.target.value)}
+                    className='mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm font-normal normal-case tracking-normal text-slate-700'
+                  >
+                    <option value='desc'>Newest first</option>
+                    <option value='asc'>Oldest first</option>
+                  </select>
+                </label>
+
+                <div className='flex items-end'>
+                  <button
+                    type='submit'
+                    disabled={isTimelineLoading}
+                    className='w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60'
+                  >
+                    {isTimelineLoading ? 'Loading...' : 'Apply Filters'}
+                  </button>
+                </div>
+              </form>
+
+              {timelineError ? (
+                <p className='mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{timelineError}</p>
+              ) : null}
+
+              {isTimelineLoading && !timeline.length ? (
+                <p className='mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500'>Loading activity timeline...</p>
+              ) : timeline.length ? (
+                <>
+                  <ol className='mt-5 space-y-5'>
+                    {timeline.map((event, index) => {
+                      const tone = getEventTone(event.eventType)
+                      const changes = event?.changes && typeof event.changes === 'object' ? Object.entries(event.changes) : []
+
+                      return (
+                        <li key={event._id || `${event.eventType}-${index}`} className='relative pl-8'>
+                          {index < timeline.length - 1 ? (
+                            <span className='absolute left-2.75 top-6 h-[calc(100%+0.75rem)] w-px bg-slate-200' aria-hidden='true' />
+                          ) : null}
+
+                          <span className={`absolute left-0 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-white ${tone.dot}`} aria-hidden='true'>
+                            <span className='h-2 w-2 rounded-full bg-white' />
+                          </span>
+
+                          <div className='rounded-xl border border-slate-200 bg-slate-50/70 p-4'>
+                            <div className='flex flex-wrap items-center gap-2'>
+                              <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${tone.badge}`}>
+                                {formatEventType(event.eventType)}
+                              </span>
+                              <span className='text-xs text-slate-500'>
+                                {event.eventTime ? new Date(event.eventTime).toLocaleString() : 'Unknown time'}
+                              </span>
+                            </div>
+
+                            <p className='mt-2 text-sm text-slate-800'>{event.summary || 'No summary provided.'}</p>
+
+                            <div className='mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500'>
+                              <span>Source: {event.source || 'N/A'}</span>
+                              <span>Actor: {event.actorType || 'N/A'}</span>
+                              <span>Actor ID: {event.actorId || 'SYSTEM'}</span>
+                            </div>
+
+                            {changes.length ? (
+                              <div className='mt-3 rounded-lg border border-slate-200 bg-white p-3'>
+                                <p className='text-xs font-semibold uppercase tracking-wide text-slate-500'>Changes</p>
+                                <ul className='mt-2 space-y-1 text-xs text-slate-700'>
+                                  {changes.map(([field, diff]) => (
+                                    <li key={field}>
+                                      <span className='font-semibold'>{field}:</span>{' '}
+                                      <span className='text-slate-500'>{renderValue(diff?.before)}</span>
+                                      {' -> '}
+                                      <span>{renderValue(diff?.after)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ol>
+
+                  {timelineHasNext ? (
+                    <div className='mt-4'>
+                      <button
+                        type='button'
+                        onClick={loadMoreTimeline}
+                        disabled={isTimelineLoading}
+                        className='rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60'
+                      >
+                        {isTimelineLoading ? 'Loading...' : 'Load more'}
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <p className='mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500'>
+                  No timeline events found for the current filters.
+                </p>
+              )}
+            </article>
+          </div>
+
+          <aside className='space-y-4 xl:col-span-4'>
+            {isAdmin ? (
+              <>
               <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
                 <h3 className='text-lg font-bold text-slate-900'>Renew Certificate</h3>
                 <label className='mt-3 block text-sm font-medium text-slate-700'>
@@ -533,48 +574,18 @@ function CertificateDetailsPage() {
                 </button>
               </article>
 
-              <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2'>
-                <h3 className='text-lg font-bold text-slate-900'>Recalculate Trust From Reviews</h3>
-                <div className='mt-3 grid gap-3 md:grid-cols-2'>
-                  <label className='block text-sm font-medium text-slate-700'>
-                    Average Rating (0-5)
-                    <input
-                      type='number'
-                      min='0'
-                      max='5'
-                      step='0.1'
-                      value={averageRating}
-                      onChange={(event) => setAverageRating(Number(event.target.value))}
-                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
-                    />
-                  </label>
-                  <label className='block text-sm font-medium text-slate-700'>
-                    Review Count
-                    <input
-                      type='number'
-                      min='0'
-                      value={reviewCount}
-                      onChange={(event) => setReviewCount(Number(event.target.value))}
-                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
-                    />
-                  </label>
-                </div>
-                <button
-                  type='button'
-                  disabled={isActing || !hotelId}
-                  onClick={() => runAction(() => updateCertificateTrustScore({ hotelId, averageRating, reviewCount }), 'Trust score recalculated successfully.')}
-                  className='mt-3 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60'
-                >
-                  Recalculate Trust Score
-                </button>
+          
+              </>
+            ) : (
+              <article className='rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm'>
+                <h3 className='text-lg font-bold text-amber-900'>Actions</h3>
+                <p className='mt-2 text-sm text-amber-700'>
+                  You can view certificate details and timeline, but lifecycle actions are restricted to admins.
+                </p>
               </article>
-            </div>
-          ) : (
-            <p className='rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700'>
-              You can view details, but lifecycle actions are restricted to admins.
-            </p>
-          )}
-        </>
+            )}
+          </aside>
+        </div>
       ) : (
         <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
           <p className='text-sm text-slate-500'>Certificate not found.</p>
