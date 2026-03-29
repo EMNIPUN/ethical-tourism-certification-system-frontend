@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import CertificatesRequest from '../../certificate-management/pages/CertificatesRequest'
+import CertificateManagementRoute from '../../certificate-management/CertificateManagementRoute'
 import AdminLayout from './AdminLayout'
 import AdminDashboard from './AdminDashboard'
 
@@ -17,7 +17,7 @@ function AdminRoute() {
     <Routes>
       <Route element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
-        <Route path='certificate-management' element={<CertificatesRequest />} />
+        <Route path='certificate-management/*' element={<CertificateManagementRoute />} />
         <Route
           path='user-management'
           element={
