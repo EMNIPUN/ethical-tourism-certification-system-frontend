@@ -7,24 +7,98 @@ import {
   revokeCertificate,
 } from '../certificateManagementService'
 import { useAuth } from '../../common/auth/AuthContext'
+import StatusBadge from '../components/StatusBadge'
+import LevelBadge from '../components/LevelBadge'
+import LifecycleActionModal from '../components/LifecycleActionModal'
+
+const ACTION_TYPES = {
+  RENEW: 'RENEW',
+  REVOKE: 'REVOKE',
+  INACTIVATE: 'INACTIVATE',
+}
+
+const STATUS_OPTIONS = ['', 'ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
+
+function getHotelName(item) {
+  return item?.hotelId?.businessInfo?.name || 'Unknown hotel'
+}
+
+function getActionDefaults(type) {
+  if (type === ACTION_TYPES.RENEW) {
+    return {
+      validityPeriodInMonths: 12,
+      reason: '',
+    }
+  }
+
+  return {
+    validityPeriodInMonths: 12,
+    reason: '',
+  }
+}
+
+function getActionMeta(type) {
+  if (type === ACTION_TYPES.RENEW) {
+    return {
+      title: 'Renew Certificate',
+      description: 'Extend certificate validity period in months.',
+      confirmLabel: 'Renew certificate',
+    }
+  }
+
+  if (type === ACTION_TYPES.REVOKE) {
+    return {
+      title: 'Revoke Certificate',
+      description: 'This action sets status to REVOKED and trust score to 0.',
+      confirmLabel: 'Revoke certificate',
+    }
+  }
+
+  return {
+    title: 'Inactivate Certificate',
+    description: 'This is a soft-delete lifecycle action (status becomes INACTIVE).',
+    confirmLabel: 'Inactivate certificate',
+  }
+}
+
+function isActionDisabled(type, item) {
+  if (type === ACTION_TYPES.RENEW) {
+    return item.status === 'REVOKED'
+  }
+
+  if (type === ACTION_TYPES.REVOKE) {
+    return item.status === 'REVOKED'
+  }
+
+  if (type === ACTION_TYPES.INACTIVATE) {
+    return item.status === 'INACTIVE'
+  }
+
+  return false
+}
 
 function CertificatesListPage() {
   const { user } = useAuth()
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
 
   const [statusFilter, setStatusFilter] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [certificates, setCertificates] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isActing, setIsActing] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [activeAction, setActiveAction] = useState('')
+  const [selectedCertificate, setSelectedCertificate] = useState(null)
+  const [actionForm, setActionForm] = useState(getActionDefaults(ACTION_TYPES.RENEW))
+  const [actionError, setActionError] = useState('')
 
-  async function loadCertificates(filter = statusFilter) {
+  async function loadCertificates() {
     setIsLoading(true)
     setErrorMessage('')
 
     try {
-      const response = await getCertificates(filter)
+      const response = await getCertificates()
       setCertificates(response?.data || [])
     } catch (error) {
       setErrorMessage(error.message || 'Failed to load certificates')
@@ -34,8 +108,8 @@ function CertificatesListPage() {
   }
 
   useEffect(() => {
-    loadCertificates(statusFilter)
-  }, [statusFilter])
+    loadCertificates()
+  }, [])
 
   const groupedCounts = useMemo(() => {
     return {
@@ -46,78 +120,139 @@ function CertificatesListPage() {
     }
   }, [certificates])
 
-  async function handleRenew(certificateId) {
-    const entered = window.prompt('Enter validity period in months (1-120)', '12')
+  const filteredCertificates = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
 
-    if (!entered) {
+    return certificates.filter((item) => {
+      if (statusFilter && item.status !== statusFilter) {
+        return false
+      }
+
+      if (!query) {
+        return true
+      }
+
+      const searchableText = [
+        item.certificateNumber,
+        item.status,
+        item.level,
+        getHotelName(item),
+        item?.hotelId?.businessInfo?.contact?.email,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      return searchableText.includes(query)
+    })
+  }, [certificates, searchQuery, statusFilter])
+
+  function openActionModal(type, certificate) {
+    setActiveAction(type)
+    setSelectedCertificate(certificate)
+    setActionForm(getActionDefaults(type))
+    setActionError('')
+    setSuccessMessage('')
+    setErrorMessage('')
+  }
+
+  function closeActionModal() {
+    setActiveAction('')
+    setSelectedCertificate(null)
+    setActionError('')
+  }
+
+  function updateActionField(name, value) {
+    setActionForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }))
+  }
+
+  function validateAction() {
+    if (activeAction === ACTION_TYPES.RENEW) {
+      const months = Number(actionForm.validityPeriodInMonths)
+      if (!months || months < 1 || months > 120) {
+        return 'Validity period must be between 1 and 120 months.'
+      }
+      return ''
+    }
+
+    if (!String(actionForm.reason || '').trim()) {
+      return 'Reason is required.'
+    }
+
+    return ''
+  }
+
+  const isActionConfirmDisabled = useMemo(() => {
+    if (!selectedCertificate) {
+      return true
+    }
+
+    if (activeAction === ACTION_TYPES.RENEW) {
+      const months = Number(actionForm.validityPeriodInMonths)
+      return !months || months < 1 || months > 120
+    }
+
+    if (activeAction === ACTION_TYPES.REVOKE || activeAction === ACTION_TYPES.INACTIVATE) {
+      return !String(actionForm.reason || '').trim()
+    }
+
+    return true
+  }, [actionForm.reason, actionForm.validityPeriodInMonths, activeAction, selectedCertificate])
+
+  async function handleConfirmAction() {
+    if (!selectedCertificate || !activeAction) {
       return
     }
 
-    const validityPeriodInMonths = Number(entered)
-
-    if (!validityPeriodInMonths || validityPeriodInMonths < 1 || validityPeriodInMonths > 120) {
-      setErrorMessage('Validity period must be between 1 and 120.')
+    const validationError = validateAction()
+    if (validationError) {
+      setActionError(validationError)
       return
     }
 
     setIsActing(true)
+    setActionError('')
     setErrorMessage('')
     setSuccessMessage('')
 
     try {
-      await renewCertificate({ certificateId, validityPeriodInMonths })
-      setSuccessMessage('Certificate renewed successfully.')
-      await loadCertificates(statusFilter)
+      if (activeAction === ACTION_TYPES.RENEW) {
+        await renewCertificate({
+          certificateId: selectedCertificate._id,
+          validityPeriodInMonths: Number(actionForm.validityPeriodInMonths),
+        })
+        setSuccessMessage('Certificate renewed successfully.')
+      }
+
+      if (activeAction === ACTION_TYPES.REVOKE) {
+        await revokeCertificate({
+          certificateId: selectedCertificate._id,
+          reason: String(actionForm.reason).trim(),
+        })
+        setSuccessMessage('Certificate revoked successfully.')
+      }
+
+      if (activeAction === ACTION_TYPES.INACTIVATE) {
+        await inactivateCertificate({
+          certificateId: selectedCertificate._id,
+          reason: String(actionForm.reason).trim(),
+        })
+        setSuccessMessage('Certificate inactivated successfully.')
+      }
+
+      await loadCertificates()
+      closeActionModal()
     } catch (error) {
-      setErrorMessage(error.message || 'Failed to renew certificate')
+      setActionError(error.message || 'Action failed')
     } finally {
       setIsActing(false)
     }
   }
 
-  async function handleRevoke(certificateId) {
-    const reason = window.prompt('Enter revoke reason')
-
-    if (!reason?.trim()) {
-      return
-    }
-
-    setIsActing(true)
-    setErrorMessage('')
-    setSuccessMessage('')
-
-    try {
-      await revokeCertificate({ certificateId, reason: reason.trim() })
-      setSuccessMessage('Certificate revoked successfully.')
-      await loadCertificates(statusFilter)
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to revoke certificate')
-    } finally {
-      setIsActing(false)
-    }
-  }
-
-  async function handleInactivate(certificateId) {
-    const reason = window.prompt('Enter inactivate reason')
-
-    if (!reason?.trim()) {
-      return
-    }
-
-    setIsActing(true)
-    setErrorMessage('')
-    setSuccessMessage('')
-
-    try {
-      await inactivateCertificate({ certificateId, reason: reason.trim() })
-      setSuccessMessage('Certificate inactivated successfully.')
-      await loadCertificates(statusFilter)
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to inactivate certificate')
-    } finally {
-      setIsActing(false)
-    }
-  }
+  const actionMeta = getActionMeta(activeAction)
 
   return (
     <section className='space-y-4'>
@@ -125,23 +260,37 @@ function CertificatesListPage() {
         <div className='flex flex-wrap items-end justify-between gap-3'>
           <div>
             <h2 className='text-xl font-bold text-slate-900'>Manage Certificates</h2>
-            <p className='mt-1 text-sm text-slate-600'>Track statuses and perform lifecycle actions.</p>
+            <p className='mt-1 text-sm text-slate-600'>
+              Track statuses, search quickly, and run lifecycle actions safely.
+            </p>
           </div>
 
-          <label className='text-sm font-medium text-slate-700'>
-            Filter by status
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className='mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
-            >
-              <option value=''>All</option>
-              <option value='ACTIVE'>ACTIVE</option>
-              <option value='EXPIRED'>EXPIRED</option>
-              <option value='REVOKED'>REVOKED</option>
-              <option value='INACTIVE'>INACTIVE</option>
-            </select>
-          </label>
+          <div className='flex flex-wrap gap-3'>
+            <label className='text-sm font-medium text-slate-700'>
+              Search
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder='Certificate, hotel, email...'
+                className='mt-1 block w-60 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
+              />
+            </label>
+
+            <label className='text-sm font-medium text-slate-700'>
+              Filter by status
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className='mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
+              >
+                {STATUS_OPTIONS.map((status) => (
+                  <option key={status || 'ALL'} value={status}>
+                    {status || 'All'}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
 
         <div className='mt-4 grid gap-2 sm:grid-cols-4'>
@@ -172,17 +321,23 @@ function CertificatesListPage() {
                   <th className='px-3 py-2'>Certificate</th>
                   <th className='px-3 py-2'>Hotel</th>
                   <th className='px-3 py-2'>Status</th>
+                  <th className='px-3 py-2'>Level</th>
                   <th className='px-3 py-2'>Trust</th>
                   <th className='px-3 py-2'>Expiry</th>
                   <th className='px-3 py-2'>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {certificates.map((item) => (
+                {filteredCertificates.map((item) => (
                   <tr key={item._id || item.certificateNumber} className='border-b border-slate-100'>
                     <td className='px-3 py-2 font-semibold text-slate-900'>{item.certificateNumber}</td>
-                    <td className='px-3 py-2 text-slate-700'>{item.hotelId?.businessInfo?.name || 'Unknown hotel'}</td>
-                    <td className='px-3 py-2 text-slate-700'>{item.status}</td>
+                    <td className='px-3 py-2 text-slate-700'>{getHotelName(item)}</td>
+                    <td className='px-3 py-2'>
+                      <StatusBadge status={item.status} />
+                    </td>
+                    <td className='px-3 py-2'>
+                      <LevelBadge level={item.level} />
+                    </td>
                     <td className='px-3 py-2 text-slate-700'>{item.trustScore ?? 'N/A'}</td>
                     <td className='px-3 py-2 text-slate-700'>
                       {item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : 'N/A'}
@@ -200,24 +355,24 @@ function CertificatesListPage() {
                           <>
                             <button
                               type='button'
-                              onClick={() => handleRenew(item._id)}
-                              disabled={isActing}
+                              onClick={() => openActionModal(ACTION_TYPES.RENEW, item)}
+                              disabled={isActing || isActionDisabled(ACTION_TYPES.RENEW, item)}
                               className='rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 disabled:opacity-60'
                             >
                               Renew
                             </button>
                             <button
                               type='button'
-                              onClick={() => handleRevoke(item._id)}
-                              disabled={isActing}
+                              onClick={() => openActionModal(ACTION_TYPES.REVOKE, item)}
+                              disabled={isActing || isActionDisabled(ACTION_TYPES.REVOKE, item)}
                               className='rounded-lg border border-rose-300 bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60'
                             >
                               Revoke
                             </button>
                             <button
                               type='button'
-                              onClick={() => handleInactivate(item._id)}
-                              disabled={isActing}
+                              onClick={() => openActionModal(ACTION_TYPES.INACTIVATE, item)}
+                              disabled={isActing || isActionDisabled(ACTION_TYPES.INACTIVATE, item)}
                               className='rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-60'
                             >
                               Inactivate
@@ -231,12 +386,66 @@ function CertificatesListPage() {
               </tbody>
             </table>
 
-            {!certificates.length ? (
+            {!filteredCertificates.length ? (
               <p className='px-3 py-4 text-sm text-slate-500'>No certificates found for this filter.</p>
             ) : null}
           </div>
         )}
       </article>
+
+      <LifecycleActionModal
+        isOpen={Boolean(activeAction && selectedCertificate)}
+        title={actionMeta.title}
+        description={actionMeta.description}
+        confirmLabel={actionMeta.confirmLabel}
+        isSubmitting={isActing}
+        isConfirmDisabled={isActionConfirmDisabled}
+        onCancel={closeActionModal}
+        onConfirm={handleConfirmAction}
+      >
+        {selectedCertificate ? (
+          <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700'>
+            <p>
+              <span className='font-semibold'>Certificate:</span> {selectedCertificate.certificateNumber}
+            </p>
+            <p className='mt-1'>
+              <span className='font-semibold'>Hotel:</span> {getHotelName(selectedCertificate)}
+            </p>
+            <p className='mt-1'>
+              <span className='font-semibold'>Current status:</span> {selectedCertificate.status}
+            </p>
+          </div>
+        ) : null}
+
+        {activeAction === ACTION_TYPES.RENEW ? (
+          <label className='block text-sm font-medium text-slate-700'>
+            Validity period (months)
+            <input
+              type='number'
+              min='1'
+              max='120'
+              value={actionForm.validityPeriodInMonths}
+              onChange={(event) => updateActionField('validityPeriodInMonths', Number(event.target.value))}
+              className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+            />
+          </label>
+        ) : (
+          <label className='block text-sm font-medium text-slate-700'>
+            Reason
+            <textarea
+              rows={4}
+              value={actionForm.reason}
+              onChange={(event) => updateActionField('reason', event.target.value)}
+              placeholder='Provide a clear reason for this action'
+              className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+            />
+          </label>
+        )}
+
+        {actionError ? (
+          <p className='rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700'>{actionError}</p>
+        ) : null}
+      </LifecycleActionModal>
     </section>
   )
 }

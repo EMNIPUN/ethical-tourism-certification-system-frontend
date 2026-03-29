@@ -97,12 +97,34 @@ export function updateCertificateTrustScore({ hotelId, averageRating, reviewCoun
 	})
 }
 
-export function getCertificateTimeline({ certificateId, page = 1, limit = 50, order = 'desc' }) {
+export function getCertificateTimeline({
+	certificateId,
+	page = 1,
+	limit = 20,
+	order = 'desc',
+	eventType,
+	from,
+	to,
+}) {
 	const params = new URLSearchParams({
 		page: String(page),
 		limit: String(limit),
 		order,
 	})
+
+	if (from) {
+		params.set('from', from)
+	}
+
+	if (to) {
+		params.set('to', to)
+	}
+
+	if (Array.isArray(eventType) && eventType.length) {
+		params.set('eventType', eventType.join(','))
+	} else if (typeof eventType === 'string' && eventType.trim()) {
+		params.set('eventType', eventType.trim())
+	}
 
 	return apiRequest(`/certification/certificates/${certificateId}/timeline?${params.toString()}`, {
 		method: 'GET',
