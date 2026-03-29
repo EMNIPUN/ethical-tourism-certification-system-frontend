@@ -96,3 +96,16 @@ export function updateCertificateTrustScore({ hotelId, averageRating, reviewCoun
 		},
 	})
 }
+
+export function getCertificateTimeline({ certificateId, page = 1, limit = 50, order = 'desc' }) {
+	const params = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+		order,
+	})
+
+	return apiRequest(`/certification/certificates/${certificateId}/timeline?${params.toString()}`, {
+		method: 'GET',
+		token: authToken(),
+	})
+}

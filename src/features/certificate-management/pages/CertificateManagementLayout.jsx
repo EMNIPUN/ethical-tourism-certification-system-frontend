@@ -1,10 +1,10 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 const tabs = [
-  { to: '.', label: 'Overview', end: true },
-  { to: 'eligible-hotels', label: 'Eligible Hotels' },
-  { to: 'issue', label: 'Issue Certificate' },
-  { to: 'certificates', label: 'Manage Certificates' },
+  { to: '/admin/certificate-management', label: 'Overview', end: true },
+  { to: '/admin/certificate-management/eligible-hotels', label: 'Eligible Hotels' },
+  { to: '/admin/certificate-management/issue', label: 'Issue Certificate' },
+  { to: '/admin/certificate-management/certificates', label: 'Manage Certificates' },
 ]
 
 function CertificateManagementLayout() {
