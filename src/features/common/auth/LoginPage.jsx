@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { getDashboardPathByRole } from './roleRedirect'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, isAuthenticated, isInitializing } = useAuth()
+  const { login, isAuthenticated, isInitializing, user } = useAuth()
 
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const redirectTarget = location.state?.from?.pathname || '/'
+  const requestedPath = location.state?.from?.pathname
+  const roleDashboardPath = getDashboardPathByRole(user?.role)
+  const redirectTarget = requestedPath || roleDashboardPath
 
   if (!isInitializing && isAuthenticated) {
     return <Navigate to={redirectTarget} replace />
@@ -28,8 +31,9 @@ function LoginPage() {
     setIsSubmitting(true)
 
     try {
-      await login(formData.email, formData.password)
-      navigate(redirectTarget, { replace: true })
+      const loginResponse = await login(formData.email, formData.password)
+      const resolvedRole = loginResponse?.user?.role || loginResponse?.data?.role || loginResponse?.role
+      navigate(requestedPath || getDashboardPathByRole(resolvedRole), { replace: true })
     } catch (error) {
       setErrorMessage(error.message || 'Login failed. Please try again.')
     } finally {

@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import { AUTH_ROLES } from './authService'
+import { getDashboardPathByRole } from './roleRedirect'
 
 function RegisterPage() {
   const navigate = useNavigate()
-  const { register, isAuthenticated, isInitializing } = useAuth()
+  const { register, isAuthenticated, isInitializing, user } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -17,7 +18,7 @@ function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!isInitializing && isAuthenticated) {
-    return <Navigate to='/' replace />
+    return <Navigate to={getDashboardPathByRole(user?.role)} replace />
   }
 
   function handleChange(event) {
@@ -37,8 +38,9 @@ function RegisterPage() {
     setIsSubmitting(true)
 
     try {
-      await register(formData)
-      navigate('/', { replace: true })
+      const registerResponse = await register(formData)
+      const resolvedRole = registerResponse?.user?.role || registerResponse?.data?.role || formData.role
+      navigate(getDashboardPathByRole(resolvedRole), { replace: true })
     } catch (error) {
       setErrorMessage(error.message || 'Registration failed. Please try again.')
     } finally {

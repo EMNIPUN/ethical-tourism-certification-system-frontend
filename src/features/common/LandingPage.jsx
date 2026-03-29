@@ -70,21 +70,7 @@ function LandingPage() {
           </div>
         </div>
 
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-          {featureLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className='rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md'
-            >
-              <p className='text-lg font-semibold'>{link.title}</p>
-              <p className='mt-1 text-sm text-slate-600'>{link.description}</p>
-              <p className='mt-3 text-sm font-medium text-blue-600'>
-                {isAuthenticated ? `Go to ${link.to}` : 'Login required to access'}
-              </p>
-            </Link>
-          ))}
-        </div>
+       
       </div>
     </div>
   )

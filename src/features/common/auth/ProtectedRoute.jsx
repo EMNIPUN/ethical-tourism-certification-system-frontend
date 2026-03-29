@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { getDashboardPathByRole, isAllowedRole } from './roleRedirect'
 
 function ProtectedRoute({ children, roles }) {
   const location = useLocation()
@@ -17,8 +18,8 @@ function ProtectedRoute({ children, roles }) {
     return <Navigate to='/login' replace state={{ from: location }} />
   }
 
-  if (roles?.length && !roles.includes(user?.role)) {
-    return <Navigate to='/' replace />
+  if (roles?.length && !isAllowedRole(user?.role, roles)) {
+    return <Navigate to={getDashboardPathByRole(user?.role)} replace />
   }
 
   return children

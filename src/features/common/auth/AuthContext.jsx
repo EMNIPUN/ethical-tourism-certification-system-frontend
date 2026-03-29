@@ -70,9 +70,12 @@ export function AuthProvider({ children }) {
     const nextToken = response?.token || getStoredToken()
 
     setToken(nextToken)
-    await loadCurrentUser()
+    const currentUser = await loadCurrentUser()
 
-    return response
+    return {
+      ...response,
+      user: currentUser,
+    }
   }, [loadCurrentUser])
 
   const register = useCallback(async ({ name, email, password, role }) => {
@@ -80,9 +83,12 @@ export function AuthProvider({ children }) {
     const nextToken = response?.token || getStoredToken()
 
     setToken(nextToken)
-    await loadCurrentUser()
+    const currentUser = await loadCurrentUser()
 
-    return response
+    return {
+      ...response,
+      user: currentUser,
+    }
   }, [loadCurrentUser])
 
   const logout = useCallback(() => {
