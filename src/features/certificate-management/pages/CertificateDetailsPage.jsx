@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import {
   getCertificateDetails,
@@ -6,12 +8,12 @@ import {
   inactivateCertificate,
   renewCertificate,
   revokeCertificate,
-  updateCertificateTrustScore,
   updateTrustScore,
 } from '../certificateManagementService'
 import { useAuth } from '../../common/auth/AuthContext'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
+import '../styles/certificateDetailsPage.css'
 
 const TIMELINE_EVENT_OPTIONS = [
   '',
@@ -26,6 +28,102 @@ const TIMELINE_EVENT_OPTIONS = [
   'AUTO_REVOCATION_TRIGGERED',
   'FEEDBACK_SYNC_APPLIED',
 ]
+
+const CERTIFICATE_THEME = {
+  ACTIVE: {
+    accent: '#0f766e',
+    accentSoft: 'rgba(20, 184, 166, 0.16)',
+    ribbonStart: '#0f766e',
+    ribbonEnd: '#1d4ed8',
+    summary: 'This certificate is currently valid and in good standing.',
+  },
+  EXPIRED: {
+    accent: '#b45309',
+    accentSoft: 'rgba(245, 158, 11, 0.18)',
+    ribbonStart: '#b45309',
+    ribbonEnd: '#b91c1c',
+    summary: 'This certificate has reached the end of its validity period.',
+  },
+  REVOKED: {
+    accent: '#be123c',
+    accentSoft: 'rgba(244, 63, 94, 0.16)',
+    ribbonStart: '#9f1239',
+    ribbonEnd: '#be123c',
+    summary: 'This certificate has been revoked and should not be treated as valid.',
+  },
+  INACTIVE: {
+    accent: '#475569',
+    accentSoft: 'rgba(100, 116, 139, 0.2)',
+    ribbonStart: '#475569',
+    ribbonEnd: '#334155',
+    summary: 'This certificate is inactive and retained for compliance history.',
+  },
+  DEFAULT: {
+    accent: '#155e75',
+    accentSoft: 'rgba(8, 145, 178, 0.16)',
+    ribbonStart: '#155e75',
+    ribbonEnd: '#0f172a',
+    summary: 'Certificate validity is currently under review.',
+  },
+}
+
+const LEVEL_BADGE_THEME = {
+  GOLD: {
+    ribbonTop: '#78350f',
+    ribbonBottom: '#b45309',
+    outerLight: '#fff4ca',
+    outerMid: '#f5b336',
+    outerDark: '#8b5e14',
+    innerLight: '#fffbe6',
+    innerMid: '#ffe18f',
+    innerDark: '#d89e2c',
+    labelColor: '#78350f',
+    levelColor: '#422006',
+    codeColor: '#7c2d12',
+  },
+  SILVER: {
+    ribbonTop: '#334155',
+    ribbonBottom: '#64748b',
+    outerLight: '#f8fafc',
+    outerMid: '#d1d5db',
+    outerDark: '#6b7280',
+    innerLight: '#ffffff',
+    innerMid: '#e5e7eb',
+    innerDark: '#9ca3af',
+    labelColor: '#475569',
+    levelColor: '#1f2937',
+    codeColor: '#334155',
+  },
+ PLATINUM: {
+  ribbonTop: '#2a1f3d',      // deep muted purple (premium base)
+  ribbonBottom: '#4c3b6e',   // lighter royal purple gradient
+
+  outerLight: '#fbfaff',     // near-white with slight violet tint
+  outerMid: '#e6e1f2',       // soft platinum with purple hint
+  outerDark: '#a8a0c2',      // muted metallic lavender-gray
+
+  innerLight: '#ffffff',     // clean highlight
+  innerMid: '#f0ecf8',       // subtle inner glow
+  innerDark: '#c5bddb',      // soft shadow tone
+
+  labelColor: '#3b2f57',     // readable dark purple-gray
+  levelColor: '#1f1433',     // strong emphasis (almost black-purple)
+  codeColor: '#4c3b6e',      // matches ribbon for consistency
+},
+  DEFAULT: {
+    ribbonTop: '#78350f',
+    ribbonBottom: '#b45309',
+    outerLight: '#fff4ca',
+    outerMid: '#f5b336',
+    outerDark: '#8b5e14',
+    innerLight: '#fffbe6',
+    innerMid: '#ffe18f',
+    innerDark: '#d89e2c',
+    labelColor: '#78350f',
+    levelColor: '#422006',
+    codeColor: '#7c2d12',
+  },
+}
 
 function resolveHotelId(certificate) {
   if (!certificate?.hotelId) {
@@ -91,6 +189,88 @@ function renderValue(value) {
   return JSON.stringify(value)
 }
 
+function formatDate(value, options = {}) {
+  if (!value) {
+    return 'N/A'
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return 'N/A'
+  }
+
+  if (options.withTime) {
+    return date.toLocaleString()
+  }
+
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+function getCertificateTheme(status) {
+  const normalizedStatus = String(status || '').toUpperCase()
+  return CERTIFICATE_THEME[normalizedStatus] || CERTIFICATE_THEME.DEFAULT
+}
+
+function getLevelBadgeTheme(level) {
+  const normalizedLevel = String(level || '').toUpperCase()
+  return LEVEL_BADGE_THEME[normalizedLevel] || LEVEL_BADGE_THEME.DEFAULT
+}
+
+function buildValidityStatement(certificate) {
+  const status = String(certificate?.status || '').toUpperCase()
+  const expiryText = formatDate(certificate?.expiryDate)
+
+  if (status === 'EXPIRED') {
+    return `Validity ended on ${expiryText}.`
+  }
+
+  if (status === 'REVOKED' || status === 'INACTIVE') {
+    return `Current status: ${status}. Refer to timeline records for lifecycle details.`
+  }
+
+  if (expiryText !== 'N/A') {
+    return `Valid through ${expiryText}, subject to compliance and trust-score review.`
+  }
+
+  return 'Validity period is unavailable.'
+}
+
+function getHotelMapUrl(certificate) {
+  const latitude = certificate?.hotelId?.businessInfo?.contact?.gps?.latitude
+  const longitude = certificate?.hotelId?.businessInfo?.contact?.gps?.longitude
+  const address = certificate?.hotelId?.businessInfo?.contact?.address
+
+  if (latitude !== undefined && longitude !== undefined) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(`${latitude},${longitude}`)}`
+  }
+
+  if (address) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+  }
+
+  return ''
+}
+
+function buildCertificateFileBase(certificate) {
+  const safeHotelName = String(certificate?.hotelId?.businessInfo?.name || 'hotel')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  const safeNumber = String(certificate?.certificateNumber || 'certificate')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+
+  const hotelPart = safeHotelName || 'hotel'
+  const numberPart = safeNumber || 'certificate'
+
+  return `${hotelPart}-${numberPart}`
+}
+
 function CertificateDetailsPage() {
   const { certificateNumber } = useParams()
   const location = useLocation()
@@ -123,8 +303,9 @@ function CertificateDetailsPage() {
   const [inactivateReason, setInactivateReason] = useState('')
   const [scoreChange, setScoreChange] = useState(-5)
   const [scoreReason, setScoreReason] = useState('')
-  const [averageRating, setAverageRating] = useState(4.2)
-  const [reviewCount, setReviewCount] = useState(20)
+  const [certificateUiMessage, setCertificateUiMessage] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+  const certificateExportRef = useRef(null)
 
   async function loadTimeline(certificateId, { page = 1, append = false, filters = timelineFilters } = {}) {
     if (!certificateId) {
@@ -197,17 +378,43 @@ function CertificateDetailsPage() {
   }
 
   useEffect(() => {
+    setCertificateUiMessage('')
     loadCertificateAndTimeline()
     // loadCertificateAndTimeline uses latest local state and should run when the route ID changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateNumber])
 
   const hotelId = useMemo(() => resolveHotelId(certificate), [certificate])
+  const certificateTheme = useMemo(() => getCertificateTheme(certificate?.status), [certificate?.status])
+  const levelBadgeTheme = useMemo(() => getLevelBadgeTheme(certificate?.level), [certificate?.level])
+  const certificateThemeStyle = useMemo(() => ({
+    '--certificate-accent': certificateTheme.accent,
+    '--certificate-soft': certificateTheme.accentSoft,
+    '--certificate-ribbon-start': certificateTheme.ribbonStart,
+    '--certificate-ribbon-end': certificateTheme.ribbonEnd,
+    '--certificate-badge-ribbon-top': levelBadgeTheme.ribbonTop,
+    '--certificate-badge-ribbon-bottom': levelBadgeTheme.ribbonBottom,
+    '--certificate-badge-outer-light': levelBadgeTheme.outerLight,
+    '--certificate-badge-outer-mid': levelBadgeTheme.outerMid,
+    '--certificate-badge-outer-dark': levelBadgeTheme.outerDark,
+    '--certificate-badge-inner-light': levelBadgeTheme.innerLight,
+    '--certificate-badge-inner-mid': levelBadgeTheme.innerMid,
+    '--certificate-badge-inner-dark': levelBadgeTheme.innerDark,
+    '--certificate-badge-label-color': levelBadgeTheme.labelColor,
+    '--certificate-badge-level-color': levelBadgeTheme.levelColor,
+    '--certificate-badge-code-color': levelBadgeTheme.codeColor,
+  }), [certificateTheme, levelBadgeTheme])
+  const mapUrl = useMemo(() => getHotelMapUrl(certificate), [certificate])
+  const hotelName = certificate?.hotelId?.businessInfo?.name || 'Certified Hospitality Property'
+  const hotelAddress = certificate?.hotelId?.businessInfo?.contact?.address || 'Address unavailable'
+  const validityStatement = useMemo(() => buildValidityStatement(certificate), [certificate])
+  const certificateFileBase = useMemo(() => buildCertificateFileBase(certificate), [certificate])
 
   async function runAction(action, successText) {
     setIsActing(true)
     setErrorMessage('')
     setSuccessMessage('')
+    setCertificateUiMessage('')
 
     try {
       await action()
@@ -253,6 +460,108 @@ function CertificateDetailsPage() {
     }))
   }
 
+  async function copyCertificateNumber() {
+    if (!certificate?.certificateNumber) {
+      setCertificateUiMessage('Certificate number is unavailable.')
+      return
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(certificate.certificateNumber)
+        setCertificateUiMessage('Certificate number copied to clipboard.')
+        return
+      } catch {
+        setCertificateUiMessage('Unable to copy automatically. You can copy it from the certificate card.')
+        return
+      }
+    }
+
+    setCertificateUiMessage('Clipboard access is not available in this browser.')
+  }
+
+  function printCertificate() {
+    if (typeof window !== 'undefined' && window.print) {
+      window.print()
+      setCertificateUiMessage('Print dialog opened for certificate preview.')
+    }
+  }
+
+  function downloadFile(dataUrl, fileName) {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = fileName
+    link.click()
+  }
+
+  async function captureCertificateCanvas() {
+    if (!certificateExportRef.current) {
+      throw new Error('Certificate surface is unavailable for export.')
+    }
+
+    const scale = typeof window !== 'undefined'
+      ? Math.min(3, Math.max(2, window.devicePixelRatio || 2))
+      : 2
+
+    return html2canvas(certificateExportRef.current, {
+      backgroundColor: '#ffffff',
+      scale,
+      useCORS: true,
+      logging: false,
+    })
+  }
+
+  async function exportCertificateAsJpg() {
+    setCertificateUiMessage('')
+    setIsExporting(true)
+
+    try {
+      const canvas = await captureCertificateCanvas()
+      const imageData = canvas.toDataURL('image/jpeg', 0.95)
+      downloadFile(imageData, `${certificateFileBase}.jpg`)
+      setCertificateUiMessage('Certificate JPG downloaded successfully.')
+    } catch (error) {
+      setCertificateUiMessage(error.message || 'Unable to export certificate as JPG.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  async function exportCertificateAsPdf() {
+    setCertificateUiMessage('')
+    setIsExporting(true)
+
+    try {
+      const canvas = await captureCertificateCanvas()
+      const imageData = canvas.toDataURL('image/jpeg', 0.95)
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'pt',
+        format: 'a4',
+      })
+
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const scale = Math.min(pageWidth / canvas.width, pageHeight / canvas.height)
+      const width = canvas.width * scale
+      const height = canvas.height * scale
+      const x = (pageWidth - width) / 2
+      const y = (pageHeight - height) / 2
+
+      pdf.addImage(imageData, 'JPEG', x, y, width, height, undefined, 'FAST')
+      pdf.save(`${certificateFileBase}.pdf`)
+      setCertificateUiMessage('Certificate PDF downloaded successfully.')
+    } catch (error) {
+      setCertificateUiMessage(error.message || 'Unable to export certificate as PDF.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <section className='space-y-4'>
       <div className='flex flex-wrap items-center justify-between gap-3'>
@@ -277,22 +586,153 @@ function CertificateDetailsPage() {
       ) : certificate ? (
         <div className='grid gap-4 xl:grid-cols-12'>
           <div className='space-y-4 xl:col-span-8'>
-            <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
-              <h3 className='text-lg font-bold text-slate-900'>Certificate Details</h3>
-              <div className='mt-3 grid gap-3 text-sm text-slate-700 md:grid-cols-2'>
-                <p><span className='font-semibold'>Certificate Number:</span> {certificate.certificateNumber}</p>
-                <p className='flex items-center gap-2'>
-                  <span className='font-semibold'>Status:</span> <StatusBadge status={certificate.status} />
-                </p>
-                <p><span className='font-semibold'>Trust Score:</span> {certificate.trustScore ?? 'N/A'}</p>
-                <p className='flex items-center gap-2'>
-                  <span className='font-semibold'>Level:</span> <LevelBadge level={certificate.level} />
-                </p>
-                <p><span className='font-semibold'>Issued Date:</span> {certificate.issuedDate ? new Date(certificate.issuedDate).toLocaleString() : 'N/A'}</p>
-                <p><span className='font-semibold'>Expiry Date:</span> {certificate.expiryDate ? new Date(certificate.expiryDate).toLocaleString() : 'N/A'}</p>
-                <p><span className='font-semibold'>Renewal Count:</span> {certificate.renewalCount ?? 0}</p>
-                <p><span className='font-semibold'>Updated At:</span> {certificate.updatedAt ? new Date(certificate.updatedAt).toLocaleString() : 'N/A'}</p>
+            <article className='certificate-stage' style={certificateThemeStyle}>
+              <div ref={certificateExportRef} className='certificate-export-surface'>
+                <div className='certificate-ribbon'>
+                  <span className='certificate-font-sans'>Ethical Tourism Certification Register</span>
+                  <span className='certificate-font-sans'>Record: {certificate.certificateNumber || 'N/A'}</span>
+                </div>
+
+                <div className='certificate-sheet'>
+                  <span className='certificate-watermark' aria-hidden='true'>CERTIFIED</span>
+
+                  <div className='certificate-badge' aria-hidden='true'>
+                    <span className='certificate-badge-ribbon certificate-badge-ribbon-left' />
+                    <span className='certificate-badge-ribbon certificate-badge-ribbon-right' />
+                    <div className='certificate-badge-outer'>
+                      <div className='certificate-badge-inner'>
+                        <p className='certificate-badge-label'>Certification Level</p>
+                        <p className='certificate-badge-level'>{certificate.level || 'N/A'}</p>
+                        <p className='certificate-badge-code'>
+                          {(certificate.certificateNumber || '').slice(-8).toUpperCase() || 'NO-ID'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className='certificate-kicker certificate-font-sans'>Certificate of Compliance</p>
+                  <h3 className='certificate-title certificate-font-serif'>Ethical Tourism Assurance Certificate</h3>
+                  <p className='certificate-subtitle certificate-font-sans'>
+                    Awarded by the Ethical Tourism Certification Authority to recognize verified sustainability,
+                    service quality, and governance standards.
+                  </p>
+
+                  <p className='certificate-label certificate-font-sans'>This certifies that</p>
+                  <p className='certificate-hotel-name certificate-font-serif'>{hotelName}</p>
+                  <p className='certificate-address certificate-font-sans'>{hotelAddress}</p>
+
+                  <p className='certificate-statement certificate-font-sans'>
+                    has successfully met the current evaluation criteria and is recognized as a certified tourism
+                    establishment under the Ethical Tourism Certification Program.
+                  </p>
+
+                  <div className='certificate-metrics'>
+                    <div>
+                      <p className='certificate-metric-label'>Certificate Number</p>
+                      <p className='certificate-metric-value'>{certificate.certificateNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className='certificate-metric-label'>Issued On</p>
+                      <p className='certificate-metric-value'>{formatDate(certificate.issuedDate)}</p>
+                    </div>
+                    <div>
+                      <p className='certificate-metric-label'>Valid Until</p>
+                      <p className='certificate-metric-value'>{formatDate(certificate.expiryDate)}</p>
+                    </div>
+                    <div>
+                      <p className='certificate-metric-label'>Trust Score</p>
+                      <p className='certificate-metric-value'>{certificate.trustScore ?? 'N/A'} %</p>
+                    </div>
+                    <div>
+                      <p className='certificate-metric-label'>Hotel Record ID</p>
+                      <p className='certificate-metric-value'>{hotelId || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className='certificate-metric-label'>Renewal Count</p>
+                      <p className='certificate-metric-value'>{certificate.renewalCount ?? 0}</p>
+                    </div>
+                  </div>
+
+                  <p className='certificate-validity-note certificate-font-sans'>
+                    {certificateTheme.summary} {validityStatement}
+                  </p>
+
+                  <div className='certificate-signature-row'>
+                    <div className='certificate-signature-block'>
+                      <span className='certificate-signature-line' />
+                      <p className='certificate-signature-name certificate-font-serif'>Director, Certification Council</p>
+                      <p className='certificate-signature-role certificate-font-sans'>Issuing Authority</p>
+                    </div>
+                    <div className='certificate-signature-block'>
+                      <span className='certificate-signature-line' />
+                      <p className='certificate-signature-name certificate-font-serif'>Head of Quality Assurance</p>
+                      <p className='certificate-signature-role certificate-font-sans'>Verification Officer</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <div className='certificate-actions certificate-no-print'>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={printCertificate}
+                    className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50'
+                  >
+                    Print Certificate
+                  </button>
+                  <button
+                    type='button'
+                    onClick={copyCertificateNumber}
+                    className='rounded-lg border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100'
+                  >
+                    Copy Number
+                  </button>
+                  <button
+                    type='button'
+                    onClick={exportCertificateAsPdf}
+                    disabled={isExporting}
+                    className='rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60'
+                  >
+                    {isExporting ? 'Exporting...' : 'Export PDF'}
+                  </button>
+                  <button
+                    type='button'
+                    onClick={exportCertificateAsJpg}
+                    disabled={isExporting}
+                    className='rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-800 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60'
+                  >
+                    {isExporting ? 'Exporting...' : 'Export JPG'}
+                  </button>
+                  {mapUrl ? (
+                    <a
+                      href={mapUrl}
+                      target='_blank'
+                      rel='noreferrer'
+                      className='rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100'
+                    >
+                      View Location
+                    </a>
+                  ) : null}
+                </div>
+                <div className='flex flex-wrap items-center gap-2'>
+                  <StatusBadge status={certificate.status} />
+                  <LevelBadge level={certificate.level} />
+                  <span className='rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600'>
+                    Updated: {formatDate(certificate.updatedAt, { withTime: true })}
+                  </span>
+                </div>
+              </div>
+
+              {certificateUiMessage ? (
+                <p className='certificate-action-message certificate-no-print'>{certificateUiMessage}</p>
+              ) : null}
+
+              {certificate.revokedReason ? (
+                <p className='certificate-status-note'>
+                  <span className='font-semibold'>Status Note:</span> {certificate.revokedReason}
+                </p>
+              ) : null}
             </article>
 
             <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
