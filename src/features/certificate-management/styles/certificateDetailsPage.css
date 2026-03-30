@@ -203,40 +203,42 @@
   position: relative;
   z-index: 2;
   margin-top: 1.45rem;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  justify-content: flex-end;
 }
 
 .certificate-signature-block {
+  width: min(15rem, 100%);
   border-radius: 0.8rem;
-  border: 1px dashed rgba(100, 116, 139, 0.45);
+  /* border: 1px dashed rgba(100, 116, 139, 0.45); */
   background: rgba(255, 255, 255, 0.6);
-  padding: 0.8rem 0.7rem 0.7rem;
+  /* padding: 0.65rem 0.65rem 0.6rem; */
   text-align: center;
 }
 
-.certificate-signature-line {
+.certificate-signature-image {
   display: block;
-  width: 78%;
-  margin: 0 auto 0.45rem;
-  border-top: 1px solid #334155;
+  width: min(4.8rem, 100%);
+  margin: 0 auto 0.2rem;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.15));
 }
 
 .certificate-signature-name {
-  margin: 0;
+  margin: 0.08rem 0 0;
   color: #0f172a;
-  font-size: 1rem;
+  font-size: 0.66rem;
   font-weight: 700;
 }
 
 .certificate-signature-role {
   margin: 0.2rem 0 0;
   color: #64748b;
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
+  margin-bottom: 0.6rem;
 }
 
 .certificate-watermark {
@@ -460,9 +462,20 @@
     font-size: 0.38rem;
   }
 
-  .certificate-metrics,
-  .certificate-signature-row {
+  .certificate-metrics {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .certificate-signature-row {
+    justify-content: stretch;
+  }
+
+  .certificate-signature-block {
+    width: 100%;
+  }
+
+  .certificate-signature-image {
+    width: min(6.8rem, 100%);
   }
 
   .certificate-actions {

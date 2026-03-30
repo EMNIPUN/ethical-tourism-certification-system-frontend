@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../../common/auth/AuthContext'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
+import directorSignature from '../../../assets/signature.png'
 import '../styles/certificateDetailsPage.css'
 
 const TIMELINE_EVENT_OPTIONS = [
@@ -94,22 +95,19 @@ const LEVEL_BADGE_THEME = {
     levelColor: '#1f2937',
     codeColor: '#334155',
   },
- PLATINUM: {
-  ribbonTop: '#2a1f3d',      // deep muted purple (premium base)
-  ribbonBottom: '#4c3b6e',   // lighter royal purple gradient
-
-  outerLight: '#fbfaff',     // near-white with slight violet tint
-  outerMid: '#e6e1f2',       // soft platinum with purple hint
-  outerDark: '#a8a0c2',      // muted metallic lavender-gray
-
-  innerLight: '#ffffff',     // clean highlight
-  innerMid: '#f0ecf8',       // subtle inner glow
-  innerDark: '#c5bddb',      // soft shadow tone
-
-  labelColor: '#3b2f57',     // readable dark purple-gray
-  levelColor: '#1f1433',     // strong emphasis (almost black-purple)
-  codeColor: '#4c3b6e',      // matches ribbon for consistency
-},
+  PLATINUM: {
+    ribbonTop: '#2a1f3d',
+    ribbonBottom: '#4c3b6e',
+    outerLight: '#fbfaff',
+    outerMid: '#e6e1f2',
+    outerDark: '#a8a0c2',
+    innerLight: '#ffffff',
+    innerMid: '#f0ecf8',
+    innerDark: '#c5bddb',
+    labelColor: '#3b2f57',
+    levelColor: '#1f1433',
+    codeColor: '#4c3b6e',
+  },
   DEFAULT: {
     ribbonTop: '#78350f',
     ribbonBottom: '#b45309',
@@ -659,14 +657,9 @@ function CertificateDetailsPage() {
 
                   <div className='certificate-signature-row'>
                     <div className='certificate-signature-block'>
-                      <span className='certificate-signature-line' />
+                      <img src={directorSignature} alt='Director signature' className='certificate-signature-image' />
                       <p className='certificate-signature-name certificate-font-serif'>Director, Certification Council</p>
                       <p className='certificate-signature-role certificate-font-sans'>Issuing Authority</p>
-                    </div>
-                    <div className='certificate-signature-block'>
-                      <span className='certificate-signature-line' />
-                      <p className='certificate-signature-name certificate-font-serif'>Head of Quality Assurance</p>
-                      <p className='certificate-signature-role certificate-font-sans'>Verification Officer</p>
                     </div>
                   </div>
                 </div>
