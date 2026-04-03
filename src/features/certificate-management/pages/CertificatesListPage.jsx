@@ -1,15 +1,27 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  getCertificates,
-  inactivateCertificate,
-  renewCertificate,
-  revokeCertificate,
-} from '../api/certificateManagementApi'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
 import LifecycleActionModal from '../components/LifecycleActionModal'
+import {
+  clearCertificateManagementMessages,
+  fetchCertificates,
+  inactivateCertificateAction,
+  renewCertificateAction,
+  revokeCertificateAction,
+  setCertificateStatusFilter,
+} from '../store/certificateManagementSlice'
+import {
+  selectCertificateManagementActionError,
+  selectCertificateManagementActionStatus,
+  selectCertificateManagementActionSuccess,
+  selectCertificateManagementError,
+  selectCertificates,
+  selectCertificatesStatus,
+  selectCertificateStatusFilter,
+} from '../store/certificateManagementSelectors'
 
 const ACTION_TYPES = {
   RENEW: 'RENEW',
@@ -17,7 +29,7 @@ const ACTION_TYPES = {
   INACTIVATE: 'INACTIVATE',
 }
 
-const STATUS_OPTIONS = ['', 'ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
+const STATUS_OPTIONS = ['ALL', 'ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
 
 function getHotelName(item) {
   return item?.hotelId?.businessInfo?.name || 'Unknown hotel'
@@ -78,38 +90,32 @@ function isActionDisabled(type, item) {
 }
 
 function CertificatesListPage() {
+  const dispatch = useAppDispatch()
   const { user } = useAuth()
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
 
-  const [statusFilter, setStatusFilter] = useState('')
+  const statusFilter = useAppSelector(selectCertificateStatusFilter)
+  const certificates = useAppSelector(selectCertificates)
+  const certificatesStatus = useAppSelector(selectCertificatesStatus)
+  const listError = useAppSelector(selectCertificateManagementError)
+  const actionError = useAppSelector(selectCertificateManagementActionError)
+  const successMessage = useAppSelector(selectCertificateManagementActionSuccess)
+  const actionStatus = useAppSelector(selectCertificateManagementActionStatus)
+
+  const isLoading = certificatesStatus === 'loading'
+  const isActing = actionStatus === 'loading'
+
   const [searchQuery, setSearchQuery] = useState('')
-  const [certificates, setCertificates] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isActing, setIsActing] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
   const [activeAction, setActiveAction] = useState('')
   const [selectedCertificate, setSelectedCertificate] = useState(null)
   const [actionForm, setActionForm] = useState(getActionDefaults(ACTION_TYPES.RENEW))
-  const [actionError, setActionError] = useState('')
-
-  async function loadCertificates() {
-    setIsLoading(true)
-    setErrorMessage('')
-
-    try {
-      const response = await getCertificates()
-      setCertificates(response?.data || [])
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to load certificates')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [localActionError, setLocalActionError] = useState('')
 
   useEffect(() => {
-    loadCertificates()
-  }, [])
+    if (certificatesStatus === 'idle') {
+      dispatch(fetchCertificates(statusFilter === 'ALL' ? '' : statusFilter))
+    }
+  }, [certificatesStatus, dispatch, statusFilter])
 
   const groupedCounts = useMemo(() => {
     return {
@@ -124,7 +130,7 @@ function CertificatesListPage() {
     const query = searchQuery.trim().toLowerCase()
 
     return certificates.filter((item) => {
-      if (statusFilter && item.status !== statusFilter) {
+      if (statusFilter !== 'ALL' && item.status !== statusFilter) {
         return false
       }
 
@@ -151,15 +157,14 @@ function CertificatesListPage() {
     setActiveAction(type)
     setSelectedCertificate(certificate)
     setActionForm(getActionDefaults(type))
-    setActionError('')
-    setSuccessMessage('')
-    setErrorMessage('')
+    setLocalActionError('')
+    dispatch(clearCertificateManagementMessages())
   }
 
   function closeActionModal() {
     setActiveAction('')
     setSelectedCertificate(null)
-    setActionError('')
+    setLocalActionError('')
   }
 
   function updateActionField(name, value) {
@@ -209,46 +214,45 @@ function CertificatesListPage() {
 
     const validationError = validateAction()
     if (validationError) {
-      setActionError(validationError)
+      setLocalActionError(validationError)
       return
     }
 
-    setIsActing(true)
-    setActionError('')
-    setErrorMessage('')
-    setSuccessMessage('')
+    dispatch(clearCertificateManagementMessages())
+    setLocalActionError('')
 
     try {
       if (activeAction === ACTION_TYPES.RENEW) {
-        await renewCertificate({
-          certificateId: selectedCertificate._id,
-          validityPeriodInMonths: Number(actionForm.validityPeriodInMonths),
-        })
-        setSuccessMessage('Certificate renewed successfully.')
+        await dispatch(
+          renewCertificateAction({
+            certificateId: selectedCertificate._id,
+            validityPeriodInMonths: Number(actionForm.validityPeriodInMonths),
+          }),
+        ).unwrap()
       }
 
       if (activeAction === ACTION_TYPES.REVOKE) {
-        await revokeCertificate({
-          certificateId: selectedCertificate._id,
-          reason: String(actionForm.reason).trim(),
-        })
-        setSuccessMessage('Certificate revoked successfully.')
+        await dispatch(
+          revokeCertificateAction({
+            certificateId: selectedCertificate._id,
+            reason: String(actionForm.reason).trim(),
+          }),
+        ).unwrap()
       }
 
       if (activeAction === ACTION_TYPES.INACTIVATE) {
-        await inactivateCertificate({
-          certificateId: selectedCertificate._id,
-          reason: String(actionForm.reason).trim(),
-        })
-        setSuccessMessage('Certificate inactivated successfully.')
+        await dispatch(
+          inactivateCertificateAction({
+            certificateId: selectedCertificate._id,
+            reason: String(actionForm.reason).trim(),
+          }),
+        ).unwrap()
       }
 
-      await loadCertificates()
+      await dispatch(fetchCertificates(statusFilter === 'ALL' ? '' : statusFilter))
       closeActionModal()
     } catch (error) {
-      setActionError(error.message || 'Action failed')
-    } finally {
-      setIsActing(false)
+      setLocalActionError(error.message || 'Action failed')
     }
   }
 
@@ -280,12 +284,16 @@ function CertificatesListPage() {
               Filter by status
               <select
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
+                onChange={(event) => {
+                  const nextStatus = event.target.value || 'ALL'
+                  dispatch(setCertificateStatusFilter(nextStatus))
+                  dispatch(fetchCertificates(nextStatus === 'ALL' ? '' : nextStatus))
+                }}
                 className='mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
               >
                 {STATUS_OPTIONS.map((status) => (
-                  <option key={status || 'ALL'} value={status}>
-                    {status || 'All'}
+                  <option key={status} value={status}>
+                    {status === 'ALL' ? 'All' : status}
                   </option>
                 ))}
               </select>
@@ -302,8 +310,12 @@ function CertificatesListPage() {
         </div>
       </article>
 
-      {errorMessage ? (
-        <p className='rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{errorMessage}</p>
+      {listError ? (
+        <p className='rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{listError}</p>
+      ) : null}
+
+      {actionError ? (
+        <p className='rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{actionError}</p>
       ) : null}
 
       {successMessage ? (
@@ -442,8 +454,8 @@ function CertificatesListPage() {
           </label>
         )}
 
-        {actionError ? (
-          <p className='rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700'>{actionError}</p>
+        {localActionError ? (
+          <p className='rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700'>{localActionError}</p>
         ) : null}
       </LifecycleActionModal>
     </section>

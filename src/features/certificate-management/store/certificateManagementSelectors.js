@@ -2,4 +2,21 @@ export const selectCertificateManagementState = (state) => state.certificateMana
 export const selectCertificateStatusFilter = (state) => state.certificateManagement.statusFilter
 export const selectCertificateManagementPage = (state) => state.certificateManagement.page
 export const selectCertificateManagementLimit = (state) => state.certificateManagement.limit
+export const selectCertificates = (state) => state.certificateManagement.certificates
+export const selectEligibleHotels = (state) => state.certificateManagement.eligibleHotels
+export const selectCertificatesStatus = (state) => state.certificateManagement.certificatesStatus
+export const selectEligibleHotelsStatus = (state) => state.certificateManagement.eligibleHotelsStatus
+export const selectCertificateManagementError = (state) => state.certificateManagement.error
+export const selectCertificateManagementActionStatus = (state) => state.certificateManagement.actionStatus
+export const selectCertificateManagementActionError = (state) => state.certificateManagement.actionError
+export const selectCertificateManagementActionSuccess = (state) => state.certificateManagement.actionSuccess
+export const selectCertificateDetails = (state) => state.certificateManagement.certificateDetails
+export const selectCertificateDetailsStatus = (state) => state.certificateManagement.certificateDetailsStatus
+export const selectCertificateDetailsError = (state) => state.certificateManagement.detailsError
+export const selectCertificateTimeline = (state) => state.certificateManagement.timeline
+export const selectCertificateTimelineStatus = (state) => state.certificateManagement.timelineStatus
+export const selectCertificateTimelineError = (state) => state.certificateManagement.timelineError
+export const selectCertificateTimelinePage = (state) => state.certificateManagement.timelinePage
+export const selectCertificateTimelineHasNext = (state) => state.certificateManagement.timelineHasNext
+export const selectCertificateTimelineTotal = (state) => state.certificateManagement.timelineTotal
 

@@ -2,19 +2,36 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 import { Link, useLocation, useParams } from 'react-router-dom'
-import {
-  getCertificateDetails,
-  getCertificateTimeline,
-  inactivateCertificate,
-  renewCertificate,
-  revokeCertificate,
-  updateTrustScore,
-} from '../api/certificateManagementApi'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
 import directorSignature from '../../../assets/signature.png'
 import '../styles/certificateDetailsPage.css'
+import {
+  clearCertificateDetailsState,
+  clearCertificateManagementMessages,
+  fetchCertificateDetails,
+  fetchCertificateTimeline,
+  inactivateCertificateAction,
+  renewCertificateAction,
+  revokeCertificateAction,
+  updateTrustScoreAction,
+} from '../store/certificateManagementSlice'
+import {
+  selectCertificateDetails,
+  selectCertificateDetailsError,
+  selectCertificateDetailsStatus,
+  selectCertificateManagementActionError,
+  selectCertificateManagementActionStatus,
+  selectCertificateManagementActionSuccess,
+  selectCertificateTimeline,
+  selectCertificateTimelineError,
+  selectCertificateTimelineHasNext,
+  selectCertificateTimelinePage,
+  selectCertificateTimelineStatus,
+  selectCertificateTimelineTotal,
+} from '../store/certificateManagementSelectors'
 
 const TIMELINE_EVENT_OPTIONS = [
   '',
@@ -270,6 +287,7 @@ function buildCertificateFileBase(certificate) {
 }
 
 function CertificateDetailsPage() {
+  const dispatch = useAppDispatch()
   const { certificateNumber } = useParams()
   const location = useLocation()
   const basePath = location.pathname.startsWith('/admin/certificate-management')
@@ -278,17 +296,24 @@ function CertificateDetailsPage() {
   const { user } = useAuth()
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
 
-  const [certificate, setCertificate] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isActing, setIsActing] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
-  const [timeline, setTimeline] = useState([])
-  const [isTimelineLoading, setIsTimelineLoading] = useState(false)
-  const [timelineError, setTimelineError] = useState('')
-  const [timelinePage, setTimelinePage] = useState(1)
-  const [timelineHasNext, setTimelineHasNext] = useState(false)
-  const [timelineTotal, setTimelineTotal] = useState(0)
+  const certificate = useAppSelector(selectCertificateDetails)
+  const detailsStatus = useAppSelector(selectCertificateDetailsStatus)
+  const detailsError = useAppSelector(selectCertificateDetailsError)
+  const actionStatus = useAppSelector(selectCertificateManagementActionStatus)
+  const actionError = useAppSelector(selectCertificateManagementActionError)
+  const actionSuccess = useAppSelector(selectCertificateManagementActionSuccess)
+  const timeline = useAppSelector(selectCertificateTimeline)
+  const timelineStatus = useAppSelector(selectCertificateTimelineStatus)
+  const timelineError = useAppSelector(selectCertificateTimelineError)
+  const timelinePage = useAppSelector(selectCertificateTimelinePage)
+  const timelineHasNext = useAppSelector(selectCertificateTimelineHasNext)
+  const timelineTotal = useAppSelector(selectCertificateTimelineTotal)
+
+  const isLoading = detailsStatus === 'loading'
+  const isActing = actionStatus === 'loading'
+  const isTimelineLoading = timelineStatus === 'loading'
+  const errorMessage = detailsError || actionError
+  const successMessage = actionSuccess
   const [timelineFilters, setTimelineFilters] = useState({
     eventType: '',
     from: '',
@@ -307,52 +332,33 @@ function CertificateDetailsPage() {
 
   async function loadTimeline(certificateId, { page = 1, append = false, filters = timelineFilters } = {}) {
     if (!certificateId) {
-      setTimeline([])
-      setTimelinePage(1)
-      setTimelineHasNext(false)
-      setTimelineTotal(0)
       return
     }
 
-    setIsTimelineLoading(true)
-    setTimelineError('')
-
     try {
-      const response = await getCertificateTimeline({
-        certificateId,
-        page,
-        limit: 20,
-        order: filters.order || 'desc',
-        eventType: filters.eventType ? [filters.eventType] : undefined,
-        from: filters.from || undefined,
-        to: filters.to || undefined,
-      })
-
-      const nextItems = response?.data?.items || []
-      const pagination = response?.data?.pagination || {}
-
-      setTimeline((previous) => (append ? [...previous, ...nextItems] : nextItems))
-      setTimelinePage(Number(pagination.page) || page)
-      setTimelineHasNext(Boolean(pagination.hasNext))
-      setTimelineTotal(Number(pagination.total) || nextItems.length)
-    } catch (error) {
-      setTimelineError(error.message || 'Failed to load activity timeline')
-      if (!append) {
-        setTimeline([])
-      }
-    } finally {
-      setIsTimelineLoading(false)
+      await dispatch(
+        fetchCertificateTimeline({
+          certificateId,
+          page,
+          limit: 20,
+          order: filters.order || 'desc',
+          eventType: filters.eventType ? [filters.eventType] : undefined,
+          from: filters.from || undefined,
+          to: filters.to || undefined,
+          append,
+        }),
+      ).unwrap()
+    } catch {
+      // Timeline errors are handled in Redux state.
     }
   }
 
   async function loadCertificateAndTimeline(activeFilters = timelineFilters) {
-    setIsLoading(true)
-    setErrorMessage('')
+    dispatch(clearCertificateManagementMessages())
+    dispatch(clearCertificateDetailsState())
 
     try {
-      const response = await getCertificateDetails(certificateNumber)
-      const cert = response?.data || null
-      setCertificate(cert)
+      const cert = await dispatch(fetchCertificateDetails(certificateNumber)).unwrap()
 
       if (cert?._id) {
         await loadTimeline(cert._id, {
@@ -360,25 +366,21 @@ function CertificateDetailsPage() {
           append: false,
           filters: activeFilters,
         })
-      } else {
-        setTimeline([])
       }
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to load certificate details')
-      setCertificate(null)
-      setTimeline([])
-      setTimelinePage(1)
-      setTimelineHasNext(false)
-      setTimelineTotal(0)
-    } finally {
-      setIsLoading(false)
+    } catch {
+      // Details error is handled in Redux state.
     }
   }
 
   useEffect(() => {
     setCertificateUiMessage('')
     loadCertificateAndTimeline()
-    // loadCertificateAndTimeline uses latest local state and should run when the route ID changes.
+
+    return () => {
+      dispatch(clearCertificateDetailsState())
+      dispatch(clearCertificateManagementMessages())
+    }
+    // loadCertificateAndTimeline is intentionally route-driven via certificateNumber.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateNumber])
 
@@ -408,20 +410,15 @@ function CertificateDetailsPage() {
   const validityStatement = useMemo(() => buildValidityStatement(certificate), [certificate])
   const certificateFileBase = useMemo(() => buildCertificateFileBase(certificate), [certificate])
 
-  async function runAction(action, successText) {
-    setIsActing(true)
-    setErrorMessage('')
-    setSuccessMessage('')
+  async function runAction(action) {
+    dispatch(clearCertificateManagementMessages())
     setCertificateUiMessage('')
 
     try {
       await action()
-      setSuccessMessage(successText)
       await loadCertificateAndTimeline(timelineFilters)
-    } catch (error) {
-      setErrorMessage(error.message || 'Action failed')
-    } finally {
-      setIsActing(false)
+    } catch {
+      // Action errors are handled in Redux state.
     }
   }
 
@@ -934,7 +931,16 @@ function CertificateDetailsPage() {
                 <button
                   type='button'
                   disabled={isActing}
-                  onClick={() => runAction(() => renewCertificate({ certificateId: certificate._id, validityPeriodInMonths: renewMonths }), 'Certificate renewed successfully.')}
+                  onClick={() =>
+                    runAction(() =>
+                      dispatch(
+                        renewCertificateAction({
+                          certificateId: certificate._id,
+                          validityPeriodInMonths: renewMonths,
+                        }),
+                      ).unwrap(),
+                    )
+                  }
                   className='mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60'
                 >
                   Renew
@@ -953,7 +959,16 @@ function CertificateDetailsPage() {
                 <button
                   type='button'
                   disabled={isActing || !revokeReason.trim()}
-                  onClick={() => runAction(() => revokeCertificate({ certificateId: certificate._id, reason: revokeReason.trim() }), 'Certificate revoked successfully.')}
+                  onClick={() =>
+                    runAction(() =>
+                      dispatch(
+                        revokeCertificateAction({
+                          certificateId: certificate._id,
+                          reason: revokeReason.trim(),
+                        }),
+                      ).unwrap(),
+                    )
+                  }
                   className='mt-3 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500 disabled:opacity-60'
                 >
                   Revoke
@@ -972,7 +987,16 @@ function CertificateDetailsPage() {
                 <button
                   type='button'
                   disabled={isActing || !inactivateReason.trim()}
-                  onClick={() => runAction(() => inactivateCertificate({ certificateId: certificate._id, reason: inactivateReason.trim() }), 'Certificate inactivated successfully.')}
+                  onClick={() =>
+                    runAction(() =>
+                      dispatch(
+                        inactivateCertificateAction({
+                          certificateId: certificate._id,
+                          reason: inactivateReason.trim(),
+                        }),
+                      ).unwrap(),
+                    )
+                  }
                   className='mt-3 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-60'
                 >
                   Inactivate
@@ -1000,7 +1024,17 @@ function CertificateDetailsPage() {
                 <button
                   type='button'
                   disabled={isActing || !scoreReason.trim()}
-                  onClick={() => runAction(() => updateTrustScore({ certificateId: certificate._id, scoreChange, reason: scoreReason.trim() }), 'Trust score updated successfully.')}
+                  onClick={() =>
+                    runAction(() =>
+                      dispatch(
+                        updateTrustScoreAction({
+                          certificateId: certificate._id,
+                          scoreChange,
+                          reason: scoreReason.trim(),
+                        }),
+                      ).unwrap(),
+                    )
+                  }
                   className='mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60'
                 >
                   Update Trust Score

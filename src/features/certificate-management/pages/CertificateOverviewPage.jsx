@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { getCertificates, getEligibleHotels } from '../api/certificateManagementApi'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
+import { fetchCertificates, fetchEligibleHotels } from '../store/certificateManagementSlice'
+import {
+  selectCertificateManagementError,
+  selectCertificates,
+  selectCertificatesStatus,
+  selectEligibleHotels,
+  selectEligibleHotelsStatus,
+} from '../store/certificateManagementSelectors'
 
 function toDate(value) {
   if (!value) {
@@ -26,47 +34,23 @@ function daysBetween(fromDate, toDateValue) {
 }
 
 function CertificateOverviewPage() {
-  const [certificates, setCertificates] = useState([])
-  const [eligibleHotels, setEligibleHotels] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
+  const dispatch = useAppDispatch()
+  const certificates = useAppSelector(selectCertificates)
+  const eligibleHotels = useAppSelector(selectEligibleHotels)
+  const certificatesStatus = useAppSelector(selectCertificatesStatus)
+  const eligibleHotelsStatus = useAppSelector(selectEligibleHotelsStatus)
+  const errorMessage = useAppSelector(selectCertificateManagementError)
+  const isLoading = certificatesStatus === 'loading' || eligibleHotelsStatus === 'loading'
 
   useEffect(() => {
-    let ignore = false
-
-    async function loadData() {
-      setIsLoading(true)
-      setErrorMessage('')
-
-      try {
-        const [certificateResponse, eligibleResponse] = await Promise.all([
-          getCertificates(''),
-          getEligibleHotels(),
-        ])
-
-        if (ignore) {
-          return
-        }
-
-        setCertificates(certificateResponse?.data || [])
-        setEligibleHotels(eligibleResponse?.data || [])
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(error.message || 'Failed to load overview')
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      }
+    if (certificatesStatus === 'idle') {
+      dispatch(fetchCertificates(''))
     }
 
-    loadData()
-
-    return () => {
-      ignore = true
+    if (eligibleHotelsStatus === 'idle') {
+      dispatch(fetchEligibleHotels())
     }
-  }, [])
+  }, [certificatesStatus, dispatch, eligibleHotelsStatus])
 
   const metrics = useMemo(() => {
     const active = certificates.filter((item) => item.status === 'ACTIVE')

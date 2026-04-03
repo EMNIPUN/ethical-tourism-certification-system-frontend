@@ -1,43 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getEligibleHotels } from '../api/certificateManagementApi'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { fetchEligibleHotels } from '../store/certificateManagementSlice'
+import {
+  selectCertificateManagementError,
+  selectEligibleHotels,
+  selectEligibleHotelsStatus,
+} from '../store/certificateManagementSelectors'
 
 function EligibleHotelsPage() {
+  const dispatch = useAppDispatch()
   const [search, setSearch] = useState('')
-  const [hotels, setHotels] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
+  const hotels = useAppSelector(selectEligibleHotels)
+  const hotelsStatus = useAppSelector(selectEligibleHotelsStatus)
+  const errorMessage = useAppSelector(selectCertificateManagementError)
+  const isLoading = hotelsStatus === 'loading'
 
   useEffect(() => {
-    let ignore = false
-
-    async function loadData() {
-      setIsLoading(true)
-      setErrorMessage('')
-
-      try {
-        const response = await getEligibleHotels()
-
-        if (!ignore) {
-          setHotels(response?.data || [])
-        }
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(error.message || 'Failed to load eligible hotels')
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      }
+    if (hotelsStatus === 'idle') {
+      dispatch(fetchEligibleHotels())
     }
-
-    loadData()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
+  }, [dispatch, hotelsStatus])
 
   const filteredHotels = useMemo(() => {
     const query = search.trim().toLowerCase()

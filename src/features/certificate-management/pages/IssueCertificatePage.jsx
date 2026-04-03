@@ -1,62 +1,49 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { getEligibleHotels, issueCertificate } from '../api/certificateManagementApi'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import {
+  clearCertificateManagementMessages,
+  fetchEligibleHotels,
+  issueCertificateAction,
+} from '../store/certificateManagementSlice'
+import {
+  selectCertificateManagementActionError,
+  selectCertificateManagementActionStatus,
+  selectCertificateManagementActionSuccess,
+  selectCertificateManagementError,
+  selectEligibleHotels,
+  selectEligibleHotelsStatus,
+} from '../store/certificateManagementSelectors'
 
 function IssueCertificatePage() {
+  const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
   const preselectedHotel = searchParams.get('hotelId') || ''
 
-  const [eligibleHotels, setEligibleHotels] = useState([])
+  const eligibleHotels = useAppSelector(selectEligibleHotels)
+  const hotelsStatus = useAppSelector(selectEligibleHotelsStatus)
+  const errorMessage = useAppSelector(selectCertificateManagementError)
+  const actionError = useAppSelector(selectCertificateManagementActionError)
+  const actionSuccess = useAppSelector(selectCertificateManagementActionSuccess)
+  const actionStatus = useAppSelector(selectCertificateManagementActionStatus)
+  const isLoading = hotelsStatus === 'loading'
+  const isSubmitting = actionStatus === 'loading'
+
   const [formData, setFormData] = useState({
     hotelId: preselectedHotel,
     validityPeriodInMonths: 12,
   })
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
   const [createdCertificateNumber, setCreatedCertificateNumber] = useState('')
 
   useEffect(() => {
-    let ignore = false
-
-    async function loadEligible() {
-      setIsLoading(true)
-      setErrorMessage('')
-
-      try {
-        const response = await getEligibleHotels()
-        const nextHotels = response?.data || []
-
-        if (ignore) {
-          return
-        }
-
-        setEligibleHotels(nextHotels)
-
-        if (!preselectedHotel) {
-          const firstHotel = nextHotels.find((item) => !item.alreadyCertified)
-          if (firstHotel?.hotelId) {
-            setFormData((previous) => ({ ...previous, hotelId: firstHotel.hotelId }))
-          }
-        }
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(error.message || 'Failed to load eligible hotels')
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      }
+    if (hotelsStatus === 'idle') {
+      dispatch(fetchEligibleHotels())
     }
-
-    loadEligible()
 
     return () => {
-      ignore = true
+      dispatch(clearCertificateManagementMessages())
     }
-  }, [preselectedHotel])
+  }, [dispatch, hotelsStatus])
 
   const selectableHotels = useMemo(
     () => eligibleHotels.filter((item) => !item.alreadyCertified),
@@ -79,27 +66,20 @@ function IssueCertificatePage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setErrorMessage('')
-    setSuccessMessage('')
+    dispatch(clearCertificateManagementMessages())
     setCreatedCertificateNumber('')
 
     if (!formData.hotelId || !formData.validityPeriodInMonths) {
-      setErrorMessage('Hotel and validity period are required.')
       return
     }
 
-    setIsSubmitting(true)
-
     try {
-      const response = await issueCertificate(formData)
+      const response = await dispatch(issueCertificateAction(formData)).unwrap()
       const certificateNumber = response?.data?.certificateNumber
-
-      setSuccessMessage('Certificate issued successfully.')
       setCreatedCertificateNumber(certificateNumber || '')
-    } catch (error) {
-      setErrorMessage(error.message || 'Failed to issue certificate')
-    } finally {
-      setIsSubmitting(false)
+      dispatch(fetchEligibleHotels())
+    } catch {
+      // Error state is handled in Redux actionError.
     }
   }
 
@@ -109,13 +89,15 @@ function IssueCertificatePage() {
         <h2 className='text-xl font-bold text-slate-900'>Issue Certificate</h2>
         <p className='mt-1 text-sm text-slate-600'>Issue a new ACTIVE certificate for an eligible hotel.</p>
 
-        {errorMessage ? (
-          <p className='mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>{errorMessage}</p>
+        {errorMessage || actionError ? (
+          <p className='mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700'>
+            {actionError || errorMessage}
+          </p>
         ) : null}
 
-        {successMessage ? (
+        {actionSuccess ? (
           <div className='mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700'>
-            <p>{successMessage}</p>
+            <p>{actionSuccess}</p>
             {createdCertificateNumber ? (
               <Link
                 to={`../certificates/${encodeURIComponent(createdCertificateNumber)}`}
