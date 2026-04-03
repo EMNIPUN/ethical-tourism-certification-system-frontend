@@ -9,8 +9,8 @@ import {
   renewCertificate,
   revokeCertificate,
   updateTrustScore,
-} from '../certificateManagementService'
-import { useAuth } from '../../common/auth/AuthContext'
+} from '../api/certificateManagementApi'
+import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
 import directorSignature from '../../../assets/signature.png'

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getEligibleHotels } from '../certificateManagementService'
+import { getEligibleHotels } from '../api/certificateManagementApi'
 
 function EligibleHotelsPage() {
   const [search, setSearch] = useState('')

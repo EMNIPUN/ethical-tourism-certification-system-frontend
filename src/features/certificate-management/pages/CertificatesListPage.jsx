@@ -5,8 +5,8 @@ import {
   inactivateCertificate,
   renewCertificate,
   revokeCertificate,
-} from '../certificateManagementService'
-import { useAuth } from '../../common/auth/AuthContext'
+} from '../api/certificateManagementApi'
+import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
 import LifecycleActionModal from '../components/LifecycleActionModal'

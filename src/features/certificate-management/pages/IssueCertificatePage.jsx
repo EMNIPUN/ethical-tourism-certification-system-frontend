@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { getEligibleHotels, issueCertificate } from '../certificateManagementService'
+import { getEligibleHotels, issueCertificate } from '../api/certificateManagementApi'
 
 function IssueCertificatePage() {
   const [searchParams] = useSearchParams()

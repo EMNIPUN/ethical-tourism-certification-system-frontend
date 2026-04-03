@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getCertificates, getEligibleHotels } from '../certificateManagementService'
+import { getCertificates, getEligibleHotels } from '../api/certificateManagementApi'
 import StatusBadge from '../components/StatusBadge'
 import LevelBadge from '../components/LevelBadge'
 
