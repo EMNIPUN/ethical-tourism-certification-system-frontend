@@ -1,41 +1,14 @@
-import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import LogoutButton from '../../auth/components/LogoutButton'
-import { setAuditFilter } from '../store/auditSlice'
-import { selectAuditFilter } from '../store/auditSelectors'
 
 function AuditExample() {
-  const dispatch = useAppDispatch()
-  const filter = useAppSelector(selectAuditFilter)
-
   return (
-    <section className='space-y-4'>
-      <div className='flex items-center justify-between gap-3'>
-        <h1 className='text-2xl font-bold text-slate-900'>Audit Feature</h1>
-        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
-      </div>
-      <p className='text-sm text-slate-600'>
-        Audit filters are now tracked in Redux so list state stays consistent across screens.
-      </p>
-
-      <div className='rounded-xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <p className='text-sm font-medium text-slate-700'>Current filter: {filter}</p>
-        <div className='mt-3 flex flex-wrap gap-2'>
-          {['all', 'pending', 'completed'].map((value) => (
-            <button
-              key={value}
-              type='button'
-              onClick={() => dispatch(setAuditFilter(value))}
-              className={[
-                'rounded-lg border px-3 py-1.5 text-sm capitalize transition',
-                filter === value
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 text-slate-700 hover:bg-slate-100',
-              ].join(' ')}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
+    <section className='relative flex min-h-screen items-center justify-center bg-[var(--surface-canvas)] p-6 text-center'>
+      <LogoutButton className='absolute right-6 top-6 rounded-lg border border-[#d5dcea] bg-white px-3 py-2 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]' />
+      <div className='w-full max-w-2xl rounded-2xl border border-[#e2e8f2] bg-white p-8 shadow-[0_16px_35px_-28px_rgba(28,44,84,0.2)]'>
+        <h1 className='text-4xl font-semibold tracking-tight text-[#1f2b49]'>Auditor Workspace</h1>
+        <p className='mt-3 text-base text-[#5f6f8c]'>
+          Review compliance evidence, complete audit assessments, and submit certification recommendations.
+        </p>
       </div>
     </section>
   )

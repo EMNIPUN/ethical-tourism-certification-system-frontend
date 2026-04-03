@@ -1,52 +1,14 @@
-import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import LogoutButton from '../../auth/components/LogoutButton'
-import { setSearchPage, setSearchQuery } from '../store/searchSlice'
-import { selectSearchPage, selectSearchQuery } from '../store/searchSelectors'
 
 function SearchExample() {
-  const dispatch = useAppDispatch()
-  const query = useAppSelector(selectSearchQuery)
-  const page = useAppSelector(selectSearchPage)
-
   return (
-    <section className='space-y-4'>
-      <div className='flex items-center justify-between gap-3'>
-        <h1 className='text-2xl font-bold text-slate-900'>Search Feature</h1>
-        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
-      </div>
-      <p className='text-sm text-slate-600'>
-        Redux keeps this module state centralized for search, filters, and pagination.
-      </p>
-
-      <div className='rounded-xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <label className='block text-sm font-medium text-slate-700' htmlFor='searchQuery'>
-          Search query
-        </label>
-        <input
-          id='searchQuery'
-          value={query}
-          onChange={(event) => dispatch(setSearchQuery(event.target.value))}
-          className='mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-          placeholder='Search hotels, locations, keywords...'
-        />
-
-        <div className='mt-4 flex items-center gap-2'>
-          <button
-            type='button'
-            onClick={() => dispatch(setSearchPage(Math.max(1, page - 1)))}
-            className='rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100'
-          >
-            Previous
-          </button>
-          <span className='text-sm text-slate-700'>Page {page}</span>
-          <button
-            type='button'
-            onClick={() => dispatch(setSearchPage(page + 1))}
-            className='rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-100'
-          >
-            Next
-          </button>
-        </div>
+    <section className='relative flex min-h-screen items-center justify-center bg-[var(--surface-canvas)] p-6 text-center'>
+      <LogoutButton className='absolute right-6 top-6 rounded-lg border border-[#d5dcea] bg-white px-3 py-2 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]' />
+      <div className='w-full max-w-2xl rounded-2xl border border-[#e2e8f2] bg-white p-8 shadow-[0_16px_35px_-28px_rgba(28,44,84,0.2)]'>
+        <h1 className='text-4xl font-semibold tracking-tight text-[#1f2b49]'>Tourist Workspace</h1>
+        <p className='mt-3 text-base text-[#5f6f8c]'>
+          Discover certified destinations and search ethical tourism options with trusted results.
+        </p>
       </div>
     </section>
   )
