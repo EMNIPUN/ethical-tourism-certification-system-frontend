@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import LogoutButton from '../../auth/components/LogoutButton'
 import { setApplicationStep } from '../store/certificateApplicationSlice'
 import { selectCertificateApplicationStep } from '../store/certificateApplicationSelectors'
 
@@ -8,7 +9,10 @@ function CertificateApplicationExample() {
 
   return (
     <section className='space-y-4'>
-      <h1 className='text-2xl font-bold text-slate-900'>Certificate Application Feature</h1>
+      <div className='flex items-center justify-between gap-3'>
+        <h1 className='text-2xl font-bold text-slate-900'>Certificate Application Feature</h1>
+        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
+      </div>
       <p className='text-sm text-slate-600'>
         Application progress is managed in Redux, ready for multi-step form expansion.
       </p>
@@ -37,3 +41,4 @@ function CertificateApplicationExample() {
 }
 
 export default CertificateApplicationExample
+

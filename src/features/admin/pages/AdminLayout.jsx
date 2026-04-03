@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import LogoutButton from '../../auth/components/LogoutButton'
 
 const sidebarLinks = [
   {
@@ -49,6 +50,10 @@ function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+
+        <LogoutButton
+          className='mt-8 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-400 hover:bg-slate-700'
+        />
       </aside>
 
       <main className='ml-72 min-h-screen p-6 md:p-8'>
@@ -59,3 +64,4 @@ function AdminLayout() {
 }
 
 export default AdminLayout
+

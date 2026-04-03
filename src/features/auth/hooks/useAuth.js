@@ -49,11 +49,7 @@ export function useAuth() {
       const result = await dispatch(register(payload))
 
       if (register.fulfilled.match(result)) {
-        return {
-          ...result.payload.response,
-          token: result.payload.token,
-          user: result.payload.user,
-        }
+        return result.payload.response
       }
 
       throw new Error(resolveThunkError(result, 'Registration failed. Please try again.'))
@@ -82,4 +78,3 @@ export function useAuth() {
     clearError,
   }
 }
-

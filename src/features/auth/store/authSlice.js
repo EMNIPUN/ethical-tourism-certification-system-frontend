@@ -71,17 +71,11 @@ export const login = createAsyncThunk('auth/login', async (credentials, { reject
 export const register = createAsyncThunk('auth/register', async (payload, { rejectWithValue }) => {
   try {
     const response = await registerUser(payload)
-    const token = response?.token || getStoredToken()
-
-    if (!token) {
-      throw new Error('Registration succeeded but no token was returned.')
-    }
-
-    const meResponse = await getCurrentUser(token)
+    clearStoredToken()
 
     return {
-      token,
-      user: meResponse?.data || response?.data || null,
+      token: null,
+      user: null,
       response,
     }
   } catch (error) {
@@ -164,4 +158,3 @@ const authSlice = createSlice({
 
 export const { logout, clearAuthError } = authSlice.actions
 export default authSlice.reducer
-

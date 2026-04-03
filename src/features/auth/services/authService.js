@@ -17,16 +17,10 @@ export function clearStoredToken() {
 }
 
 export async function registerUser(payload) {
-  const data = await apiRequest('/auth/register', {
+  return apiRequest('/auth/register', {
     method: 'POST',
     body: payload,
   })
-
-  if (data?.token) {
-    setStoredToken(data.token)
-  }
-
-  return data
 }
 
 export async function loginUser(payload) {

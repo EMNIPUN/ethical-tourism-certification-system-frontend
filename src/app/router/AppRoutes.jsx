@@ -4,7 +4,6 @@ import CertificateApplicationRoutes from '../../features/certificate-application
 import CertificateManagementRoutes from '../../features/certificate-management/routes/CertificateManagementRoutes'
 import AuditRoutes from '../../features/audit/routes/AuditRoutes'
 import SearchRoutes from '../../features/search/routes/SearchRoutes'
-import LandingPage from '../../features/home/pages/LandingPage'
 import AdminRoutes from '../../features/admin/routes/AdminRoutes'
 import LoginPage from '../../features/auth/pages/LoginPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
@@ -13,7 +12,7 @@ import ProtectedRoute from '../../features/auth/components/ProtectedRoute'
 function AppRoutes() {
   return (
     <Routes>
-      <Route path={FEATURE_ROUTES.landing} element={<LandingPage />} />
+      <Route path={FEATURE_ROUTES.landing} element={<Navigate to={FEATURE_ROUTES.login} replace />} />
       <Route path={FEATURE_ROUTES.login} element={<LoginPage />} />
       <Route path={FEATURE_ROUTES.register} element={<RegisterPage />} />
 
@@ -58,7 +57,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path='*' element={<Navigate to={FEATURE_ROUTES.landing} replace />} />
+      <Route path='*' element={<Navigate to={FEATURE_ROUTES.login} replace />} />
     </Routes>
   )
 }

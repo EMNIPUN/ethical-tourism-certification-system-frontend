@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import LogoutButton from '../../auth/components/LogoutButton'
 import { setSearchPage, setSearchQuery } from '../store/searchSlice'
 import { selectSearchPage, selectSearchQuery } from '../store/searchSelectors'
 
@@ -9,7 +10,10 @@ function SearchExample() {
 
   return (
     <section className='space-y-4'>
-      <h1 className='text-2xl font-bold text-slate-900'>Search Feature</h1>
+      <div className='flex items-center justify-between gap-3'>
+        <h1 className='text-2xl font-bold text-slate-900'>Search Feature</h1>
+        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
+      </div>
       <p className='text-sm text-slate-600'>
         Redux keeps this module state centralized for search, filters, and pagination.
       </p>
@@ -49,3 +53,4 @@ function SearchExample() {
 }
 
 export default SearchExample
+

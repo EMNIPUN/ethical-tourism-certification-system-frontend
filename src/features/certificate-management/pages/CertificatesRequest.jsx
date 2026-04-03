@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import LogoutButton from '../../auth/components/LogoutButton'
 import { setCertificateManagementPage, setCertificateStatusFilter } from '../store/certificateManagementSlice'
 import {
   selectCertificateManagementPage,
@@ -12,7 +13,10 @@ function CertificatesRequest() {
 
   return (
     <section className='space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm'>
-      <h1 className='text-2xl font-bold text-slate-900'>Certificate Management</h1>
+      <div className='flex items-center justify-between gap-3'>
+        <h1 className='text-2xl font-bold text-slate-900'>Certificate Management</h1>
+        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
+      </div>
       <p className='text-sm text-slate-600'>
         Redux manages management filters and pagination state for consistent admin workflows.
       </p>
@@ -57,3 +61,4 @@ function CertificatesRequest() {
 }
 
 export default CertificatesRequest
+

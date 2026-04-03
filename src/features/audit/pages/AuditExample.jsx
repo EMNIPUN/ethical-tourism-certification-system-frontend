@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import LogoutButton from '../../auth/components/LogoutButton'
 import { setAuditFilter } from '../store/auditSlice'
 import { selectAuditFilter } from '../store/auditSelectors'
 
@@ -8,7 +9,10 @@ function AuditExample() {
 
   return (
     <section className='space-y-4'>
-      <h1 className='text-2xl font-bold text-slate-900'>Audit Feature</h1>
+      <div className='flex items-center justify-between gap-3'>
+        <h1 className='text-2xl font-bold text-slate-900'>Audit Feature</h1>
+        <LogoutButton className='rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100' />
+      </div>
       <p className='text-sm text-slate-600'>
         Audit filters are now tracked in Redux so list state stays consistent across screens.
       </p>
@@ -38,3 +42,4 @@ function AuditExample() {
 }
 
 export default AuditExample
+
