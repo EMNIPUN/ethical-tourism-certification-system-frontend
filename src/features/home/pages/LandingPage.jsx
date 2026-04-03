@@ -1,32 +1,8 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from './auth/AuthContext'
+import { useAuth } from '../../auth/hooks/useAuth'
 
 function LandingPage() {
   const { isAuthenticated, user, logout } = useAuth()
-
-  const featureLinks = [
-    {
-      to: '/certificate-application',
-      title: 'Certificate Application',
-      description: 'Open the certificate application example page.'
-    },
-    {
-      to: '/certificate-management',
-      title: 'Certificate Management',
-      description: 'Open the certificate management example page.'
-    },
-    {
-      to: '/audit',
-      title: 'Audit',
-      description: 'Open the audit example page.'
-    },
-    {
-      to: '/search',
-      title: 'Search',
-      description: 'Open the search example page.'
-    }
-  ]
 
   return (
     <div className='min-h-screen w-full bg-slate-50 px-6 py-12 text-slate-900'>
@@ -70,7 +46,6 @@ function LandingPage() {
           </div>
         </div>
 
-       
       </div>
     </div>
   )

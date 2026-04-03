@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
-import SearchExample from './pages/SearchExample'
+import SearchExample from '../pages/SearchExample'
 
-function SearchRoute() {
+function SearchRoutes() {
 	return (
 		<Routes>
 			<Route index element={<SearchExample />} />
@@ -9,4 +9,4 @@ function SearchRoute() {
 	)
 }
 
-export default SearchRoute
+export default SearchRoutes

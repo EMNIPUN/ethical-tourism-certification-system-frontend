@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import CertificatesRequest from '../../certificate-management/pages/CertificatesRequest'
-import AdminLayout from './AdminLayout'
-import AdminDashboard from './AdminDashboard'
+import AdminLayout from '../pages/AdminLayout'
+import AdminDashboard from '../pages/AdminDashboard'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -12,7 +12,7 @@ function PlaceholderPage({ title, description }) {
   )
 }
 
-function AdminRoute() {
+function AdminRoutes() {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
@@ -51,4 +51,4 @@ function AdminRoute() {
   )
 }
 
-export default AdminRoute
+export default AdminRoutes

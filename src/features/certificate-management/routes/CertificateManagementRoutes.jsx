@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
-import CertificatesRequest from './pages/CertificatesRequest'
+import CertificatesRequest from '../pages/CertificatesRequest'
 
-function CertificateManagementRoute() {
+function CertificateManagementRoutes() {
   return (
     <Routes>
       <Route index element={<CertificatesRequest />} />
@@ -9,4 +9,4 @@ function CertificateManagementRoute() {
   )
 }
 
-export default CertificateManagementRoute
+export default CertificateManagementRoutes

@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
-import AuditExample from './pages/AuditExample'
+import AuditExample from '../pages/AuditExample'
 
-function AuditRoute() {
+function AuditRoutes() {
 	return (
 		<Routes>
 			<Route index element={<AuditExample />} />
@@ -9,4 +9,4 @@ function AuditRoute() {
 	)
 }
 
-export default AuditRoute
+export default AuditRoutes

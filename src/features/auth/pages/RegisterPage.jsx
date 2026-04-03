@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { useAuth } from './AuthContext'
-import { AUTH_ROLES } from './authService'
-import { getDashboardPathByRole } from './roleRedirect'
+import { useAuth } from '../hooks/useAuth'
+import { AUTH_ROLES } from '../services/authService'
+import { getDashboardPathByRole } from '../utils/roleRedirect'
 
 function RegisterPage() {
   const navigate = useNavigate()
-  const { register, isAuthenticated, isInitializing, user } = useAuth()
+  const { clearError, error, isAuthenticated, isInitializing, register, status, user } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -15,7 +15,7 @@ function RegisterPage() {
     role: 'Tourist',
   })
   const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isSubmitting = status === 'loading'
 
   if (!isInitializing && isAuthenticated) {
     return <Navigate to={getDashboardPathByRole(user?.role)} replace />
@@ -29,22 +29,19 @@ function RegisterPage() {
   async function handleSubmit(event) {
     event.preventDefault()
     setErrorMessage('')
+    clearError()
 
     if (formData.password.length < 6) {
       setErrorMessage('Password must be at least 6 characters long.')
       return
     }
 
-    setIsSubmitting(true)
-
     try {
       const registerResponse = await register(formData)
       const resolvedRole = registerResponse?.user?.role || registerResponse?.data?.role || formData.role
       navigate(getDashboardPathByRole(resolvedRole), { replace: true })
-    } catch (error) {
-      setErrorMessage(error.message || 'Registration failed. Please try again.')
-    } finally {
-      setIsSubmitting(false)
+    } catch (requestError) {
+      setErrorMessage(requestError.message || 'Registration failed. Please try again.')
     }
   }
 
@@ -54,9 +51,9 @@ function RegisterPage() {
         <h1 className='text-2xl font-bold text-slate-900'>Create account</h1>
         <p className='mt-2 text-sm text-slate-600'>Register to use protected Certiguard modules.</p>
 
-        {errorMessage ? (
+        {errorMessage || error ? (
           <p className='mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
-            {errorMessage}
+            {errorMessage || error}
           </p>
         ) : null}
 

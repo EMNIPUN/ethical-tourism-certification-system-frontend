@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../services/apiClient'
+import { apiRequest } from '../../../shared/api/apiClient'
 
 const TOKEN_STORAGE_KEY = 'etcs_auth_token'
 
@@ -42,8 +42,8 @@ export async function loginUser(payload) {
   return data
 }
 
-export async function getCurrentUser() {
-  const token = getStoredToken()
+export async function getCurrentUser(tokenOverride) {
+  const token = tokenOverride || getStoredToken()
 
   if (!token) {
     throw new Error('No authentication token found')

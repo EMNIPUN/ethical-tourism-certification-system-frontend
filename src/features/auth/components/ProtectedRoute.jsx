@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from './AuthContext'
-import { getDashboardPathByRole, isAllowedRole } from './roleRedirect'
+import { useAuth } from '../hooks/useAuth'
+import { getDashboardPathByRole, isAllowedRole } from '../utils/roleRedirect'
 
 function ProtectedRoute({ children, roles }) {
   const location = useLocation()

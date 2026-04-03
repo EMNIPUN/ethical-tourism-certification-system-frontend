@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from './AuthContext'
-import { getDashboardPathByRole } from './roleRedirect'
+import { useAuth } from '../hooks/useAuth'
+import { getDashboardPathByRole } from '../utils/roleRedirect'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, isAuthenticated, isInitializing, user } = useAuth()
+  const { clearError, error, isAuthenticated, isInitializing, login, status, user } = useAuth()
 
   const [formData, setFormData] = useState({ email: '', password: '' })
-  const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [localError, setLocalError] = useState('')
+  const isSubmitting = status === 'loading'
 
   const requestedPath = location.state?.from?.pathname
   const roleDashboardPath = getDashboardPathByRole(user?.role)
@@ -27,17 +27,15 @@ function LoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setErrorMessage('')
-    setIsSubmitting(true)
+    setLocalError('')
+    clearError()
 
     try {
       const loginResponse = await login(formData.email, formData.password)
       const resolvedRole = loginResponse?.user?.role || loginResponse?.data?.role || loginResponse?.role
       navigate(requestedPath || getDashboardPathByRole(resolvedRole), { replace: true })
-    } catch (error) {
-      setErrorMessage(error.message || 'Login failed. Please try again.')
-    } finally {
-      setIsSubmitting(false)
+    } catch (requestError) {
+      setLocalError(requestError.message || 'Login failed. Please try again.')
     }
   }
 
@@ -47,9 +45,9 @@ function LoginPage() {
         <h1 className='text-2xl font-bold text-slate-900'>Sign in</h1>
         <p className='mt-2 text-sm text-slate-600'>Access your Certiguard account.</p>
 
-        {errorMessage ? (
+        {error || localError ? (
           <p className='mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
-            {errorMessage}
+            {error || localError}
           </p>
         ) : null}
 
