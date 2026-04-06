@@ -86,6 +86,41 @@ export function updateTrustScore({ certificateId, scoreChange, reason }) {
 	})
 }
 
+export function updateCertificateDetails({
+	certificateId,
+	hotelId,
+	issuedDate,
+	expiryDate,
+	status,
+	trustScore,
+	level,
+	renewalCount,
+	revokedReason,
+}) {
+	const body = {
+		hotelId,
+		issuedDate,
+		expiryDate,
+		status,
+		trustScore,
+		level,
+		renewalCount,
+		revokedReason,
+	}
+
+	Object.keys(body).forEach((key) => {
+		if (body[key] === undefined) {
+			delete body[key]
+		}
+	})
+
+	return apiRequest(`/certification/certificates/${certificateId}`, {
+		method: 'PUT',
+		token: authToken(),
+		body,
+	})
+}
+
 export function updateCertificateTrustScore({ hotelId, averageRating, reviewCount }) {
 	return apiRequest(`/certification/certificates/hotel/${hotelId}/update-score`, {
 		method: 'PATCH',

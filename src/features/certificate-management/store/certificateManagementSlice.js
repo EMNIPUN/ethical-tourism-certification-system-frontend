@@ -8,6 +8,7 @@ import {
   issueCertificate,
   renewCertificate,
   revokeCertificate,
+  updateCertificateDetails,
   updateTrustScore,
 } from '../api/certificateManagementApi'
 
@@ -98,6 +99,37 @@ export const updateTrustScoreAction = createAsyncThunk(
       return await updateTrustScore({ certificateId, scoreChange, reason })
     } catch (error) {
       return rejectWithValue(resolveThunkError(error, 'Failed to update trust score'))
+    }
+  },
+)
+
+export const updateCertificateDetailsAction = createAsyncThunk(
+  'certificateManagement/updateCertificateDetailsAction',
+  async ({
+    certificateId,
+    hotelId,
+    issuedDate,
+    expiryDate,
+    status,
+    trustScore,
+    level,
+    renewalCount,
+    revokedReason,
+  }, { rejectWithValue }) => {
+    try {
+      return await updateCertificateDetails({
+        certificateId,
+        hotelId,
+        issuedDate,
+        expiryDate,
+        status,
+        trustScore,
+        level,
+        renewalCount,
+        revokedReason,
+      })
+    } catch (error) {
+      return rejectWithValue(resolveThunkError(error, 'Failed to update certificate details'))
     }
   },
 )
@@ -307,6 +339,14 @@ const certificateManagementSlice = createSlice({
       })
       .addCase(updateTrustScoreAction.rejected, (state, action) => {
         handleActionRejected(state, action, 'Failed to update trust score')
+      })
+      .addCase(updateCertificateDetailsAction.pending, handleActionPending)
+      .addCase(updateCertificateDetailsAction.fulfilled, (state) => {
+        state.actionStatus = 'succeeded'
+        state.actionSuccess = 'Certificate details updated successfully.'
+      })
+      .addCase(updateCertificateDetailsAction.rejected, (state, action) => {
+        handleActionRejected(state, action, 'Failed to update certificate details')
       })
   },
 })

@@ -16,6 +16,7 @@ import {
   inactivateCertificateAction,
   renewCertificateAction,
   revokeCertificateAction,
+  updateCertificateDetailsAction,
   updateTrustScoreAction,
 } from '../store/certificateManagementSlice'
 import {
@@ -36,6 +37,7 @@ import {
 const TIMELINE_EVENT_OPTIONS = [
   '',
   'CERTIFICATE_ISSUED',
+  'CERTIFICATE_UPDATED',
   'TRUST_SCORE_UPDATED',
   'LEVEL_CHANGED',
   'STATUS_CHANGED',
@@ -46,6 +48,9 @@ const TIMELINE_EVENT_OPTIONS = [
   'AUTO_REVOCATION_TRIGGERED',
   'FEEDBACK_SYNC_APPLIED',
 ]
+
+const EDITABLE_STATUS_OPTIONS = ['ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
+const EDITABLE_LEVEL_OPTIONS = ['PLATINUM', 'GOLD', 'SILVER']
 
 const CERTIFICATE_THEME = {
   ACTIVE: {
@@ -225,6 +230,19 @@ function formatDate(value, options = {}) {
   })
 }
 
+function formatDateInput(value) {
+  if (!value) {
+    return ''
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  return date.toISOString().slice(0, 10)
+}
+
 function getCertificateTheme(status) {
   const normalizedStatus = String(status || '').toUpperCase()
   return CERTIFICATE_THEME[normalizedStatus] || CERTIFICATE_THEME.DEFAULT
@@ -326,6 +344,17 @@ function CertificateDetailsPage() {
   const [inactivateReason, setInactivateReason] = useState('')
   const [scoreChange, setScoreChange] = useState(-5)
   const [scoreReason, setScoreReason] = useState('')
+  const [editValidationError, setEditValidationError] = useState('')
+  const [editForm, setEditForm] = useState({
+    hotelId: '',
+    issuedDate: '',
+    expiryDate: '',
+    status: 'ACTIVE',
+    trustScore: 70,
+    level: 'GOLD',
+    renewalCount: 0,
+    revokedReason: '',
+  })
   const [certificateUiMessage, setCertificateUiMessage] = useState('')
   const [isExporting, setIsExporting] = useState(false)
   const certificateExportRef = useRef(null)
@@ -384,6 +413,24 @@ function CertificateDetailsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateNumber])
 
+  useEffect(() => {
+    if (!certificate) {
+      return
+    }
+
+    setEditValidationError('')
+    setEditForm({
+      hotelId: resolveHotelId(certificate),
+      issuedDate: formatDateInput(certificate.issuedDate),
+      expiryDate: formatDateInput(certificate.expiryDate),
+      status: String(certificate.status || 'ACTIVE').toUpperCase(),
+      trustScore: Number(certificate.trustScore ?? 70),
+      level: String(certificate.level || 'GOLD').toUpperCase(),
+      renewalCount: Number(certificate.renewalCount ?? 0),
+      revokedReason: certificate.revokedReason || '',
+    })
+  }, [certificate])
+
   const hotelId = useMemo(() => resolveHotelId(certificate), [certificate])
   const certificateTheme = useMemo(() => getCertificateTheme(certificate?.status), [certificate?.status])
   const levelBadgeTheme = useMemo(() => getLevelBadgeTheme(certificate?.level), [certificate?.level])
@@ -420,6 +467,66 @@ function CertificateDetailsPage() {
     } catch {
       // Action errors are handled in Redux state.
     }
+  }
+
+  function updateEditField(name, value) {
+    setEditValidationError('')
+    setEditForm((previous) => ({
+      ...previous,
+      [name]: value,
+    }))
+  }
+
+  async function submitCertificateEdit() {
+    if (!certificate?._id) {
+      return
+    }
+
+    if (!editForm.issuedDate || !editForm.expiryDate) {
+      setEditValidationError('Issued date and expiry date are required.')
+      return
+    }
+
+    if (!EDITABLE_STATUS_OPTIONS.includes(editForm.status)) {
+      setEditValidationError('Please select a valid certificate status.')
+      return
+    }
+
+    if (!EDITABLE_LEVEL_OPTIONS.includes(editForm.level)) {
+      setEditValidationError('Please select a valid certificate level.')
+      return
+    }
+
+    if (Number.isNaN(Number(editForm.trustScore)) || Number(editForm.trustScore) < 0 || Number(editForm.trustScore) > 100) {
+      setEditValidationError('Trust score must be between 0 and 100.')
+      return
+    }
+
+    if (Number.isNaN(Number(editForm.renewalCount)) || Number(editForm.renewalCount) < 0) {
+      setEditValidationError('Renewal count must be 0 or greater.')
+      return
+    }
+
+    if (editForm.status === 'REVOKED' && !String(editForm.revokedReason || '').trim()) {
+      setEditValidationError('Revoked reason is required when status is REVOKED.')
+      return
+    }
+
+    await runAction(() =>
+      dispatch(
+        updateCertificateDetailsAction({
+          certificateId: certificate._id,
+          hotelId: editForm.hotelId,
+          issuedDate: new Date(editForm.issuedDate).toISOString(),
+          expiryDate: new Date(editForm.expiryDate).toISOString(),
+          status: editForm.status,
+          trustScore: Number(editForm.trustScore),
+          level: editForm.level,
+          renewalCount: Number(editForm.renewalCount),
+          revokedReason: editForm.status === 'REVOKED' ? String(editForm.revokedReason || '').trim() : '',
+        }),
+      ).unwrap(),
+    )
   }
 
   async function applyTimelineFilters(event) {
@@ -915,6 +1022,120 @@ function CertificateDetailsPage() {
           <aside className='space-y-4 xl:col-span-4'>
             {isAdmin ? (
               <>
+              <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
+                <h3 className='text-lg font-bold text-slate-900'>Edit Certificate Details</h3>
+                <p className='mt-1 text-xs text-slate-500'>Admin can update full certificate fields including status.</p>
+
+                <label className='mt-3 block text-sm font-medium text-slate-700'>
+                  Hotel ID
+                  <input
+                    type='text'
+                    value={editForm.hotelId}
+                    onChange={(event) => updateEditField('hotelId', event.target.value)}
+                    className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                  />
+                </label>
+
+                <div className='mt-3 grid gap-3 md:grid-cols-2'>
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Issued Date
+                    <input
+                      type='date'
+                      value={editForm.issuedDate}
+                      onChange={(event) => updateEditField('issuedDate', event.target.value)}
+                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                    />
+                  </label>
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Expiry Date
+                    <input
+                      type='date'
+                      value={editForm.expiryDate}
+                      onChange={(event) => updateEditField('expiryDate', event.target.value)}
+                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                    />
+                  </label>
+                </div>
+
+                <div className='mt-3 grid gap-3 md:grid-cols-2'>
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Status
+                    <select
+                      value={editForm.status}
+                      onChange={(event) => updateEditField('status', event.target.value)}
+                      className='mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
+                    >
+                      {EDITABLE_STATUS_OPTIONS.map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Level
+                    <select
+                      value={editForm.level}
+                      onChange={(event) => updateEditField('level', event.target.value)}
+                      className='mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
+                    >
+                      {EDITABLE_LEVEL_OPTIONS.map((level) => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div className='mt-3 grid gap-3 md:grid-cols-2'>
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Trust Score
+                    <input
+                      type='number'
+                      min='0'
+                      max='100'
+                      value={editForm.trustScore}
+                      onChange={(event) => updateEditField('trustScore', Number(event.target.value))}
+                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                    />
+                  </label>
+                  <label className='block text-sm font-medium text-slate-700'>
+                    Renewal Count
+                    <input
+                      type='number'
+                      min='0'
+                      value={editForm.renewalCount}
+                      onChange={(event) => updateEditField('renewalCount', Number(event.target.value))}
+                      className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                    />
+                  </label>
+                </div>
+
+                <label className='mt-3 block text-sm font-medium text-slate-700'>
+                  Revoked Reason
+                  <textarea
+                    value={editForm.revokedReason}
+                    onChange={(event) => updateEditField('revokedReason', event.target.value)}
+                    rows={3}
+                    placeholder='Required if status is REVOKED'
+                    className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
+                  />
+                </label>
+
+                {editValidationError ? (
+                  <p className='mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700'>
+                    {editValidationError}
+                  </p>
+                ) : null}
+
+                <button
+                  type='button'
+                  disabled={isActing}
+                  onClick={submitCertificateEdit}
+                  className='mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60'
+                >
+                  Update Certificate
+                </button>
+              </article>
+
               <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
                 <h3 className='text-lg font-bold text-slate-900'>Renew Certificate</h3>
                 <label className='mt-3 block text-sm font-medium text-slate-700'>
