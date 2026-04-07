@@ -65,13 +65,10 @@ export function revokeCertificate({ certificateId, reason }) {
 	})
 }
 
-export function inactivateCertificate({ certificateId, reason }) {
+export function deleteCertificatePermanently({ certificateId }) {
 	return apiRequest(`/certification/certificates/${certificateId}`, {
 		method: 'DELETE',
 		token: authToken(),
-		body: {
-			reason,
-		},
 	})
 }
 

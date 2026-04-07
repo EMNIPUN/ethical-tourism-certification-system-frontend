@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import {
+  deleteCertificatePermanently,
   getCertificateDetails,
   getCertificateTimeline,
   getCertificates,
   getEligibleHotels,
-  inactivateCertificate,
   issueCertificate,
   renewCertificate,
   revokeCertificate,
@@ -156,13 +156,13 @@ export const revokeCertificateAction = createAsyncThunk(
   },
 )
 
-export const inactivateCertificateAction = createAsyncThunk(
-  'certificateManagement/inactivateCertificateAction',
-  async ({ certificateId, reason }, { rejectWithValue }) => {
+export const deleteCertificateAction = createAsyncThunk(
+  'certificateManagement/deleteCertificateAction',
+  async ({ certificateId }, { rejectWithValue }) => {
     try {
-      return await inactivateCertificate({ certificateId, reason })
+      return await deleteCertificatePermanently({ certificateId })
     } catch (error) {
-      return rejectWithValue(resolveThunkError(error, 'Failed to inactivate certificate'))
+      return rejectWithValue(resolveThunkError(error, 'Failed to permanently delete certificate'))
     }
   },
 )
@@ -324,13 +324,13 @@ const certificateManagementSlice = createSlice({
       .addCase(revokeCertificateAction.rejected, (state, action) => {
         handleActionRejected(state, action, 'Failed to revoke certificate')
       })
-      .addCase(inactivateCertificateAction.pending, handleActionPending)
-      .addCase(inactivateCertificateAction.fulfilled, (state) => {
+      .addCase(deleteCertificateAction.pending, handleActionPending)
+      .addCase(deleteCertificateAction.fulfilled, (state) => {
         state.actionStatus = 'succeeded'
-        state.actionSuccess = 'Certificate inactivated successfully.'
+        state.actionSuccess = 'Certificate permanently deleted.'
       })
-      .addCase(inactivateCertificateAction.rejected, (state, action) => {
-        handleActionRejected(state, action, 'Failed to inactivate certificate')
+      .addCase(deleteCertificateAction.rejected, (state, action) => {
+        handleActionRejected(state, action, 'Failed to permanently delete certificate')
       })
       .addCase(updateTrustScoreAction.pending, handleActionPending)
       .addCase(updateTrustScoreAction.fulfilled, (state) => {

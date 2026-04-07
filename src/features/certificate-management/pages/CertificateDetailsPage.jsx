@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
@@ -11,9 +11,9 @@ import '../styles/certificateDetailsPage.css'
 import {
   clearCertificateDetailsState,
   clearCertificateManagementMessages,
+  deleteCertificateAction,
   fetchCertificateDetails,
   fetchCertificateTimeline,
-  inactivateCertificateAction,
   renewCertificateAction,
   revokeCertificateAction,
   updateCertificateDetailsAction,
@@ -306,6 +306,7 @@ function buildCertificateFileBase(certificate) {
 
 function CertificateDetailsPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { certificateNumber } = useParams()
   const location = useLocation()
   const basePath = location.pathname.startsWith('/admin/certificate-management')
@@ -341,7 +342,6 @@ function CertificateDetailsPage() {
 
   const [renewMonths, setRenewMonths] = useState(12)
   const [revokeReason, setRevokeReason] = useState('')
-  const [inactivateReason, setInactivateReason] = useState('')
   const [scoreChange, setScoreChange] = useState(-5)
   const [scoreReason, setScoreReason] = useState('')
   const [editValidationError, setEditValidationError] = useState('')
@@ -1196,31 +1196,38 @@ function CertificateDetailsPage() {
                 </button>
               </article>
 
-              <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
-                <h3 className='text-lg font-bold text-slate-900'>Inactivate Certificate</h3>
-                <textarea
-                  value={inactivateReason}
-                  onChange={(event) => setInactivateReason(event.target.value)}
-                  rows={3}
-                  placeholder='Reason for inactivation'
-                  className='mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
-                />
+              <article className='rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm'>
+                <h3 className='text-lg font-bold text-rose-900'>Delete Certificate Permanently</h3>
+                <p className='mt-3 text-sm text-rose-700'>
+                  This is a hard delete admin cleanup. The certificate and timeline records will be permanently removed.
+                </p>
                 <button
                   type='button'
-                  disabled={isActing || !inactivateReason.trim()}
-                  onClick={() =>
-                    runAction(() =>
-                      dispatch(
-                        inactivateCertificateAction({
+                  disabled={isActing}
+                  onClick={async () => {
+                    const confirmed = window.confirm('Permanently delete this certificate? This cannot be undone.')
+                    if (!confirmed) {
+                      return
+                    }
+
+                    dispatch(clearCertificateManagementMessages())
+                    setCertificateUiMessage('')
+
+                    try {
+                      await dispatch(
+                        deleteCertificateAction({
                           certificateId: certificate._id,
-                          reason: inactivateReason.trim(),
                         }),
-                      ).unwrap(),
-                    )
-                  }
-                  className='mt-3 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-60'
+                      ).unwrap()
+
+                      navigate(basePath)
+                    } catch {
+                      // Action errors are handled in Redux state.
+                    }
+                  }}
+                  className='mt-3 rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600 disabled:opacity-60'
                 >
-                  Inactivate
+                  Delete Permanently
                 </button>
               </article>
 

@@ -7,8 +7,8 @@ import LevelBadge from '../components/LevelBadge'
 import LifecycleActionModal from '../components/LifecycleActionModal'
 import {
   clearCertificateManagementMessages,
+  deleteCertificateAction,
   fetchCertificates,
-  inactivateCertificateAction,
   renewCertificateAction,
   revokeCertificateAction,
   setCertificateStatusFilter,
@@ -26,7 +26,7 @@ import {
 const ACTION_TYPES = {
   RENEW: 'RENEW',
   REVOKE: 'REVOKE',
-  INACTIVATE: 'INACTIVATE',
+  DELETE: 'DELETE',
 }
 
 const STATUS_OPTIONS = ['ALL', 'ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
@@ -67,9 +67,9 @@ function getActionMeta(type) {
   }
 
   return {
-    title: 'Inactivate Certificate',
-    description: 'This is a soft-delete lifecycle action (status becomes INACTIVE).',
-    confirmLabel: 'Inactivate certificate',
+    title: 'Delete Certificate Permanently',
+    description: 'This is a hard-delete action. Certificate and its timeline records will be removed permanently.',
+    confirmLabel: 'Delete permanently',
   }
 }
 
@@ -80,10 +80,6 @@ function isActionDisabled(type, item) {
 
   if (type === ACTION_TYPES.REVOKE) {
     return item.status === 'REVOKED'
-  }
-
-  if (type === ACTION_TYPES.INACTIVATE) {
-    return item.status === 'INACTIVE'
   }
 
   return false
@@ -183,7 +179,7 @@ function CertificatesListPage() {
       return ''
     }
 
-    if (!String(actionForm.reason || '').trim()) {
+    if (activeAction === ACTION_TYPES.REVOKE && !String(actionForm.reason || '').trim()) {
       return 'Reason is required.'
     }
 
@@ -200,8 +196,12 @@ function CertificatesListPage() {
       return !months || months < 1 || months > 120
     }
 
-    if (activeAction === ACTION_TYPES.REVOKE || activeAction === ACTION_TYPES.INACTIVATE) {
+    if (activeAction === ACTION_TYPES.REVOKE) {
       return !String(actionForm.reason || '').trim()
+    }
+
+    if (activeAction === ACTION_TYPES.DELETE) {
+      return false
     }
 
     return true
@@ -240,11 +240,10 @@ function CertificatesListPage() {
         ).unwrap()
       }
 
-      if (activeAction === ACTION_TYPES.INACTIVATE) {
+      if (activeAction === ACTION_TYPES.DELETE) {
         await dispatch(
-          inactivateCertificateAction({
+          deleteCertificateAction({
             certificateId: selectedCertificate._id,
-            reason: String(actionForm.reason).trim(),
           }),
         ).unwrap()
       }
@@ -383,11 +382,11 @@ function CertificatesListPage() {
                             </button>
                             <button
                               type='button'
-                              onClick={() => openActionModal(ACTION_TYPES.INACTIVATE, item)}
-                              disabled={isActing || isActionDisabled(ACTION_TYPES.INACTIVATE, item)}
+                              onClick={() => openActionModal(ACTION_TYPES.DELETE, item)}
+                              disabled={isActing}
                               className='rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-60'
                             >
-                              Inactivate
+                              Delete
                             </button>
                           </>
                         ) : null}
@@ -441,7 +440,7 @@ function CertificatesListPage() {
               className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
             />
           </label>
-        ) : (
+        ) : activeAction === ACTION_TYPES.REVOKE ? (
           <label className='block text-sm font-medium text-slate-700'>
             Reason
             <textarea
@@ -452,6 +451,10 @@ function CertificatesListPage() {
               className='mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm'
             />
           </label>
+        ) : (
+          <p className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800'>
+            This action permanently deletes the certificate and cannot be undone.
+          </p>
         )}
 
         {localActionError ? (
