@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   Bell,
   BookOpenText,
-  Building2,
   ChevronDown,
   ChevronRight,
   CircleHelp,
@@ -48,8 +47,7 @@ const sidebarLinks = [
 
 const certificateManagementSubLinks = [
   { to: '/admin/certificate-management', label: 'Overview', icon: BookOpenText, end: true },
-  { to: '/admin/certificate-management/eligible-hotels', label: 'Eligible Hotels', icon: Building2 },
-  { to: '/admin/certificate-management/issue', label: 'Issue Certificate', icon: FilePlus2 },
+  { to: '/admin/certificate-management/issuance', label: 'Issuance Hub', icon: FilePlus2 },
   { to: '/admin/certificate-management/certificates', label: 'Manage Certificates', icon: ListChecks },
 ]
 

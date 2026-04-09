@@ -27,6 +27,13 @@ export function getEligibleHotels() {
 	})
 }
 
+export function getIssuanceHubData() {
+	return apiRequest('/certification/certificates/eligible', {
+		method: 'GET',
+		token: authToken(),
+	})
+}
+
 export function getCertificateOverviewStats() {
 	return apiRequest('/certification/certificates/overview/stats', {
 		method: 'GET',

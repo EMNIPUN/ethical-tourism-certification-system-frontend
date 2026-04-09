@@ -6,6 +6,10 @@ export const selectCertificates = (state) => state.certificateManagement.certifi
 export const selectEligibleHotels = (state) => state.certificateManagement.eligibleHotels
 export const selectCertificatesStatus = (state) => state.certificateManagement.certificatesStatus
 export const selectEligibleHotelsStatus = (state) => state.certificateManagement.eligibleHotelsStatus
+export const selectIssuanceHubSummary = (state) => state.certificateManagement.issuanceHubSummary
+export const selectIssuanceHubHotels = (state) => state.certificateManagement.issuanceHubHotels
+export const selectIssuanceHubStatus = (state) => state.certificateManagement.issuanceHubStatus
+export const selectIssuanceHubError = (state) => state.certificateManagement.issuanceHubError
 export const selectCertificateManagementError = (state) => state.certificateManagement.error
 export const selectCertificateOverviewStats = (state) => state.certificateManagement.overviewStats
 export const selectCertificateOverviewStatsStatus = (state) => state.certificateManagement.overviewStatsStatus

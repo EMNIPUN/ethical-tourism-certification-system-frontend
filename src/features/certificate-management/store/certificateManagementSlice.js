@@ -7,6 +7,7 @@ import {
   getCertificateTimeline,
   getCertificates,
   getEligibleHotels,
+  getIssuanceHubData,
   issueCertificate,
   renewCertificate,
   revokeCertificate,
@@ -38,6 +39,21 @@ export const fetchEligibleHotels = createAsyncThunk(
       return response?.data || []
     } catch (error) {
       return rejectWithValue(resolveThunkError(error, 'Failed to load eligible hotels'))
+    }
+  },
+)
+
+export const fetchIssuanceHubData = createAsyncThunk(
+  'certificateManagement/fetchIssuanceHubData',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getIssuanceHubData()
+      return {
+        summary: response?.summary || {},
+        data: response?.data || [],
+      }
+    } catch (error) {
+      return rejectWithValue(resolveThunkError(error, 'Failed to load issuance hub data'))
     }
   },
 )
@@ -204,6 +220,8 @@ const initialState = {
   selectedCertificateId: null,
   certificates: [],
   eligibleHotels: [],
+  issuanceHubSummary: {},
+  issuanceHubHotels: [],
   certificateDetails: null,
   overviewStats: null,
   overviewCharts: {
@@ -217,6 +235,7 @@ const initialState = {
   timelineTotal: 0,
   certificatesStatus: 'idle',
   eligibleHotelsStatus: 'idle',
+  issuanceHubStatus: 'idle',
   certificateDetailsStatus: 'idle',
   overviewStatsStatus: 'idle',
   overviewChartsStatus: 'idle',
@@ -226,6 +245,7 @@ const initialState = {
   detailsError: '',
   overviewStatsError: '',
   overviewChartsError: '',
+  issuanceHubError: '',
   timelineError: '',
   actionError: '',
   actionSuccess: '',
@@ -254,6 +274,7 @@ const certificateManagementSlice = createSlice({
       state.detailsError = ''
       state.overviewStatsError = ''
       state.overviewChartsError = ''
+      state.issuanceHubError = ''
       state.timelineError = ''
       state.actionError = ''
       state.actionSuccess = ''
@@ -298,6 +319,19 @@ const certificateManagementSlice = createSlice({
       .addCase(fetchEligibleHotels.rejected, (state, action) => {
         state.eligibleHotelsStatus = 'failed'
         state.error = action.payload || 'Failed to load eligible hotels'
+      })
+      .addCase(fetchIssuanceHubData.pending, (state) => {
+        state.issuanceHubStatus = 'loading'
+        state.issuanceHubError = ''
+      })
+      .addCase(fetchIssuanceHubData.fulfilled, (state, action) => {
+        state.issuanceHubStatus = 'succeeded'
+        state.issuanceHubSummary = action.payload.summary
+        state.issuanceHubHotels = action.payload.data
+      })
+      .addCase(fetchIssuanceHubData.rejected, (state, action) => {
+        state.issuanceHubStatus = 'failed'
+        state.issuanceHubError = action.payload || 'Failed to load issuance hub data'
       })
       .addCase(fetchCertificateOverviewStats.pending, (state) => {
         state.overviewStatsStatus = 'loading'

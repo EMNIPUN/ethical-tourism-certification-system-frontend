@@ -509,7 +509,7 @@ function CertificateOverviewPage() {
         </div>
         <div className='flex flex-wrap gap-2'>
           <Link
-            to='issue'
+            to='issuance'
             className='inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-100'
           >
             <FilePlus2 className='h-4 w-4' />
@@ -778,7 +778,7 @@ function CertificateOverviewPage() {
 
           <div className='mt-4 grid gap-2 sm:grid-cols-2'>
             <Link
-              to='issue'
+              to='issuance'
               className='inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-500'
             >
               <FilePlus2 className='h-4 w-4' />
