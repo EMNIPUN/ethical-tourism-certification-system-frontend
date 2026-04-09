@@ -1,10 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
-import SearchExample from '../pages/SearchExample'
+import HotelSearch from '../pages/HotelSearch'
 
 function SearchRoutes() {
 	return (
 		<Routes>
-			<Route index element={<SearchExample />} />
+			<Route index element={<HotelSearch />} />
 		</Routes>
 	)
 }
