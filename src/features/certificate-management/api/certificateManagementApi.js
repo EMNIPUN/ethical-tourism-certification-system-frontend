@@ -27,6 +27,20 @@ export function getEligibleHotels() {
 	})
 }
 
+export function getCertificateOverviewStats() {
+	return apiRequest('/certification/certificates/overview/stats', {
+		method: 'GET',
+		token: authToken(),
+	})
+}
+
+export function getCertificateOverviewCharts() {
+	return apiRequest('/certification/certificates/overview/charts', {
+		method: 'GET',
+		token: authToken(),
+	})
+}
+
 export function getCertificateDetails(certificateNumber) {
 	return apiRequest(`/certification/certificates/${encodeURIComponent(certificateNumber)}`, {
 		method: 'GET',

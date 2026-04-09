@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import {
   deleteCertificatePermanently,
   getCertificateDetails,
+  getCertificateOverviewCharts,
+  getCertificateOverviewStats,
   getCertificateTimeline,
   getCertificates,
   getEligibleHotels,
@@ -36,6 +38,34 @@ export const fetchEligibleHotels = createAsyncThunk(
       return response?.data || []
     } catch (error) {
       return rejectWithValue(resolveThunkError(error, 'Failed to load eligible hotels'))
+    }
+  },
+)
+
+export const fetchCertificateOverviewStats = createAsyncThunk(
+  'certificateManagement/fetchCertificateOverviewStats',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getCertificateOverviewStats()
+      return response?.data || {}
+    } catch (error) {
+      return rejectWithValue(resolveThunkError(error, 'Failed to load certificate overview stats'))
+    }
+  },
+)
+
+export const fetchCertificateOverviewCharts = createAsyncThunk(
+  'certificateManagement/fetchCertificateOverviewCharts',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getCertificateOverviewCharts()
+      return {
+        statusDistribution: response?.data?.statusDistribution || [],
+        levelDistribution: response?.data?.levelDistribution || [],
+        monthlyIssuedTrend: response?.data?.monthlyIssuedTrend || [],
+      }
+    } catch (error) {
+      return rejectWithValue(resolveThunkError(error, 'Failed to load certificate overview charts'))
     }
   },
 )
@@ -175,6 +205,12 @@ const initialState = {
   certificates: [],
   eligibleHotels: [],
   certificateDetails: null,
+  overviewStats: null,
+  overviewCharts: {
+    statusDistribution: [],
+    levelDistribution: [],
+    monthlyIssuedTrend: [],
+  },
   timeline: [],
   timelinePage: 1,
   timelineHasNext: false,
@@ -182,10 +218,14 @@ const initialState = {
   certificatesStatus: 'idle',
   eligibleHotelsStatus: 'idle',
   certificateDetailsStatus: 'idle',
+  overviewStatsStatus: 'idle',
+  overviewChartsStatus: 'idle',
   timelineStatus: 'idle',
   actionStatus: 'idle',
   error: '',
   detailsError: '',
+  overviewStatsError: '',
+  overviewChartsError: '',
   timelineError: '',
   actionError: '',
   actionSuccess: '',
@@ -212,6 +252,8 @@ const certificateManagementSlice = createSlice({
     clearCertificateManagementMessages(state) {
       state.error = ''
       state.detailsError = ''
+      state.overviewStatsError = ''
+      state.overviewChartsError = ''
       state.timelineError = ''
       state.actionError = ''
       state.actionSuccess = ''
@@ -256,6 +298,30 @@ const certificateManagementSlice = createSlice({
       .addCase(fetchEligibleHotels.rejected, (state, action) => {
         state.eligibleHotelsStatus = 'failed'
         state.error = action.payload || 'Failed to load eligible hotels'
+      })
+      .addCase(fetchCertificateOverviewStats.pending, (state) => {
+        state.overviewStatsStatus = 'loading'
+        state.overviewStatsError = ''
+      })
+      .addCase(fetchCertificateOverviewStats.fulfilled, (state, action) => {
+        state.overviewStatsStatus = 'succeeded'
+        state.overviewStats = action.payload
+      })
+      .addCase(fetchCertificateOverviewStats.rejected, (state, action) => {
+        state.overviewStatsStatus = 'failed'
+        state.overviewStatsError = action.payload || 'Failed to load certificate overview stats'
+      })
+      .addCase(fetchCertificateOverviewCharts.pending, (state) => {
+        state.overviewChartsStatus = 'loading'
+        state.overviewChartsError = ''
+      })
+      .addCase(fetchCertificateOverviewCharts.fulfilled, (state, action) => {
+        state.overviewChartsStatus = 'succeeded'
+        state.overviewCharts = action.payload
+      })
+      .addCase(fetchCertificateOverviewCharts.rejected, (state, action) => {
+        state.overviewChartsStatus = 'failed'
+        state.overviewChartsError = action.payload || 'Failed to load certificate overview charts'
       })
       .addCase(fetchCertificateDetails.pending, (state) => {
         state.certificateDetailsStatus = 'loading'

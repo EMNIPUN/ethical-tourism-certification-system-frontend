@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { useAuth } from '../../auth/hooks/useAuth'
 import StatusBadge from '../components/StatusBadge'
@@ -30,6 +30,38 @@ const ACTION_TYPES = {
 }
 
 const STATUS_OPTIONS = ['ALL', 'ACTIVE', 'EXPIRED', 'REVOKED', 'INACTIVE']
+const LEVEL_OPTIONS = ['PLATINUM', 'GOLD', 'SILVER']
+
+function normalizeStatus(value) {
+  const upper = String(value || '').toUpperCase()
+  return STATUS_OPTIONS.includes(upper) ? upper : 'ALL'
+}
+
+function normalizeLevel(value) {
+  const upper = String(value || '').toUpperCase()
+  return LEVEL_OPTIONS.includes(upper) ? upper : ''
+}
+
+function toDate(value) {
+  if (!value) {
+    return null
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function daysBetween(fromDate, toDateValue) {
+  const from = toDate(fromDate)
+  const to = toDate(toDateValue)
+
+  if (!from || !to) {
+    return null
+  }
+
+  const diffMs = to.getTime() - from.getTime()
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
 
 function getHotelName(item) {
   return item?.hotelId?.businessInfo?.name || 'Unknown hotel'
@@ -87,6 +119,7 @@ function isActionDisabled(type, item) {
 
 function CertificatesListPage() {
   const dispatch = useAppDispatch()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
 
@@ -101,17 +134,67 @@ function CertificatesListPage() {
   const isLoading = certificatesStatus === 'loading'
   const isActing = actionStatus === 'loading'
 
-  const [searchQuery, setSearchQuery] = useState('')
+  const statusFromQuery = useMemo(
+    () => normalizeStatus(searchParams.get('status')),
+    [searchParams],
+  )
+  const levelFromQuery = useMemo(
+    () => normalizeLevel(searchParams.get('level')),
+    [searchParams],
+  )
+  const expiringOnlyFromQuery = useMemo(() => searchParams.get('expiring') === '45', [searchParams])
+  const searchFromQuery = useMemo(() => searchParams.get('q') || '', [searchParams])
+
+  const [searchQuery, setSearchQuery] = useState(searchFromQuery)
+  const [levelFilter, setLevelFilter] = useState(levelFromQuery)
   const [activeAction, setActiveAction] = useState('')
   const [selectedCertificate, setSelectedCertificate] = useState(null)
   const [actionForm, setActionForm] = useState(getActionDefaults(ACTION_TYPES.RENEW))
   const [localActionError, setLocalActionError] = useState('')
 
   useEffect(() => {
-    if (certificatesStatus === 'idle') {
-      dispatch(fetchCertificates(statusFilter === 'ALL' ? '' : statusFilter))
+    if (statusFilter !== statusFromQuery) {
+      dispatch(setCertificateStatusFilter(statusFromQuery))
     }
-  }, [certificatesStatus, dispatch, statusFilter])
+  }, [dispatch, statusFilter, statusFromQuery])
+
+  useEffect(() => {
+    dispatch(fetchCertificates(statusFromQuery === 'ALL' ? '' : statusFromQuery))
+  }, [dispatch, statusFromQuery])
+
+  useEffect(() => {
+    setSearchQuery(searchFromQuery)
+  }, [searchFromQuery])
+
+  useEffect(() => {
+    setLevelFilter(levelFromQuery)
+  }, [levelFromQuery])
+
+  function updateListQuery({ status, level, search, expiringOnly = false }) {
+    const nextStatus = normalizeStatus(status)
+    const nextLevel = normalizeLevel(level)
+    const nextSearch = String(search || '').trim()
+
+    const nextParams = new URLSearchParams()
+
+    if (nextStatus !== 'ALL') {
+      nextParams.set('status', nextStatus)
+    }
+
+    if (nextLevel) {
+      nextParams.set('level', nextLevel)
+    }
+
+    if (nextSearch) {
+      nextParams.set('q', nextSearch)
+    }
+
+    if (expiringOnly) {
+      nextParams.set('expiring', '45')
+    }
+
+    setSearchParams(nextParams)
+  }
 
   const groupedCounts = useMemo(() => {
     return {
@@ -126,8 +209,23 @@ function CertificatesListPage() {
     const query = searchQuery.trim().toLowerCase()
 
     return certificates.filter((item) => {
-      if (statusFilter !== 'ALL' && item.status !== statusFilter) {
+      if (statusFromQuery !== 'ALL' && item.status !== statusFromQuery) {
         return false
+      }
+
+      if (levelFilter && String(item.level || '').toUpperCase() !== levelFilter) {
+        return false
+      }
+
+      if (expiringOnlyFromQuery) {
+        if (item.status !== 'ACTIVE') {
+          return false
+        }
+
+        const daysLeft = daysBetween(new Date(), item.expiryDate)
+        if (daysLeft === null || daysLeft < 0 || daysLeft > 45) {
+          return false
+        }
       }
 
       if (!query) {
@@ -147,7 +245,7 @@ function CertificatesListPage() {
 
       return searchableText.includes(query)
     })
-  }, [certificates, searchQuery, statusFilter])
+  }, [certificates, expiringOnlyFromQuery, levelFilter, searchQuery, statusFromQuery])
 
   function openActionModal(type, certificate) {
     setActiveAction(type)
@@ -248,7 +346,7 @@ function CertificatesListPage() {
         ).unwrap()
       }
 
-      await dispatch(fetchCertificates(statusFilter === 'ALL' ? '' : statusFilter))
+      await dispatch(fetchCertificates(statusFromQuery === 'ALL' ? '' : statusFromQuery))
       closeActionModal()
     } catch (error) {
       setLocalActionError(error.message || 'Action failed')
@@ -273,7 +371,16 @@ function CertificatesListPage() {
               Search
               <input
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) => {
+                  const nextSearch = event.target.value
+                  setSearchQuery(nextSearch)
+                  updateListQuery({
+                    status: statusFromQuery,
+                    level: levelFilter,
+                    search: nextSearch,
+                    expiringOnly: expiringOnlyFromQuery,
+                  })
+                }}
                 placeholder='Certificate, hotel, email...'
                 className='mt-1 block w-60 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
               />
@@ -282,11 +389,17 @@ function CertificatesListPage() {
             <label className='text-sm font-medium text-slate-700'>
               Filter by status
               <select
-                value={statusFilter}
+                value={statusFromQuery}
                 onChange={(event) => {
                   const nextStatus = event.target.value || 'ALL'
-                  dispatch(setCertificateStatusFilter(nextStatus))
-                  dispatch(fetchCertificates(nextStatus === 'ALL' ? '' : nextStatus))
+                  const nextLevel = nextStatus === 'ACTIVE' ? levelFilter : ''
+                  setLevelFilter(nextLevel)
+                  updateListQuery({
+                    status: nextStatus,
+                    level: nextLevel,
+                    search: searchQuery,
+                    expiringOnly: expiringOnlyFromQuery && nextStatus === 'ACTIVE',
+                  })
                 }}
                 className='mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
               >
@@ -297,8 +410,50 @@ function CertificatesListPage() {
                 ))}
               </select>
             </label>
+
+            <label className='text-sm font-medium text-slate-700'>
+              Filter by level
+              <select
+                value={levelFilter}
+                onChange={(event) => {
+                  const nextLevel = normalizeLevel(event.target.value)
+                  const nextStatus = nextLevel ? 'ACTIVE' : statusFromQuery
+                  setLevelFilter(nextLevel)
+                  updateListQuery({
+                    status: nextStatus,
+                    level: nextLevel,
+                    search: searchQuery,
+                    expiringOnly: expiringOnlyFromQuery && nextStatus === 'ACTIVE',
+                  })
+                }}
+                className='mt-1 block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm'
+              >
+                <option value=''>All levels</option>
+                {LEVEL_OPTIONS.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
+
+        {statusFromQuery !== 'ALL' || levelFilter || searchQuery.trim() || expiringOnlyFromQuery ? (
+          <div className='mt-3'>
+            <button
+              type='button'
+              onClick={() => {
+                setSearchQuery('')
+                setLevelFilter('')
+                updateListQuery({ status: 'ALL', level: '', search: '', expiringOnly: false })
+              }}
+              className='rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100'
+            >
+              Clear shared filters
+            </button>
+          </div>
+        ) : null}
 
         <div className='mt-4 grid gap-2 sm:grid-cols-4'>
           {Object.entries(groupedCounts).map(([status, count]) => (
