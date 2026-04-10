@@ -68,11 +68,11 @@ function HotelApplicationForm({ draft, onChange }) {
 
     return (
         <div className='grid gap-6'>
-            <section className='rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
+            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
                 <div className='flex items-start justify-between gap-4'>
                     <div>
-                        <h2 className='text-lg font-bold text-[var(--text-950)]'>Business information</h2>
-                        <p className='mt-1 text-sm font-medium text-[var(--text-700)]'>Provide the hotel identity details exactly as registered.</p>
+                        <h2 className='text-lg font-bold text-(--text-950)'>Business information</h2>
+                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Provide the hotel identity details exactly as registered.</p>
                     </div>
                     <span className='badge-chip'>Step 1</span>
                 </div>
@@ -116,11 +116,11 @@ function HotelApplicationForm({ draft, onChange }) {
                 </div>
             </section>
 
-            <section className='rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
+            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
                 <div className='flex items-start justify-between gap-4'>
                     <div>
-                        <h2 className='text-lg font-bold text-[var(--text-950)]'>Owner contact</h2>
-                        <p className='mt-1 text-sm font-medium text-[var(--text-700)]'>This is used for follow-ups during verification.</p>
+                        <h2 className='text-lg font-bold text-(--text-950)'>Owner contact</h2>
+                        <p className='mt-1 text-sm font-medium text-(--text-700)'>This is used for follow-ups during verification.</p>
                     </div>
                 </div>
 
@@ -164,11 +164,11 @@ function HotelApplicationForm({ draft, onChange }) {
                 </div>
             </section>
 
-            <section className='rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
+            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
                 <div className='flex items-start justify-between gap-4'>
                     <div>
-                        <h2 className='text-lg font-bold text-[var(--text-950)]'>Guest facilities</h2>
-                        <p className='mt-1 text-sm font-medium text-[var(--text-700)]'>Basic capacity information is required for scoring.</p>
+                        <h2 className='text-lg font-bold text-(--text-950)'>Guest facilities</h2>
+                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Basic capacity information is required for scoring.</p>
                     </div>
                 </div>
 
