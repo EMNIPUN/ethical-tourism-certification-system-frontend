@@ -6,7 +6,7 @@ function CandidateCard({ candidate, selected, onSelect }) {
             type='button'
             onClick={onSelect}
             className={
-                'w-full rounded-2xl border p-5 text-left shadow-[var(--shadow-soft)] transition focus:outline-none focus:ring-4 focus:ring-[var(--brand-700)]/15 ' +
+                'w-full rounded-2xl border p-5 text-left shadow-(--shadow-soft) transition focus:outline-none focus:ring-4 focus:ring-(--brand-700)/15 ' +
                 (selected
                     ? 'border-(--brand-700) bg-(--surface-white)'
                     : 'border-(--border-soft) bg-(--surface-white) hover:border-(--brand-700)')

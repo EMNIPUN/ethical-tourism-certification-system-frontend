@@ -42,12 +42,12 @@ function FileCard({ title, description, accept, multiple, files, onChange, name 
                     <ul className='space-y-2 text-sm font-medium text-(--text-700)'>
                         {multiple
                             ? files.map((file) => (
-                                    <li key={file.name} className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
+                                <li key={file.name} className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
                                     {file.name}
                                 </li>
                             ))
                             : (
-                                    <li className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
+                                <li className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
                                     {files.name}
                                 </li>
                             )}
