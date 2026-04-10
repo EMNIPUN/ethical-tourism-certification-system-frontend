@@ -51,54 +51,54 @@ function ConfirmHotelMatchPage() {
     }
 
     return (
-        <main className='min-h-screen bg-[var(--surface-canvas)] py-10'>
+        <main className='min-h-screen bg-(--surface-canvas) py-10'>
             <div className='ui-shell'>
-                <div className='mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
+                <div className='mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
                     <div>
-                        <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-900)]'>Step 2</p>
-                        <h1 className='mt-2 text-2xl font-bold tracking-tight text-[var(--text-950)]'>Confirm Google profile match</h1>
-                        <p className='mt-2 text-sm font-medium text-[var(--text-700)]'>Choose the correct listing so the system can evaluate reviews accurately.</p>
+                        <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Step 2</p>
+                        <h1 className='mt-2 text-2xl font-bold tracking-tight text-(--text-950)'>Confirm Google profile match</h1>
+                        <p className='mt-2 text-sm font-medium text-(--text-700)'>Choose the correct listing so the system can evaluate reviews accurately.</p>
                     </div>
 
                     <Link
                         to={`/certificate-application/${id}`}
-                        className='inline-flex items-center gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-white)] px-4 py-3 text-sm font-semibold text-[var(--text-700)] transition hover:border-[var(--brand-700)] hover:text-[var(--brand-900)]'
+                        className='inline-flex items-center gap-2 rounded-xl border border-(--border-soft) bg-(--surface-white) px-4 py-3 text-sm font-semibold text-(--text-700) transition hover:border-(--brand-700) hover:text-(--brand-900)'
                     >
                         <ArrowLeft size={16} /> Back to details
                     </Link>
                 </div>
 
                 {confirmError ? (
-                    <div className='mb-6 rounded-2xl border border-[var(--border-soft)] bg-[var(--error-100)] px-6 py-4 shadow-[var(--shadow-soft)]'>
-                        <p className='text-sm font-semibold text-[var(--error-600)]'>{confirmError}</p>
+                    <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--error-100) px-6 py-4 shadow-(--shadow-soft)'>
+                        <p className='text-sm font-semibold text-(--error-600)'>{confirmError}</p>
                     </div>
                 ) : null}
 
                 <AsyncState status={hotelStatus} loadingMessage='Loading hotel details...'>
-                    <div className='mb-6 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
-                        <p className='text-sm font-bold text-[var(--text-950)]'>{hotel?.businessInfo?.name || 'Hotel'}</p>
-                        <p className='mt-1 text-sm font-medium text-[var(--text-700)]'>{hotel?.businessInfo?.contact?.address || '—'}</p>
+                    <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
+                        <p className='text-sm font-bold text-(--text-950)'>{hotel?.businessInfo?.name || 'Hotel'}</p>
+                        <p className='mt-1 text-sm font-medium text-(--text-700)'>{hotel?.businessInfo?.contact?.address || '—'}</p>
                     </div>
                 </AsyncState>
 
                 <GoogleCandidatePicker candidates={candidates} selectedPlaceId={placeId} onChange={setPlaceId} allowManualEntry />
 
                 {confirmResult?.evaluation ? (
-                    <div className='mt-6 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
-                        <h2 className='text-lg font-bold text-[var(--text-950)]'>Latest evaluation</h2>
-                        <p className='mt-2 text-sm font-medium text-[var(--text-700)]'>{confirmResult.message}</p>
+                    <div className='mt-6 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
+                        <h2 className='text-lg font-bold text-(--text-950)'>Latest evaluation</h2>
+                        <p className='mt-2 text-sm font-medium text-(--text-700)'>{confirmResult.message}</p>
                         <div className='mt-4 grid gap-3 md:grid-cols-3'>
-                            <div className='rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)] px-4 py-3'>
-                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-500)]'>Status</p>
-                                <p className='mt-1 text-sm font-semibold text-[var(--text-950)]'>{confirmResult.evaluation.status}</p>
+                            <div className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
+                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-(--text-500)'>Status</p>
+                                <p className='mt-1 text-sm font-semibold text-(--text-950)'>{confirmResult.evaluation.status}</p>
                             </div>
-                            <div className='rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)] px-4 py-3'>
-                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-500)]'>AI score</p>
-                                <p className='mt-1 text-sm font-semibold text-[var(--text-950)]'>{confirmResult.evaluation.aiScore}</p>
+                            <div className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
+                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-(--text-500)'>AI score</p>
+                                <p className='mt-1 text-sm font-semibold text-(--text-950)'>{confirmResult.evaluation.aiScore}</p>
                             </div>
-                            <div className='rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)] px-4 py-3'>
-                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-500)]'>Notes</p>
-                                <p className='mt-1 text-sm font-semibold text-[var(--text-950)]'>
+                            <div className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
+                                <p className='text-xs font-bold uppercase tracking-[0.08em] text-(--text-500)'>Notes</p>
+                                <p className='mt-1 text-sm font-semibold text-(--text-950)'>
                                     {confirmResult.evaluation.aiJustification || '—'}
                                 </p>
                             </div>
@@ -106,12 +106,12 @@ function ConfirmHotelMatchPage() {
                     </div>
                 ) : null}
 
-                <div className='mt-6 flex flex-col gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-end'>
+                <div className='mt-6 flex flex-col gap-3 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-5 shadow-(--shadow-soft) sm:flex-row sm:items-center sm:justify-end'>
                     <button
                         type='button'
                         onClick={handleConfirm}
                         disabled={confirmStatus === 'loading'}
-                        className='inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-700)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
+                        className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
                     >
                         {confirmStatus === 'loading' ? 'Confirming...' : 'Confirm match & evaluate'}
                         <ArrowRight size={16} />

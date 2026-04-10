@@ -45,16 +45,16 @@ function isRequiredDraftComplete(draft) {
 
 function SummaryRow({ label, value }) {
     return (
-        <div className='flex items-start justify-between gap-4 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)] px-4 py-3'>
-            <span className='text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-500)]'>{label}</span>
-            <span className='text-sm font-semibold text-[var(--text-950)]'>{value || '—'}</span>
+        <div className='flex items-start justify-between gap-4 rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
+            <span className='text-xs font-bold uppercase tracking-[0.08em] text-(--text-500)'>{label}</span>
+            <span className='text-sm font-semibold text-(--text-950)'>{value || '—'}</span>
         </div>
     )
 }
 
 function Stepper({ stepIndex }) {
     return (
-        <div className='grid gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-5 shadow-[var(--shadow-soft)] md:grid-cols-3'>
+        <div className='grid gap-3 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-5 shadow-(--shadow-soft) md:grid-cols-3'>
             {STEPS.map((step, index) => {
                 const Icon = step.icon
                 const active = index === stepIndex
@@ -66,25 +66,25 @@ function Stepper({ stepIndex }) {
                         className={
                             'flex items-start gap-4 rounded-xl border px-4 py-3 transition ' +
                             (active
-                                ? 'border-[var(--brand-700)] bg-[var(--surface-soft)]'
+                                ? 'border-(--brand-700) bg-(--surface-soft)'
                                 : completed
-                                    ? 'border-[var(--border-soft)] bg-[var(--surface-white)]'
-                                    : 'border-[var(--border-soft)] bg-[var(--surface-white)]')
+                                    ? 'border-(--border-soft) bg-(--surface-white)'
+                                    : 'border-(--border-soft) bg-(--surface-white)')
                         }
                     >
                         <span
                             className={
                                 'inline-flex h-10 w-10 items-center justify-center rounded-xl ' +
                                 (active || completed
-                                    ? 'bg-[var(--brand-700)] text-white'
-                                    : 'bg-[var(--surface-soft)] text-[var(--brand-900)]')
+                                    ? 'bg-(--brand-700) text-white'
+                                    : 'bg-(--surface-soft) text-(--brand-900)')
                             }
                         >
                             <Icon size={18} />
                         </span>
                         <div>
-                            <p className='text-sm font-bold text-[var(--text-950)]'>{step.title}</p>
-                            <p className='mt-1 text-xs font-medium text-[var(--text-700)]'>{step.description}</p>
+                            <p className='text-sm font-bold text-(--text-950)'>{step.title}</p>
+                            <p className='mt-1 text-xs font-medium text-(--text-700)'>{step.description}</p>
                         </div>
                     </div>
                 )
@@ -128,10 +128,10 @@ function HotelApplicationWizard({
 
     return (
         <div className='grid gap-6'>
-            <header className='rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-7 shadow-[var(--shadow-soft)]'>
-                <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-900)]'>Certificate application</p>
-                <h1 className='mt-2 text-3xl font-bold tracking-tight text-[var(--text-950)]'>{header}</h1>
-                <p className='mt-2 max-w-3xl text-sm font-medium text-[var(--text-700)]'>{subheader}</p>
+            <header className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-7 shadow-(--shadow-soft)'>
+                <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate application</p>
+                <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>{header}</h1>
+                <p className='mt-2 max-w-3xl text-sm font-medium text-(--text-700)'>{subheader}</p>
             </header>
 
             <Stepper stepIndex={stepIndex} />
@@ -147,9 +147,9 @@ function HotelApplicationWizard({
 
             {stepIndex === 2 ? (
                 <div className='grid gap-6'>
-                    <div className='rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-6 shadow-[var(--shadow-soft)]'>
-                        <h2 className='text-lg font-bold text-[var(--text-950)]'>Review</h2>
-                        <p className='mt-1 text-sm font-medium text-[var(--text-700)]'>Confirm the critical fields before submitting.</p>
+                    <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
+                        <h2 className='text-lg font-bold text-(--text-950)'>Review</h2>
+                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Confirm the critical fields before submitting.</p>
 
                         <div className='mt-6 grid gap-3 md:grid-cols-2'>
                             <SummaryRow label='Hotel name' value={draft?.businessInfo?.name} />
@@ -162,9 +162,9 @@ function HotelApplicationWizard({
                             <SummaryRow label='Address' value={draft?.businessInfo?.contact?.address} />
                         </div>
 
-                        <div className='mt-6 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-soft)] px-4 py-3'>
-                            <p className='text-xs font-semibold text-[var(--text-700)]'>Selected files</p>
-                            <p className='mt-2 text-sm font-medium text-[var(--text-500)]'>
+                        <div className='mt-6 rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
+                            <p className='text-xs font-semibold text-(--text-700)'>Selected files</p>
+                            <p className='mt-2 text-sm font-medium text-(--text-500)'>
                                 Legal documents: {files.legalDocuments?.length || 0} · Salary slips: {files.salarySlips ? '1' : '0'} · Staff handbook:{' '}
                                 {files.staffHandbook ? '1' : '0'} · HR policy: {files.hrPolicy ? '1' : '0'}
                             </p>
@@ -173,12 +173,12 @@ function HotelApplicationWizard({
                 </div>
             ) : null}
 
-            <div className='flex flex-col-reverse gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-white)] p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between'>
+            <div className='flex flex-col-reverse gap-3 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-5 shadow-(--shadow-soft) sm:flex-row sm:items-center sm:justify-between'>
                 <button
                     type='button'
                     onClick={handleBack}
                     disabled={stepIndex === 0 || submitting}
-                    className='inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-white)] px-4 py-3 text-sm font-semibold text-[var(--text-700)] transition hover:border-[var(--brand-700)] hover:text-[var(--brand-900)] disabled:cursor-not-allowed disabled:opacity-60'
+                    className='inline-flex items-center justify-center gap-2 rounded-xl border border-(--border-soft) bg-(--surface-white) px-4 py-3 text-sm font-semibold text-(--text-700) transition hover:border-(--brand-700) hover:text-(--brand-900) disabled:cursor-not-allowed disabled:opacity-60'
                 >
                     <ArrowLeft size={16} />
                     Back
@@ -186,7 +186,7 @@ function HotelApplicationWizard({
 
                 <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
                     {stepIndex === 0 && !canProceedFromDetails ? (
-                        <p className='text-xs font-semibold text-[var(--error-600)]'>Fill all required fields to continue.</p>
+                        <p className='text-xs font-semibold text-(--error-600)'>Fill all required fields to continue.</p>
                     ) : null}
 
                     {stepIndex < 2 ? (
@@ -194,7 +194,7 @@ function HotelApplicationWizard({
                             type='button'
                             onClick={handleNext}
                             disabled={submitting || (stepIndex === 0 && !canProceedFromDetails)}
-                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-700)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
+                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
                         >
                             Next
                             <ArrowRight size={16} />
@@ -204,7 +204,7 @@ function HotelApplicationWizard({
                             type='button'
                             onClick={() => onSubmit({ draft: draft || {}, files })}
                             disabled={submitting}
-                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-700)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
+                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
                         >
                             {submitting ? 'Submitting...' : submitLabel}
                             <ArrowRight size={16} />
