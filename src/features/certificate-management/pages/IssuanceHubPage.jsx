@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Building2,
   CheckCircle2,
@@ -58,6 +58,7 @@ function formatDate(value) {
 
 function IssuanceHubPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
 
@@ -213,6 +214,59 @@ function IssuanceHubPage() {
 
       const certificateNumber = response?.data?.certificateNumber || ''
       setCreatedCertificateNumber(certificateNumber)
+
+      if (certificateNumber) {
+        navigate(`../certificates/${encodeURIComponent(certificateNumber)}`)
+        return
+      }
+
+      await dispatch(fetchIssuanceHubData())
+    } catch {
+      // actionError in store handles message display
+    }
+  }
+
+  function handleViewHotel(event, hotel) {
+    event.stopPropagation()
+
+    const certificateNumber = hotel?.activeCertificate?.certificateNumber
+    if (certificateNumber) {
+      navigate(`../certificates/${encodeURIComponent(certificateNumber)}`)
+      return
+    }
+
+    if (hotel?.hotelId) {
+      setSelectedHotelId(hotel.hotelId)
+      navigate(`../issuance?hotelId=${encodeURIComponent(hotel.hotelId)}`)
+    }
+  }
+
+  async function handleQuickIssue(event, hotel) {
+    event.stopPropagation()
+
+    if (!isAdmin || !hotel?.hotelId || hotel.alreadyCertified) {
+      return
+    }
+
+    dispatch(clearCertificateManagementMessages())
+    setCreatedCertificateNumber('')
+    setSelectedHotelId(hotel.hotelId)
+
+    try {
+      const response = await dispatch(
+        issueCertificateAction({
+          hotelId: hotel.hotelId,
+          validityPeriodInMonths: Number(validityPeriodInMonths),
+        }),
+      ).unwrap()
+
+      const certificateNumber = response?.data?.certificateNumber || ''
+      setCreatedCertificateNumber(certificateNumber)
+
+      if (certificateNumber) {
+        navigate(`../certificates/${encodeURIComponent(certificateNumber)}`)
+        return
+      }
 
       await dispatch(fetchIssuanceHubData())
     } catch {
@@ -389,6 +443,7 @@ function IssuanceHubPage() {
                       <th className='px-3 py-2'>Readiness</th>
                       <th className='px-3 py-2'>Active Certificate</th>
                       <th className='px-3 py-2'>Updated</th>
+                      <th className='px-3 py-2'>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -437,6 +492,26 @@ function IssuanceHubPage() {
                             )}
                           </td>
                           <td className='px-3 py-2 text-xs text-slate-600'>{formatDate(item.updatedAt)}</td>
+                          <td className='px-3 py-2'>
+                            {item.activeCertificate?.certificateNumber ? (
+                              <button
+                                type='button'
+                                onClick={(event) => handleViewHotel(event, item)}
+                                className='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-700 cursor-pointer'
+                              >
+                                View Certificate
+                              </button>
+                            ) : (
+                              <button
+                                type='button'
+                                disabled={!isAdmin || isSubmitting || item.alreadyCertified}
+                                onClick={(event) => handleQuickIssue(event, item)}
+                                className='rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50'
+                              >
+                                {isSubmitting && selectedHotelId === item.hotelId ? 'Issuing...' : 'Issue now'}
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       )
                     })}
