@@ -8,18 +8,18 @@ function getValue(draft, path) {
 
 function Field({ label, required, hint, value, onChange, type = 'text', placeholder }) {
     return (
-        <label className='block text-sm font-semibold text-[var(--text-950)]'>
+        <label className='block text-sm font-semibold text-(--text-950)'>
             <span className='inline-flex items-center gap-2'>
                 {label}
-                {required ? <span className='text-[var(--error-600)]'>*</span> : null}
+                {required ? <span className='text-(--error-600)'>*</span> : null}
             </span>
-            {hint ? <span className='mt-1 block text-xs font-medium text-[var(--text-500)]'>{hint}</span> : null}
+            {hint ? <span className='mt-1 block text-xs font-medium text-(--text-500)'>{hint}</span> : null}
             <input
                 type={type}
                 value={value ?? ''}
                 onChange={(event) => onChange(event.target.value)}
                 placeholder={placeholder}
-                className='mt-2 h-12 w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 text-sm text-[var(--text-950)] outline-none transition focus:border-[var(--brand-700)] focus:ring-4 focus:ring-[var(--brand-700)]/15'
+                className='mt-2 h-12 w-full rounded-xl border border-(--border-soft) bg-white px-4 text-sm text-(--text-950) outline-none transition focus:border-(--brand-700) focus:ring-4 focus:ring-(--brand-700)/15'
             />
         </label>
     )
@@ -27,15 +27,15 @@ function Field({ label, required, hint, value, onChange, type = 'text', placehol
 
 function Select({ label, required, value, onChange, options }) {
     return (
-        <label className='block text-sm font-semibold text-[var(--text-950)]'>
+        <label className='block text-sm font-semibold text-(--text-950)'>
             <span className='inline-flex items-center gap-2'>
                 {label}
-                {required ? <span className='text-[var(--error-600)]'>*</span> : null}
+                {required ? <span className='text-(--error-600)'>*</span> : null}
             </span>
             <select
                 value={value ?? ''}
                 onChange={(event) => onChange(event.target.value)}
-                className='mt-2 h-12 w-full rounded-xl border border-[var(--border-soft)] bg-white px-4 text-sm text-[var(--text-950)] outline-none transition focus:border-[var(--brand-700)] focus:ring-4 focus:ring-[var(--brand-700)]/15'
+                className='mt-2 h-12 w-full rounded-xl border border-(--border-soft) bg-white px-4 text-sm text-(--text-950) outline-none transition focus:border-(--brand-700) focus:ring-4 focus:ring-(--brand-700)/15'
             >
                 <option value='' disabled>
                     Select...
