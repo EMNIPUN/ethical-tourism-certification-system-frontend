@@ -3,19 +3,25 @@ import {
   ArrowRight,
   Building2,
   CheckCircle2,
+  Compass,
   Filter,
   Globe2,
+  Home,
   MapPin,
   MessageSquareText,
+  Menu,
+  X,
   RefreshCw,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
+  UserCircle2,
   Users,
   Zap,
 } from 'lucide-react'
 import LogoutButton from '../../auth/components/LogoutButton'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import {
@@ -122,6 +128,7 @@ function HotelSearch() {
     feedback: '',
   })
   const [editingFeedbackId, setEditingFeedbackId] = useState(null)
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   useEffect(() => {
     dispatch(loadHotelContacts())
@@ -233,6 +240,19 @@ function HotelSearch() {
     dispatch(loadHotelRecommendations())
   }
 
+  function handleScrollToFeedback() {
+    const target = document.getElementById('feedback-panel')
+
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  function handleMobileNavAction(callback) {
+    setIsMobileNavOpen(false)
+    callback()
+  }
+
   function handleSelectHotel(hotelId, sourceTab) {
     dispatch(setSelectedHotelId(hotelId))
     dispatch(setSearchActiveTab(sourceTab))
@@ -335,9 +355,158 @@ function HotelSearch() {
   }
 
   return (
-    <main className='min-h-screen px-4 py-6 sm:px-6 lg:px-8'>
-      <div className='ui-shell flex min-h-screen flex-col gap-5'>
-        <section className='glass-panel overflow-hidden rounded-[1.9rem] border border-white/70 bg-[rgba(255,255,255,0.82)] p-5 shadow-[0_28px_65px_-44px_rgba(18,29,58,0.55)] sm:p-6'>
+    <main className='min-h-screen w-full overflow-x-hidden px-0 py-0'>
+      <div className='flex min-h-screen w-full flex-col gap-5'>
+        <nav className='glass-panel sticky top-0 z-20 w-full rounded-none border-x-0 border-t-0 border-b border-white/70 bg-white/85 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(18,29,58,0.5)] backdrop-blur-md sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between gap-3 lg:hidden'>
+            <div className='flex items-center gap-3'>
+              <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--brand-700) text-white shadow-[0_14px_26px_-18px_rgba(39,54,122,0.7)]'>
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[#7d8ca7]'>Certiguard</p>
+                <h1 className='text-lg font-semibold text-[#17253f]'>Hotel Search</h1>
+              </div>
+            </div>
+
+            <div className='flex items-center gap-2'>
+              <div className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dbe3f1] bg-[#f7faff] text-[#516079]'>
+                <UserCircle2 size={24} />
+              </div>
+              <button
+                type='button'
+                onClick={() => setIsMobileNavOpen((current) => !current)}
+                aria-expanded={isMobileNavOpen}
+                aria-label={isMobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d7e0ee] bg-white text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                {isMobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className='hidden lg:flex lg:items-center lg:justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--brand-700) text-white shadow-[0_14px_26px_-18px_rgba(39,54,122,0.7)]'>
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[#7d8ca7]'>Certiguard</p>
+                <h1 className='text-lg font-semibold text-[#17253f]'>Hotel Search</h1>
+              </div>
+            </div>
+
+            <div className='flex flex-wrap items-center gap-2'>
+              <Link
+                to='/'
+                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Home size={15} />
+                Home
+              </Link>
+              <button
+                type='button'
+                onClick={handleShowAll}
+                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Building2 size={15} />
+                All Hotels
+              </button>
+              <button
+                type='button'
+                onClick={handleRefreshRecommendations}
+                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Sparkles size={15} />
+                AI Ranking
+              </button>
+              <button
+                type='button'
+                onClick={handleScrollToFeedback}
+                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <MessageSquareText size={15} />
+                Feedback
+              </button>
+              <button
+                type='button'
+                onClick={() => dispatch(setSearchActiveTab('discover'))}
+                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Compass size={15} />
+                Discover
+              </button>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <div className='hidden text-right sm:block'>
+                <p className='text-xs font-semibold uppercase tracking-[0.18em] text-[#7d8ca7]'>Signed in</p>
+                <p className='text-sm font-semibold text-[#17253f]'>{user?.name || user?.email || 'Guest'}</p>
+              </div>
+              <div className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dbe3f1] bg-[#f7faff] text-[#516079]'>
+                <UserCircle2 size={24} />
+              </div>
+              <LogoutButton className='rounded-full border border-[#d5dcea] bg-white px-4 py-2 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]' />
+            </div>
+          </div>
+
+          <div className={[
+            'mt-3 overflow-hidden rounded-2xl border border-[#dce4f1] bg-white transition-[max-height,opacity,transform] duration-200 lg:hidden',
+            isMobileNavOpen ? 'max-h-105 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 pointer-events-none',
+          ].join(' ')}>
+            <div className='flex flex-col gap-2 p-3'>
+              <Link
+                to='/'
+                onClick={() => setIsMobileNavOpen(false)}
+                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Home size={15} />
+                Home
+              </Link>
+              <button
+                type='button'
+                onClick={() => handleMobileNavAction(handleShowAll)}
+                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Building2 size={15} />
+                All Hotels
+              </button>
+              <button
+                type='button'
+                onClick={() => handleMobileNavAction(handleRefreshRecommendations)}
+                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Sparkles size={15} />
+                AI Ranking
+              </button>
+              <button
+                type='button'
+                onClick={() => handleMobileNavAction(handleScrollToFeedback)}
+                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <MessageSquareText size={15} />
+                Feedback
+              </button>
+              <button
+                type='button'
+                onClick={() => handleMobileNavAction(() => dispatch(setSearchActiveTab('discover')))}
+                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
+              >
+                <Compass size={15} />
+                Discover
+              </button>
+              <div className='mt-1 rounded-xl bg-[#f7faff] px-4 py-3 text-sm text-[#516079]'>
+                <p className='font-semibold text-[#17253f]'>{user?.name || user?.email || 'Guest'}</p>
+                <p className='text-xs uppercase tracking-[0.14em] text-[#7d8ca7]'>{user?.role || 'Authenticated user'}</p>
+              </div>
+              <LogoutButton
+                className='rounded-xl border border-[#d5dcea] bg-white px-4 py-3 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]'
+              />
+            </div>
+          </div>
+        </nav>
+
+        <section className='glass-panel w-full overflow-hidden rounded-none border-x-0 border-white/70 bg-[rgba(255,255,255,0.82)] px-4 py-5 shadow-[0_28px_65px_-44px_rgba(18,29,58,0.55)] sm:px-6 sm:py-6 lg:px-8'>
           <div className='flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between'>
             <div className='max-w-3xl'>
               <div className='badge-chip'>
@@ -410,7 +579,8 @@ function HotelSearch() {
           </div>
         </section>
 
-        <section className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        <section className='w-full px-4 sm:px-6 lg:px-8'>
+          <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
           {summaryCards.map((card) => {
             const Icon = card.icon
 
@@ -432,9 +602,10 @@ function HotelSearch() {
               </article>
             )
           })}
+          </div>
         </section>
 
-        <section className='glass-panel rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:p-5'>
+        <section className='glass-panel w-full rounded-none border-x-0 border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:px-6 sm:py-5 lg:px-8'>
           <div className='flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
             <div>
               <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7d8ca7]'>Explore</p>
@@ -608,7 +779,7 @@ function HotelSearch() {
 
               {selectedHotel ? (
                 <div className='mt-4 space-y-4'>
-                  <div className='rounded-2xl border border-[#e1e8f3] bg-white p-4'>
+                  <div id='feedback-panel' className='rounded-2xl border border-[#e1e8f3] bg-white p-4'>
                     <div className='flex items-center gap-2 text-sm font-semibold text-[#22314f]'>
                       <ShieldCheck size={16} className='text-(--brand-700)' />
                       Certificate overview
@@ -809,7 +980,8 @@ function HotelSearch() {
           </div>
         </section>
 
-        <section className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.68fr)]'>
+        <section className='w-full px-4 pb-6 sm:px-6 lg:px-8'>
+          <div className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.68fr)]'>
           <article className='glass-panel rounded-3xl border border-white/70 bg-white/80 p-5'>
             <div className='flex items-start gap-3'>
               <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf2ff] text-(--brand-700)'>
@@ -840,6 +1012,7 @@ function HotelSearch() {
               </div>
             </div>
           </article>
+          </div>
         </section>
       </div>
     </main>
