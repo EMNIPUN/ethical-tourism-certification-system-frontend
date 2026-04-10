@@ -1,7 +1,47 @@
 import { UploadCloud } from 'lucide-react'
+import { useId, useMemo, useState } from 'react'
+
+function formatBytes(bytes) {
+    if (typeof bytes !== 'number' || Number.isNaN(bytes)) return ''
+    const units = ['B', 'KB', 'MB', 'GB']
+    let size = bytes
+    let unitIndex = 0
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024
+        unitIndex += 1
+    }
+
+    const rounded = unitIndex === 0 ? String(Math.round(size)) : size.toFixed(1)
+    return `${rounded} ${units[unitIndex]}`
+}
 
 function FileCard({ title, description, accept, multiple, files, onChange, name }) {
+    const inputId = useId()
+    const [isDragActive, setIsDragActive] = useState(false)
+
     const hasFiles = multiple ? (files?.length || 0) > 0 : Boolean(files)
+    const selectedFiles = useMemo(() => {
+        if (multiple) return Array.isArray(files) ? files : []
+        return files ? [files] : []
+    }, [files, multiple])
+
+    function setFromFileList(fileList) {
+        const next = Array.from(fileList || [])
+        if (multiple) {
+            onChange(next)
+        } else {
+            onChange(next[0] || null)
+        }
+    }
+
+    function handleRemoveFile(fileName) {
+        if (multiple) {
+            onChange((selectedFiles || []).filter((file) => file.name !== fileName))
+        } else {
+            onChange(null)
+        }
+    }
 
     return (
         <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
@@ -15,42 +55,83 @@ function FileCard({ title, description, accept, multiple, files, onChange, name 
                 </span>
             </div>
 
-            <div className='mt-5 flex flex-wrap items-center gap-3'>
-                <label className='inline-flex cursor-pointer items-center justify-center rounded-xl bg-(--brand-700) px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105'>
+            <div className='mt-5'>
+                <label
+                    htmlFor={inputId}
+                    onDragEnter={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setIsDragActive(true)
+                    }}
+                    onDragOver={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setIsDragActive(true)
+                    }}
+                    onDragLeave={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setIsDragActive(false)
+                    }}
+                    onDrop={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setIsDragActive(false)
+                        setFromFileList(event.dataTransfer.files)
+                    }}
+                    className={
+                        'group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-6 py-7 text-center transition ' +
+                        (isDragActive
+                            ? 'border-(--brand-700) bg-(--surface-soft)'
+                            : 'border-(--border-soft) bg-(--surface-soft) hover:border-(--brand-700)')
+                    }
+                >
                     <input
+                        id={inputId}
                         type='file'
                         name={name}
                         accept={accept}
                         multiple={multiple}
                         className='hidden'
-                        onChange={(event) => {
-                            if (multiple) {
-                                onChange(Array.from(event.target.files || []))
-                            } else {
-                                onChange(event.target.files?.[0] || null)
-                            }
-                        }}
+                        onChange={(event) => setFromFileList(event.target.files)}
                     />
-                    Choose file{multiple ? 's' : ''}
-                </label>
 
-                <span className='text-xs font-semibold text-(--text-500)'>Max 15MB each</span>
+                    <span className='inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-(--surface-white) text-(--brand-700) shadow-(--shadow-soft)'>
+                        <UploadCloud size={20} />
+                    </span>
+                    <div>
+                        <p className='text-sm font-bold text-(--text-950)'>Drag & drop files here</p>
+                        <p className='mt-1 text-xs font-semibold text-(--text-700)'>or click to browse{multiple ? ' (up to 10)' : ''}</p>
+                        <p className='mt-2 text-xs font-medium text-(--text-500)'>PDF / JPG / PNG · Max 15MB each</p>
+                    </div>
+
+                    {hasFiles ? (
+                        <span className='badge-chip'>Selected: {multiple ? selectedFiles.length : '1'}</span>
+                    ) : null}
+                </label>
             </div>
 
             <div className='mt-4'>
                 {hasFiles ? (
                     <ul className='space-y-2 text-sm font-medium text-(--text-700)'>
-                        {multiple
-                            ? files.map((file) => (
-                                <li key={file.name} className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
-                                    {file.name}
-                                </li>
-                            ))
-                            : (
-                                <li className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
-                                    {files.name}
-                                </li>
-                            )}
+                        {selectedFiles.map((file) => (
+                            <li
+                                key={file.name}
+                                className='flex flex-wrap items-center justify-between gap-3 rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'
+                            >
+                                <div className='min-w-0'>
+                                    <p className='truncate text-sm font-semibold text-(--text-950)'>{file.name}</p>
+                                    <p className='mt-1 text-xs font-medium text-(--text-500)'>{formatBytes(file.size)}</p>
+                                </div>
+                                <button
+                                    type='button'
+                                    onClick={() => handleRemoveFile(file.name)}
+                                    className='inline-flex items-center justify-center rounded-xl border border-(--border-soft) bg-(--surface-white) px-3 py-2 text-xs font-semibold text-(--text-700) transition hover:border-(--brand-700) hover:text-(--brand-900)'
+                                >
+                                    Remove
+                                </button>
+                            </li>
+                        ))}
                     </ul>
                 ) : (
                     <p className='text-sm font-medium text-(--text-500)'>No files selected.</p>

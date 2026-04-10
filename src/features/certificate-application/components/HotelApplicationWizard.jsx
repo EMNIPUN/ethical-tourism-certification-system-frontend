@@ -53,42 +53,58 @@ function SummaryRow({ label, value }) {
 }
 
 function Stepper({ stepIndex }) {
-    return (
-        <div className='grid gap-3 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-5 shadow-(--shadow-soft) md:grid-cols-3'>
-            {STEPS.map((step, index) => {
-                const Icon = step.icon
-                const active = index === stepIndex
-                const completed = index < stepIndex
+    const progressPercent = STEPS.length > 1 ? Math.round((stepIndex / (STEPS.length - 1)) * 100) : 0
 
-                return (
-                    <div
-                        key={step.key}
-                        className={
-                            'flex items-start gap-4 rounded-xl border px-4 py-3 transition ' +
-                            (active
-                                ? 'border-(--brand-700) bg-(--surface-soft)'
-                                : completed
-                                    ? 'border-(--border-soft) bg-(--surface-white)'
-                                    : 'border-(--border-soft) bg-(--surface-white)')
-                        }
-                    >
-                        <span
+    return (
+        <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
+            <div className='flex items-center justify-between gap-4'>
+                <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--text-500)'>Progress</p>
+                <span className='badge-chip'>Step {stepIndex + 1} of {STEPS.length}</span>
+            </div>
+
+            <div className='mt-3 h-2 w-full overflow-hidden rounded-full bg-(--surface-soft)'>
+                <div
+                    className='h-full rounded-full bg-(--brand-700) transition-[width] duration-300'
+                    style={{ width: `${progressPercent}%` }}
+                />
+            </div>
+
+            <div className='mt-5 grid gap-3 md:grid-cols-3'>
+                {STEPS.map((step, index) => {
+                    const Icon = step.icon
+                    const active = index === stepIndex
+                    const completed = index < stepIndex
+
+                    return (
+                        <div
+                            key={step.key}
                             className={
-                                'inline-flex h-10 w-10 items-center justify-center rounded-xl ' +
-                                (active || completed
-                                    ? 'bg-(--brand-700) text-white'
-                                    : 'bg-(--surface-soft) text-(--brand-900)')
+                                'flex items-start gap-4 rounded-xl border px-4 py-3 transition ' +
+                                (active
+                                    ? 'border-(--brand-700) bg-(--surface-soft)'
+                                    : completed
+                                        ? 'border-(--border-soft) bg-(--surface-white)'
+                                        : 'border-(--border-soft) bg-(--surface-white) opacity-80')
                             }
                         >
-                            <Icon size={18} />
-                        </span>
-                        <div>
-                            <p className='text-sm font-bold text-(--text-950)'>{step.title}</p>
-                            <p className='mt-1 text-xs font-medium text-(--text-700)'>{step.description}</p>
+                            <span
+                                className={
+                                    'inline-flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset ' +
+                                    (active || completed
+                                        ? 'bg-(--brand-700) text-white ring-(--brand-700)'
+                                        : 'bg-(--surface-soft) text-(--brand-900) ring-(--border-soft)')
+                                }
+                            >
+                                <Icon size={18} />
+                            </span>
+                            <div>
+                                <p className='text-sm font-bold text-(--text-950)'>{step.title}</p>
+                                <p className='mt-1 text-xs font-medium text-(--text-700)'>{step.description}</p>
+                            </div>
                         </div>
-                    </div>
-                )
-            })}
+                    )
+                })}
+            </div>
         </div>
     )
 }
@@ -128,10 +144,18 @@ function HotelApplicationWizard({
 
     return (
         <div className='grid gap-6'>
-            <header className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-7 shadow-(--shadow-soft)'>
-                <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate application</p>
-                <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>{header}</h1>
-                <p className='mt-2 max-w-3xl text-sm font-medium text-(--text-700)'>{subheader}</p>
+            <header className='glass-panel rounded-2xl p-7'>
+                <div className='flex flex-col gap-4 md:flex-row md:items-start md:justify-between'>
+                    <div>
+                        <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate application</p>
+                        <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>{header}</h1>
+                        <p className='mt-2 max-w-3xl text-sm font-medium text-(--text-700)'>{subheader}</p>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                        <span className='badge-chip'>Draft saved locally</span>
+                    </div>
+                </div>
             </header>
 
             <Stepper stepIndex={stepIndex} />

@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AsyncState from '../components/AsyncState'
@@ -10,6 +10,7 @@ import {
     selectConfirmStatus,
     selectCreateResult,
     selectHotelDetails,
+    selectHotelDetailsError,
     selectHotelDetailsStatus,
 } from '../store/certificateApplicationSelectors'
 import { fetchHotel, submitConfirmMatch } from '../store/certificateApplicationSlice'
@@ -26,6 +27,7 @@ function ConfirmHotelMatchPage() {
 
     const hotel = useSelector(selectHotelDetails)
     const hotelStatus = useSelector(selectHotelDetailsStatus)
+    const hotelError = useSelector(selectHotelDetailsError)
 
     const candidates = useMemo(() => {
         if (createResult?.hotelId === id) {
@@ -37,9 +39,13 @@ function ConfirmHotelMatchPage() {
 
     const [placeId, setPlaceId] = useState('')
 
-    useEffect(() => {
+    const loadHotel = useCallback(() => {
         dispatch(fetchHotel(id))
     }, [dispatch, id])
+
+    useEffect(() => {
+        loadHotel()
+    }, [loadHotel])
 
     async function handleConfirm() {
         const resolvedPlaceId = placeId?.trim() ? placeId.trim() : null
@@ -53,7 +59,7 @@ function ConfirmHotelMatchPage() {
     return (
         <main className='min-h-screen bg-(--surface-canvas) py-10'>
             <div className='ui-shell'>
-                <div className='mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
+                <div className='glass-panel mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-6'>
                     <div>
                         <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Step 2</p>
                         <h1 className='mt-2 text-2xl font-bold tracking-tight text-(--text-950)'>Confirm Google profile match</h1>
@@ -74,7 +80,13 @@ function ConfirmHotelMatchPage() {
                     </div>
                 ) : null}
 
-                <AsyncState status={hotelStatus} loadingMessage='Loading hotel details...'>
+                <AsyncState
+                    status={hotelStatus}
+                    error={hotelError}
+                    loadingMessage='Loading hotel details...'
+                    onRetry={loadHotel}
+                    retryLabel='Reload'
+                >
                     <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
                         <p className='text-sm font-bold text-(--text-950)'>{hotel?.businessInfo?.name || 'Hotel'}</p>
                         <p className='mt-1 text-sm font-medium text-(--text-700)'>{hotel?.businessInfo?.contact?.address || '—'}</p>

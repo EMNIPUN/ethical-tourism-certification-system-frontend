@@ -1,5 +1,5 @@
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AsyncState from '../components/AsyncState'
@@ -33,9 +33,13 @@ function HotelApplicationDetailsPage() {
     const deleteStatus = useSelector(selectDeleteStatus)
     const deleteError = useSelector(selectDeleteError)
 
-    useEffect(() => {
+    const loadHotel = useCallback(() => {
         dispatch(fetchHotel(id))
     }, [dispatch, id])
+
+    useEffect(() => {
+        loadHotel()
+    }, [loadHotel])
 
     async function handleDelete() {
         const confirmed = window.confirm('Delete this application? This cannot be undone.')
@@ -52,7 +56,7 @@ function HotelApplicationDetailsPage() {
     return (
         <main className='min-h-screen bg-(--surface-canvas) py-10'>
             <div className='ui-shell'>
-                <header className='flex flex-col gap-5 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-7 shadow-(--shadow-soft) md:flex-row md:items-start md:justify-between'>
+                <header className='glass-panel flex flex-col gap-5 rounded-2xl p-7 md:flex-row md:items-start md:justify-between'>
                     <div>
                         <Link
                             to='/certificate-application'
@@ -93,7 +97,13 @@ function HotelApplicationDetailsPage() {
                 ) : null}
 
                 <div className='mt-8'>
-                    <AsyncState status={status} error={error} loadingMessage='Loading application...'>
+                    <AsyncState
+                        status={status}
+                        error={error}
+                        loadingMessage='Loading application...'
+                        onRetry={loadHotel}
+                        retryLabel='Reload'
+                    >
                         {hotel ? (
                             <div className='grid gap-6'>
                                 <div className='grid gap-5 md:grid-cols-3'>

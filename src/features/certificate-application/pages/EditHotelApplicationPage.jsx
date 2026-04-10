@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import AsyncState from '../components/AsyncState'
@@ -35,10 +35,14 @@ function EditHotelApplicationPage() {
     const updateStatus = useSelector(selectUpdateStatus)
     const updateError = useSelector(selectUpdateError)
 
-    useEffect(() => {
-        dispatch(setApplicationStep(1))
+    const loadHotel = useCallback(() => {
         dispatch(fetchHotel(id))
     }, [dispatch, id])
+
+    useEffect(() => {
+        dispatch(setApplicationStep(1))
+        loadHotel()
+    }, [dispatch, loadHotel])
 
     useEffect(() => {
         if (hotel?._id === id) {
@@ -63,7 +67,13 @@ function EditHotelApplicationPage() {
                     </div>
                 ) : null}
 
-                <AsyncState status={hotelStatus} error={hotelError} loadingMessage='Loading application...'>
+                <AsyncState
+                    status={hotelStatus}
+                    error={hotelError}
+                    loadingMessage='Loading application...'
+                    onRetry={loadHotel}
+                    retryLabel='Reload'
+                >
                     <HotelApplicationWizard
                         draft={draft}
                         step={step}

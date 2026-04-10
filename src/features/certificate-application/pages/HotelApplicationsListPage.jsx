@@ -1,5 +1,5 @@
 import { ArrowRight, Plus } from 'lucide-react'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import AsyncState from '../components/AsyncState'
@@ -19,7 +19,7 @@ function HotelCard({ hotel }) {
     return (
         <Link
             to={`/certificate-application/${hotel?._id}`}
-            className='group rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft) transition hover:border-(--brand-700)'
+            className='group rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft) transition hover:-translate-y-0.5 hover:border-(--brand-700) hover:shadow-(--shadow-soft) focus:outline-none focus:ring-4 focus:ring-(--brand-700)/15'
         >
             <div className='flex items-start justify-between gap-4'>
                 <div>
@@ -50,14 +50,18 @@ function HotelApplicationsListPage() {
     const status = useSelector(selectHotelApplicationsStatus)
     const error = useSelector(selectHotelApplicationsError)
 
-    useEffect(() => {
+    const loadHotels = useCallback(() => {
         dispatch(fetchHotels({ page: 1, limit: 50, sort: '-createdAt' }))
     }, [dispatch])
+
+    useEffect(() => {
+        loadHotels()
+    }, [loadHotels])
 
     return (
         <main className='min-h-screen bg-(--surface-canvas) py-10'>
             <div className='ui-shell'>
-                <header className='flex flex-col gap-6 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-8 shadow-(--shadow-soft) md:flex-row md:items-center md:justify-between'>
+                <header className='glass-panel flex flex-col gap-6 rounded-2xl p-8 md:flex-row md:items-center md:justify-between'>
                     <div>
                         <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate applications</p>
                         <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>Your hotel applications</h1>
@@ -74,7 +78,13 @@ function HotelApplicationsListPage() {
                 </header>
 
                 <div className='mt-8'>
-                    <AsyncState status={status} error={error} loadingMessage='Loading applications...'>
+                    <AsyncState
+                        status={status}
+                        error={error}
+                        loadingMessage='Loading applications...'
+                        onRetry={loadHotels}
+                        retryLabel='Reload'
+                    >
                         {hotels?.length ? (
                             <div className='grid gap-5 md:grid-cols-2'>
                                 {hotels.map((hotel) => (
