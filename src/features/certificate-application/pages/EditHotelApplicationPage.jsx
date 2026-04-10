@@ -55,11 +55,11 @@ function EditHotelApplicationPage() {
     }
 
     return (
-        <main className='min-h-screen bg-[var(--surface-canvas)] py-10'>
+        <main className='min-h-screen bg-(--surface-canvas) py-10'>
             <div className='ui-shell'>
                 {updateError ? (
-                    <div className='mb-6 rounded-2xl border border-[var(--border-soft)] bg-[var(--error-100)] px-6 py-4 shadow-[var(--shadow-soft)]'>
-                        <p className='text-sm font-semibold text-[var(--error-600)]'>{updateError}</p>
+                    <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--error-100) px-6 py-4 shadow-(--shadow-soft)'>
+                        <p className='text-sm font-semibold text-(--error-600)'>{updateError}</p>
                     </div>
                 ) : null}
 
