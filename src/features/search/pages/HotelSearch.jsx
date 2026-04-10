@@ -2,28 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   Building2,
-  CheckCircle2,
-  Compass,
   Filter,
-  Globe2,
-  Home,
   MapPin,
   MessageSquareText,
-  Menu,
-  X,
-  RefreshCw,
-  Search,
-  ShieldCheck,
   Sparkles,
+  ShieldCheck,
   Star,
-  UserCircle2,
   Users,
   Zap,
 } from 'lucide-react'
-import LogoutButton from '../../auth/components/LogoutButton'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import SearchNavbar from '../components/SearchNavbar'
+import SearchHero from '../components/SearchHero'
 import {
   addHotelFeedback,
   clearFeedbackMutationState,
@@ -122,13 +113,13 @@ function HotelSearch() {
   const recommendations = useAppSelector(selectSearchRecommendations)
   const recommendationsStatus = useAppSelector(selectSearchRecommendationsStatus)
   const recommendationsError = useAppSelector(selectSearchRecommendationsError)
+  const isRecommendationsLoading = recommendationsStatus === 'loading'
   const [searchInput, setSearchInput] = useState(query)
   const [feedbackForm, setFeedbackForm] = useState({
     rating: '5',
     feedback: '',
   })
   const [editingFeedbackId, setEditingFeedbackId] = useState(null)
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   useEffect(() => {
     dispatch(loadHotelContacts())
@@ -236,6 +227,10 @@ function HotelSearch() {
   }
 
   function handleRefreshRecommendations() {
+    if (isRecommendationsLoading) {
+      return
+    }
+
     dispatch(setSearchActiveTab('recommendations'))
     dispatch(loadHotelRecommendations())
   }
@@ -246,11 +241,6 @@ function HotelSearch() {
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
-  }
-
-  function handleMobileNavAction(callback) {
-    setIsMobileNavOpen(false)
-    callback()
   }
 
   function handleSelectHotel(hotelId, sourceTab) {
@@ -267,6 +257,23 @@ function HotelSearch() {
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
   const canManageFeedback = ['tourist', 'admin'].includes(String(user?.role || '').toLowerCase())
   const isFeedbackMutationLoading = feedbackMutationStatus === 'loading'
+
+  function getSummaryProgress(card) {
+    if (card.label === 'Average guest rating') {
+      return Math.min(100, Math.max(0, (Number(card.value || 0) / 5) * 100))
+    }
+
+    if (card.label === 'Average trust score') {
+      return Math.min(100, Math.max(0, Number(card.value || 0)))
+    }
+
+    if (card.label === 'Certified hotels') {
+      const referenceTotal = Number(recommendations?.totalCertifiedHotels || contacts.length || 1)
+      return Math.min(100, Math.max(0, (Number(card.value || 0) / referenceTotal) * 100))
+    }
+
+    return null
+  }
 
   function updateFeedbackField(fieldName, value) {
     setFeedbackForm((prev) => ({
@@ -357,248 +364,97 @@ function HotelSearch() {
   return (
     <main className='min-h-screen w-full overflow-x-hidden px-0 py-0'>
       <div className='flex min-h-screen w-full flex-col gap-5'>
-        <nav className='glass-panel sticky top-0 z-20 w-full rounded-none border-x-0 border-t-0 border-b border-white/70 bg-white/85 px-4 py-3 shadow-[0_18px_45px_-34px_rgba(18,29,58,0.5)] backdrop-blur-md sm:px-6 lg:px-8'>
-          <div className='flex items-center justify-between gap-3 lg:hidden'>
-            <div className='flex items-center gap-3'>
-              <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--brand-700) text-white shadow-[0_14px_26px_-18px_rgba(39,54,122,0.7)]'>
-                <Sparkles size={18} />
-              </div>
-              <div>
-                <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[#7d8ca7]'>Certiguard</p>
-                <h1 className='text-lg font-semibold text-[#17253f]'>Hotel Search</h1>
-              </div>
-            </div>
+        <SearchNavbar
+          user={user}
+          onShowAll={handleShowAll}
+          onRefreshRecommendations={handleRefreshRecommendations}
+          onScrollToFeedback={handleScrollToFeedback}
+          onDiscover={() => dispatch(setSearchActiveTab('discover'))}
+        />
 
-            <div className='flex items-center gap-2'>
-              <div className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dbe3f1] bg-[#f7faff] text-[#516079]'>
-                <UserCircle2 size={24} />
-              </div>
-              <button
-                type='button'
-                onClick={() => setIsMobileNavOpen((current) => !current)}
-                aria-expanded={isMobileNavOpen}
-                aria-label={isMobileNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d7e0ee] bg-white text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                {isMobileNavOpen ? <X size={18} /> : <Menu size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <div className='hidden lg:flex lg:items-center lg:justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--brand-700) text-white shadow-[0_14px_26px_-18px_rgba(39,54,122,0.7)]'>
-                <Sparkles size={18} />
-              </div>
-              <div>
-                <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[#7d8ca7]'>Certiguard</p>
-                <h1 className='text-lg font-semibold text-[#17253f]'>Hotel Search</h1>
-              </div>
-            </div>
-
-            <div className='flex flex-wrap items-center gap-2'>
-              <Link
-                to='/'
-                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Home size={15} />
-                Home
-              </Link>
-              <button
-                type='button'
-                onClick={handleShowAll}
-                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Building2 size={15} />
-                All Hotels
-              </button>
-              <button
-                type='button'
-                onClick={handleRefreshRecommendations}
-                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Sparkles size={15} />
-                AI Ranking
-              </button>
-              <button
-                type='button'
-                onClick={handleScrollToFeedback}
-                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <MessageSquareText size={15} />
-                Feedback
-              </button>
-              <button
-                type='button'
-                onClick={() => dispatch(setSearchActiveTab('discover'))}
-                className='inline-flex items-center gap-2 rounded-full border border-[#d7e0ee] bg-white px-4 py-2 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Compass size={15} />
-                Discover
-              </button>
-            </div>
-
-            <div className='flex items-center gap-3'>
-              <div className='hidden text-right sm:block'>
-                <p className='text-xs font-semibold uppercase tracking-[0.18em] text-[#7d8ca7]'>Signed in</p>
-                <p className='text-sm font-semibold text-[#17253f]'>{user?.name || user?.email || 'Guest'}</p>
-              </div>
-              <div className='inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#dbe3f1] bg-[#f7faff] text-[#516079]'>
-                <UserCircle2 size={24} />
-              </div>
-              <LogoutButton className='rounded-full border border-[#d5dcea] bg-white px-4 py-2 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]' />
-            </div>
-          </div>
-
-          <div className={[
-            'mt-3 overflow-hidden rounded-2xl border border-[#dce4f1] bg-white transition-[max-height,opacity,transform] duration-200 lg:hidden',
-            isMobileNavOpen ? 'max-h-105 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 pointer-events-none',
-          ].join(' ')}>
-            <div className='flex flex-col gap-2 p-3'>
-              <Link
-                to='/'
-                onClick={() => setIsMobileNavOpen(false)}
-                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Home size={15} />
-                Home
-              </Link>
-              <button
-                type='button'
-                onClick={() => handleMobileNavAction(handleShowAll)}
-                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Building2 size={15} />
-                All Hotels
-              </button>
-              <button
-                type='button'
-                onClick={() => handleMobileNavAction(handleRefreshRecommendations)}
-                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Sparkles size={15} />
-                AI Ranking
-              </button>
-              <button
-                type='button'
-                onClick={() => handleMobileNavAction(handleScrollToFeedback)}
-                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <MessageSquareText size={15} />
-                Feedback
-              </button>
-              <button
-                type='button'
-                onClick={() => handleMobileNavAction(() => dispatch(setSearchActiveTab('discover')))}
-                className='inline-flex items-center gap-2 rounded-xl border border-[#d7e0ee] bg-white px-4 py-3 text-left text-sm font-semibold text-[#41506a] transition hover:bg-[#f5f7fc]'
-              >
-                <Compass size={15} />
-                Discover
-              </button>
-              <div className='mt-1 rounded-xl bg-[#f7faff] px-4 py-3 text-sm text-[#516079]'>
-                <p className='font-semibold text-[#17253f]'>{user?.name || user?.email || 'Guest'}</p>
-                <p className='text-xs uppercase tracking-[0.14em] text-[#7d8ca7]'>{user?.role || 'Authenticated user'}</p>
-              </div>
-              <LogoutButton
-                className='rounded-xl border border-[#d5dcea] bg-white px-4 py-3 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]'
-              />
-            </div>
-          </div>
-        </nav>
-
-        <section className='glass-panel w-full overflow-hidden rounded-none border-x-0 border-white/70 bg-[rgba(255,255,255,0.82)] px-4 py-5 shadow-[0_28px_65px_-44px_rgba(18,29,58,0.55)] sm:px-6 sm:py-6 lg:px-8'>
-          <div className='flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between'>
-            <div className='max-w-3xl'>
-              <div className='badge-chip'>
-                <Sparkles size={12} />
-                Ethical tourism discovery
-              </div>
-              <h1 className='mt-4 text-3xl font-semibold tracking-tight text-(--text-950) sm:text-4xl lg:text-5xl'>
-                Search certified hotels and compare trust signals in one place.
-              </h1>
-              <p className='mt-3 max-w-3xl text-sm text-(--text-700) sm:text-base'>
-                Explore active certificates, filter by location, inspect guest feedback, and switch to AI-ranked
-                recommendations without leaving the dashboard.
-              </p>
-            </div>
-
-            <div className='flex items-center gap-3 self-start'>
-              <div className='rounded-2xl border border-[#dce4f1] bg-white px-4 py-3 text-right shadow-[0_12px_28px_-24px_rgba(16,25,43,0.55)]'>
-                <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7d8ba6]'>Signed in</p>
-                <p className='mt-1 text-sm font-semibold text-[#17253f]'>{user?.name || user?.email || 'Guest'}</p>
-                <p className='text-xs text-[#6b7b96]'>{user?.role || 'Authenticated user'}</p>
-              </div>
-              <LogoutButton className='rounded-2xl border border-[#d5dcea] bg-white px-4 py-3 text-sm font-semibold text-[#48577a] transition hover:bg-[#f2f6ff]' />
-            </div>
-          </div>
-
-          <form onSubmit={runSearch} className='mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]'>
-            <label className='relative block'>
-              <Search size={16} className='pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8f9cb6]' />
-              <input
-                value={searchInput}
-                onChange={(event) => setSearchInput(event.target.value)}
-                type='text'
-                placeholder='Search by city, district, or hotel area'
-                className='h-12 w-full rounded-2xl border border-[#d9e1ef] bg-white pl-11 pr-4 text-sm text-[#22314f] outline-none transition focus:border-[#6175e8] focus:ring-4 focus:ring-[#6175e8]/12'
-              />
-            </label>
-
-            <button type='submit' className='btn-primary h-12 w-full rounded-2xl px-5 lg:w-auto'>
-              Search
-            </button>
-
-            <button
-              type='button'
-              onClick={handleShowAll}
-              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-[#d9e1ef] bg-white px-5 text-sm font-semibold text-[#41506a] transition hover:bg-[#f2f5fb]'
-            >
-              <RefreshCw size={15} />
-              Show all
-            </button>
-
-            <button
-              type='button'
-              onClick={handleRefreshRecommendations}
-              className='inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-[#d9e1ef] bg-[#f9fbff] px-5 text-sm font-semibold text-[#34415d] transition hover:bg-white'
-            >
-              <Zap size={15} />
-              AI ranking
-            </button>
-          </form>
-
-          <div className='mt-4 flex flex-wrap items-center gap-2 text-xs text-[#6c7d98]'>
-            <span className='badge-chip border-[#d7e0f0] bg-white text-[#48607c]'>
-              <CheckCircle2 size={12} />
-              Protected hotel discovery
-            </span>
-            <span className='badge-chip border-[#d7e0f0] bg-white text-[#48607c]'>
-              <Globe2 size={12} />
-              Contacts and recommendations via backend search module
-            </span>
-          </div>
-        </section>
+        <SearchHero
+          user={user}
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          onSearch={runSearch}
+          onShowAll={handleShowAll}
+          onRefreshRecommendations={handleRefreshRecommendations}
+          isRefreshingRecommendations={isRecommendationsLoading}
+        />
 
         <section className='w-full px-4 sm:px-6 lg:px-8'>
           <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
           {summaryCards.map((card) => {
             const Icon = card.icon
+            const isIdentityCard = card.label === 'Signed in as'
+            const progressValue = getSummaryProgress(card)
 
             return (
               <article
                 key={card.label}
-                className='glass-panel rounded-3xl border border-white/70 bg-white/80 p-4 shadow-[0_16px_40px_-30px_rgba(16,29,52,0.45)]'
+                className={[
+                  'glass-panel rounded-3xl border p-4 shadow-[0_16px_40px_-30px_rgba(16,29,52,0.45)] transition hover:-translate-y-0.5',
+                  isIdentityCard
+                    ? 'border-[#d4dcf0] bg-[linear-gradient(155deg,rgba(39,54,122,0.96),rgba(58,74,154,0.95))] text-white'
+                    : 'border-white/70 bg-white/88',
+                ].join(' ')}
               >
                 <div className='flex items-start justify-between gap-3'>
-                  <div>
-                    <p className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7f8ca4]'>{card.label}</p>
-                    <p className='mt-2 text-2xl font-semibold text-[#17253f]'>{card.value}</p>
-                    <p className='mt-1 text-sm text-[#65748d]'>{card.helper}</p>
+                  <div className='min-w-0'>
+                    <p
+                      className={[
+                        'text-[11px] font-semibold uppercase tracking-[0.16em]',
+                        isIdentityCard ? 'text-white/70' : 'text-[#7f8ca4]',
+                      ].join(' ')}
+                    >
+                      {card.label}
+                    </p>
+                    <p
+                      className={[
+                        'mt-2 text-2xl font-semibold leading-none',
+                        isIdentityCard ? 'text-white' : 'text-[#17253f]',
+                      ].join(' ')}
+                    >
+                      {card.value}
+                    </p>
+                    <p
+                      className={[
+                        'mt-2 text-sm',
+                        isIdentityCard ? 'text-white/80' : 'text-[#65748d]',
+                      ].join(' ')}
+                    >
+                      {card.helper}
+                    </p>
                   </div>
-                  <div className='inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf2ff] text-(--brand-700)'>
+
+                  <div
+                    className={[
+                      'inline-flex h-10 w-10 items-center justify-center rounded-2xl',
+                      isIdentityCard ? 'bg-white/15 text-white' : 'bg-[#edf2ff] text-[#5868d8]',
+                    ].join(' ')}
+                  >
                     <Icon size={18} />
                   </div>
                 </div>
+
+                {isIdentityCard ? (
+                  <div className='mt-4 rounded-xl border border-white/20 bg-white/10 px-3 py-2'>
+                    <p className='truncate text-sm font-semibold text-white'>{user?.name || user?.email || 'Guest user'}</p>
+                    <p className='mt-0.5 text-[11px] uppercase tracking-[0.12em] text-white/70'>Secure authenticated session</p>
+                  </div>
+                ) : (
+                  <div className='mt-4'>
+                    <div className='h-2 rounded-full bg-[#e7edfb]'>
+                      <div
+                        className='h-2 rounded-full bg-[linear-gradient(90deg,#5868d8,#6f7cff)] transition-all duration-500'
+                        style={{ width: `${progressValue || 0}%` }}
+                      />
+                    </div>
+                    <p className='mt-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8d98af]'>
+                      {Math.round(progressValue || 0)}% benchmark
+                    </p>
+                  </div>
+                )}
               </article>
             )
           })}

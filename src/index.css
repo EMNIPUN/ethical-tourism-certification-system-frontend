@@ -36,9 +36,9 @@ body {
   font-family: "Poppins", "Roboto", "Segoe UI", sans-serif;
   color: var(--text-950);
   background:
-    radial-gradient(circle at 14% 18%, rgba(194, 236, 243, 0.52), transparent 34%),
-    radial-gradient(circle at 80% 6%, rgba(167, 168, 235, 0.35), transparent 40%),
-    linear-gradient(170deg, #f4f6fb 0%, #edf1f8 58%, #f7f9fc 100%);
+    radial-gradient(circle at 14% 18%, rgba(111, 124, 255, 0.15), transparent 34%),
+    radial-gradient(circle at 80% 6%, rgba(88, 104, 216, 0.16), transparent 40%),
+    linear-gradient(170deg, #f5f7fc 0%, #eef1f6 58%, #f7f9fc 100%);
   line-height: 1.5;
 }
 
@@ -89,21 +89,21 @@ body {
   align-items: center;
   gap: 0.45rem;
   border-radius: 999px;
-  border: 1px solid rgba(25, 73, 100, 0.28);
-  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(207, 216, 230, 0.95);
+  background: rgba(255, 255, 255, 0.88);
   padding: 0.35rem 0.8rem;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #1f4d68;
+  color: var(--brand-900);
 }
 
 .glass-panel {
-  border: 1px solid rgba(219, 229, 236, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 20px 45px -34px rgba(8, 20, 32, 0.4);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(207, 216, 230, 0.92);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 20px 45px -34px rgba(8, 20, 32, 0.38);
+  backdrop-filter: blur(10px);
 }
 
 .auth-shell {
@@ -120,10 +120,10 @@ body {
 
 .auth-brand-panel {
   border-radius: 1.5rem;
-  border: 1px solid rgba(197, 214, 225, 0.75);
+  border: 1px solid rgba(207, 216, 230, 0.78);
   background:
-    linear-gradient(155deg, rgba(13, 35, 51, 0.94), rgba(28, 74, 99, 0.93)),
-    radial-gradient(circle at top right, rgba(199, 154, 85, 0.35), transparent 40%);
+    linear-gradient(155deg, rgba(27, 40, 80, 0.96), rgba(60, 74, 154, 0.94)),
+    radial-gradient(circle at top right, rgba(111, 124, 255, 0.26), transparent 40%);
   color: #edf4f8;
   padding: 1.5rem;
 }
@@ -133,7 +133,7 @@ body {
   font-size: clamp(2rem, 3.9vw, 3.3rem);
   font-weight: 700;
   line-height: 1;
-  color: #fff9ef;
+  color: #f7f9fc;
 }
 
 .auth-brand-copy {
@@ -172,7 +172,7 @@ body {
 .auth-card {
   border-radius: 1.5rem;
   border: 1px solid var(--border-soft);
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 18px 42px -30px rgba(15, 32, 48, 0.45);
   padding: 1.35rem;
 }
@@ -183,14 +183,14 @@ body {
   letter-spacing: 0.11em;
   text-transform: uppercase;
   font-weight: 800;
-  color: #2a637f;
+  color: var(--brand-900);
 }
 
 .auth-title {
   margin-top: 0.35rem;
   font-size: 1.85rem;
   font-weight: 800;
-  color: #162938;
+  color: var(--text-950);
   line-height: 1.1;
 }
 
@@ -224,7 +224,7 @@ body {
   display: block;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #435472;
+  color: var(--text-950);
 }
 
 .form-input,
@@ -247,8 +247,8 @@ body {
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #6074e9;
-  box-shadow: 0 0 0 4px rgba(96, 116, 233, 0.17);
+  border-color: var(--brand-700);
+  box-shadow: 0 0 0 4px rgba(88, 104, 216, 0.18);
 }
 
 .btn-primary {
@@ -259,7 +259,7 @@ body {
   gap: 0.45rem;
   border: none;
   border-radius: 0.9rem;
-  background: linear-gradient(120deg, #6e77ef, #525bcf);
+  background: linear-gradient(120deg, var(--brand-600), var(--brand-800));
   color: #ffffff;
   padding: 0.72rem 1rem;
   font-weight: 700;
@@ -271,7 +271,7 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 28px -18px rgba(73, 89, 190, 0.72);
+  box-shadow: 0 18px 28px -18px rgba(88, 104, 216, 0.72);
 }
 
 .btn-primary:disabled {
@@ -281,12 +281,12 @@ body {
 
 .text-link {
   font-weight: 700;
-  color: #4458c5;
+  color: var(--brand-800);
   text-decoration: none;
 }
 
 .text-link:hover {
-  color: #2f3c98;
+  color: var(--brand-900);
 }
 
 .auth-v2-shell {
@@ -312,9 +312,9 @@ body {
 .auth-v2-brand {
   padding: clamp(1.1rem, 2.4vw, 1.8rem);
   background:
-    radial-gradient(circle at 12% 80%, rgba(194, 236, 243, 0.6), transparent 44%),
-    radial-gradient(circle at 88% 14%, rgba(181, 178, 241, 0.48), transparent 38%),
-    linear-gradient(145deg, rgba(242, 245, 251, 0.94), rgba(234, 240, 249, 0.9));
+    radial-gradient(circle at 12% 80%, rgba(111, 124, 255, 0.18), transparent 44%),
+    radial-gradient(circle at 88% 14%, rgba(88, 104, 216, 0.14), transparent 38%),
+    linear-gradient(145deg, rgba(242, 245, 251, 0.96), rgba(234, 240, 249, 0.92));
   box-shadow: var(--shadow-soft);
 }
 
@@ -328,9 +328,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid #b7c1d6;
+  border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.66);
-  color: #4a5d82;
+  color: var(--text-700);
   padding: 0.36rem 0.72rem;
   border-radius: 999px;
   font-size: 0.68rem;
@@ -343,13 +343,13 @@ body {
   margin: 0.9rem 0 0;
   font-size: clamp(1.8rem, 4.1vw, 3rem);
   line-height: 1.1;
-  color: #1f2b49;
+  color: var(--text-950);
   letter-spacing: -0.02em;
 }
 
 .auth-v2-brand-copy {
   margin-top: 1rem;
-  color: #5f6f8b;
+  color: var(--text-700);
   font-size: 1rem;
 }
 
@@ -364,7 +364,7 @@ body {
   gap: 0.7rem;
   padding: 0.74rem;
   border-radius: 0.9rem;
-  border: 1px solid #cad4e4;
+  border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.66);
 }
 
@@ -374,26 +374,26 @@ body {
   height: 1.95rem;
   width: 1.95rem;
   border-radius: 0.6rem;
-  color: #4156c2;
-  background: rgba(95, 113, 227, 0.14);
+  color: var(--brand-800);
+  background: rgba(111, 124, 255, 0.16);
 }
 
 .auth-v2-highlight-title {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #2f4167;
+  color: var(--text-950);
 }
 
 .auth-v2-highlight-copy {
   margin: 0.24rem 0 0;
-  color: #5a6883;
+  color: var(--text-700);
   font-size: 0.8rem;
 }
 
 .auth-v2-card {
   padding: clamp(1.1rem, 2.8vw, 1.8rem);
-  background: rgba(248, 251, 255, 0.94);
+  background: rgba(248, 251, 255, 0.96);
   box-shadow: var(--shadow-soft);
 }
 
@@ -402,7 +402,7 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #5d6d89;
+  color: var(--text-700);
   font-weight: 700;
 }
 
@@ -410,19 +410,19 @@ body {
   margin-top: 0.36rem;
   font-size: clamp(1.6rem, 3.7vw, 2.75rem);
   line-height: 1.1;
-  color: #1f2d4f;
+  color: var(--text-950);
   letter-spacing: -0.02em;
 }
 
 .auth-v2-subtitle {
   margin-top: 0.65rem;
-  color: #6b7890;
+  color: var(--text-700);
   max-width: 46ch;
 }
 
 .auth-v2-footer {
   margin-top: 1.2rem;
-  color: #637189;
+  color: var(--text-700);
   font-size: 0.92rem;
 }
 
@@ -435,10 +435,10 @@ body {
 
 .workspace-hero {
   border-radius: 1.35rem;
-  border: 1px solid #d2dee6;
+  border: 1px solid var(--border-soft);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 251, 255, 0.9)),
-    radial-gradient(circle at top right, rgba(199, 154, 85, 0.15), transparent 45%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 255, 0.92)),
+    radial-gradient(circle at top right, rgba(111, 124, 255, 0.12), transparent 45%);
   padding: 1rem;
 }
 
@@ -448,25 +448,25 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.11em;
-  color: #396987;
+  color: var(--brand-900);
 }
 
 .workspace-title {
   margin-top: 0.32rem;
   font-size: clamp(1.4rem, 2.7vw, 2rem);
   font-weight: 800;
-  color: #172c3b;
+  color: var(--text-950);
 }
 
 .workspace-description {
   margin-top: 0.4rem;
-  color: #4c5f6d;
+  color: var(--text-700);
   font-size: 0.92rem;
 }
 
 .workspace-content {
   border-radius: 1.2rem;
-  border: 1px solid #d4dfe7;
+  border: 1px solid var(--border-soft);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 15px 35px -28px rgba(16, 30, 42, 0.58);
   padding: 1rem;
@@ -474,9 +474,9 @@ body {
 
 .btn-subtle {
   border-radius: 0.78rem;
-  border: 1px solid #c6d4de;
+  border: 1px solid var(--border-soft);
   background: #ffffff;
-  color: #25445a;
+  color: var(--text-950);
   font-size: 0.84rem;
   font-weight: 700;
   padding: 0.5rem 0.78rem;
@@ -484,8 +484,8 @@ body {
 }
 
 .btn-subtle:hover {
-  background: #eef5fa;
-  border-color: #9fb8c8;
+  background: var(--surface-soft);
+  border-color: var(--brand-700);
 }
 
 .fade-up {
