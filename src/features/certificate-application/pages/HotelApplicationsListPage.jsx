@@ -1,4 +1,4 @@
-import { ArrowRight, Plus } from 'lucide-react'
+import { Award, ArrowRight, Building2, Globe, Plus, Star, TrendingUp } from 'lucide-react'
 import { useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -10,35 +10,94 @@ import {
 } from '../store/certificateApplicationSelectors'
 import { fetchHotels } from '../store/certificateApplicationSlice'
 
-function HotelCard({ hotel }) {
-    const name = hotel?.businessInfo?.name || 'Untitled hotel'
-    const type = hotel?.businessInfo?.businessType || '—'
-    const status = hotel?.scoring?.certificationLevel || 'None'
+function certBadgeClass(level) {
+    switch ((level || '').toLowerCase()) {
+        case 'bronze':   return 'ca-cert-badge ca-cert-badge--bronze'
+        case 'silver':   return 'ca-cert-badge ca-cert-badge--silver'
+        case 'gold':     return 'ca-cert-badge ca-cert-badge--gold'
+        case 'platinum': return 'ca-cert-badge ca-cert-badge--platinum'
+        default:         return 'ca-cert-badge ca-cert-badge--none'
+    }
+}
+
+function HotelCard({ hotel, index }) {
+    const name        = hotel?.businessInfo?.name || 'Untitled Property'
+    const type        = hotel?.businessInfo?.businessType || 'Hotel'
+    const status      = hotel?.scoring?.certificationLevel || 'None'
     const googleScore = hotel?.scoring?.googleReviewScore
+    const dataScore   = hotel?.scoring?.dataCompletionScore
+    const hasMatch    = Boolean(hotel?.googleMapsData?.placeId)
 
     return (
         <Link
             to={`/certificate-application/${hotel?._id}`}
-            className='group rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft) transition hover:-translate-y-0.5 hover:border-(--brand-700) hover:shadow-(--shadow-soft) focus:outline-none focus:ring-4 focus:ring-(--brand-700)/15'
+            className='ca-hotel-card ca-animate-up'
+            style={{ animationDelay: `${index * 60}ms` }}
+            aria-label={`View details for ${name}`}
         >
-            <div className='flex items-start justify-between gap-4'>
-                <div>
-                    <h3 className='text-lg font-bold text-(--text-950)'>{name}</h3>
-                    <p className='mt-1 text-sm font-medium text-(--text-700)'>{type}</p>
+            {/* Top row */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+                    <div
+                        style={{
+                            width: '2.8rem',
+                            height: '2.8rem',
+                            borderRadius: '0.85rem',
+                            background: 'linear-gradient(140deg, rgba(88,104,216,0.14), rgba(88,104,216,0.06))',
+                            border: '1px solid rgba(88,104,216,0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#5868d8',
+                            flexShrink: 0,
+                        }}
+                    >
+                        <Building2 size={16} strokeWidth={2.5} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                        <p className='ca-hotel-name' style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {name}
+                        </p>
+                        <p className='ca-hotel-type'>{type}</p>
+                    </div>
                 </div>
-                <span className='badge-chip'>{status}</span>
+                <span className={certBadgeClass(status)} style={{ flexShrink: 0 }}>
+                    <Award size={11} />
+                    {status}
+                </span>
             </div>
 
-            <div className='mt-5 flex flex-wrap items-center gap-3'>
-                <div className='rounded-xl border border-(--border-soft) bg-(--surface-soft) px-3 py-2'>
-                    <p className='text-[11px] font-bold uppercase tracking-[0.08em] text-(--text-500)'>Google score</p>
-                    <p className='mt-1 text-sm font-semibold text-(--text-950)'>
-                        {typeof googleScore === 'number' ? googleScore : '—'}
-                    </p>
-                </div>
-                <div className='ml-auto inline-flex items-center gap-2 text-sm font-semibold text-(--brand-900) transition group-hover:text-(--brand-700)'>
-                    View details <ArrowRight size={16} />
-                </div>
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'rgba(207,216,230,0.6)', margin: '1rem 0' }} />
+
+            {/* Metrics row */}
+            <div className='ca-hotel-meta'>
+                {typeof googleScore === 'number' ? (
+                    <span className='ca-meta-chip'>
+                        <Star size={11} strokeWidth={2.5} />
+                        {googleScore.toFixed(1)} Google
+                    </span>
+                ) : null}
+                {typeof dataScore === 'number' ? (
+                    <span className='ca-meta-chip'>
+                        <TrendingUp size={11} strokeWidth={2.5} />
+                        {Math.round(dataScore)}% Complete
+                    </span>
+                ) : null}
+                {hasMatch ? (
+                    <span className='ca-meta-chip' style={{ color: '#1f6c44', borderColor: 'rgba(31,108,68,0.25)', background: 'rgba(31,108,68,0.07)' }}>
+                        <Globe size={11} strokeWidth={2.5} />
+                        Match confirmed
+                    </span>
+                ) : (
+                    <span className='ca-meta-chip' style={{ color: '#92620a', borderColor: 'rgba(180,120,20,0.25)', background: 'rgba(180,120,20,0.07)' }}>
+                        Match pending
+                    </span>
+                )}
+
+                <span className='ca-hotel-cta'>
+                    View details <ArrowRight size={15} strokeWidth={2.5} />
+                </span>
             </div>
         </Link>
     )
@@ -46,68 +105,122 @@ function HotelCard({ hotel }) {
 
 function HotelApplicationsListPage() {
     const dispatch = useDispatch()
-    const hotels = useSelector(selectHotelApplications)
-    const status = useSelector(selectHotelApplicationsStatus)
-    const error = useSelector(selectHotelApplicationsError)
+    const hotels   = useSelector(selectHotelApplications)
+    const status   = useSelector(selectHotelApplicationsStatus)
+    const error    = useSelector(selectHotelApplicationsError)
 
     const loadHotels = useCallback(() => {
         dispatch(fetchHotels({ page: 1, limit: 50, sort: '-createdAt' }))
     }, [dispatch])
 
-    useEffect(() => {
-        loadHotels()
-    }, [loadHotels])
+    useEffect(() => { loadHotels() }, [loadHotels])
+
+    // Aggregate stats
+    const total    = hotels?.length || 0
+    const certified = hotels?.filter(h => h?.scoring?.certificationLevel && h.scoring.certificationLevel !== 'None').length || 0
+    const matched  = hotels?.filter(h => Boolean(h?.googleMapsData?.placeId)).length || 0
+    const avgScore = hotels?.length
+        ? (hotels.reduce((sum, h) => sum + (h?.scoring?.googleReviewScore || 0), 0) / hotels.length).toFixed(1)
+        : '—'
 
     return (
-        <main className='min-h-screen bg-(--surface-canvas) py-10'>
-            <div className='ui-shell'>
-                <header className='glass-panel flex flex-col gap-6 rounded-2xl p-8 md:flex-row md:items-center md:justify-between'>
+        <>
+            {/* Hero header */}
+            <header className='ca-hero ca-animate-up'>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' }}>
                     <div>
-                        <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate applications</p>
-                        <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>Your hotel applications</h1>
-                        <p className='mt-2 text-sm font-medium text-(--text-700)'>Create new applications, confirm Google profile matches, and track scoring progress.</p>
+                        <span className='ca-hero-eyebrow'>
+                            <Award size={11} strokeWidth={3} />
+                            Certificate Applications
+                        </span>
+                        <h1 className='ca-hero-title'>Your Hotel Applications</h1>
+                        <p className='ca-hero-desc'>
+                            Create applications, confirm Google profile matches, and track your certification status.
+                        </p>
                     </div>
-
-                    <Link
-                        to='/certificate-application/new'
-                        className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105'
-                    >
-                        <Plus size={16} />
+                    <Link to='/certificate-application/new' className='ca-btn-primary'>
+                        <Plus size={16} strokeWidth={2.5} />
                         New application
                     </Link>
-                </header>
-
-                <div className='mt-8'>
-                    <AsyncState
-                        status={status}
-                        error={error}
-                        loadingMessage='Loading applications...'
-                        onRetry={loadHotels}
-                        retryLabel='Reload'
-                    >
-                        {hotels?.length ? (
-                            <div className='grid gap-5 md:grid-cols-2'>
-                                {hotels.map((hotel) => (
-                                    <HotelCard key={hotel._id} hotel={hotel} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-10 text-center shadow-(--shadow-soft)'>
-                                <p className='text-lg font-bold text-(--text-950)'>No applications yet</p>
-                                <p className='mt-2 text-sm font-medium text-(--text-700)'>Start by creating a hotel application and uploading supporting documents.</p>
-                                <Link
-                                    to='/certificate-application/new'
-                                    className='mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105'
-                                >
-                                    <Plus size={16} />
-                                    Create your first application
-                                </Link>
-                            </div>
-                        )}
-                    </AsyncState>
                 </div>
-            </div>
-        </main>
+            </header>
+
+            {/* Stats row */}
+            {total > 0 ? (
+                <div className='ca-stats-row ca-animate-up-1'>
+                    <div className='ca-stat-card'>
+                        <div className='ca-stat-icon ca-stat-icon--blue'>
+                            <Building2 size={18} strokeWidth={2.2} />
+                        </div>
+                        <div>
+                            <p className='ca-stat-value'>{total}</p>
+                            <p className='ca-stat-label'>Total applications</p>
+                        </div>
+                    </div>
+                    <div className='ca-stat-card'>
+                        <div className='ca-stat-icon ca-stat-icon--green'>
+                            <Award size={18} strokeWidth={2.2} />
+                        </div>
+                        <div>
+                            <p className='ca-stat-value'>{certified}</p>
+                            <p className='ca-stat-label'>Certified</p>
+                        </div>
+                    </div>
+                    <div className='ca-stat-card'>
+                        <div className='ca-stat-icon ca-stat-icon--amber'>
+                            <Globe size={18} strokeWidth={2.2} />
+                        </div>
+                        <div>
+                            <p className='ca-stat-value'>{matched}</p>
+                            <p className='ca-stat-label'>Google matched</p>
+                        </div>
+                    </div>
+                    <div className='ca-stat-card'>
+                        <div className='ca-stat-icon ca-stat-icon--purple'>
+                            <Star size={18} strokeWidth={2.2} />
+                        </div>
+                        <div>
+                            <p className='ca-stat-value'>{avgScore}</p>
+                            <p className='ca-stat-label'>Avg. Google score</p>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            {/* List */}
+            <AsyncState
+                status={status}
+                error={error}
+                loadingMessage='Loading your applications…'
+                onRetry={loadHotels}
+                retryLabel='Reload'
+            >
+                {hotels?.length ? (
+                    <div
+                        className='ca-animate-up-2'
+                        style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}
+                    >
+                        {hotels.map((hotel, i) => (
+                            <HotelCard key={hotel._id} hotel={hotel} index={i} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className='ca-empty ca-animate-scale'>
+                        <div className='ca-empty-icon'>
+                            <Building2 size={28} strokeWidth={1.5} />
+                        </div>
+                        <p className='ca-empty-title'>No applications yet</p>
+                        <p className='ca-empty-desc'>
+                            Start by creating your first hotel application and uploading supporting documents to begin the certification process.
+                        </p>
+                        <Link to='/certificate-application/new' className='ca-btn-primary' style={{ marginTop: '0.75rem' }}>
+                            <Plus size={16} strokeWidth={2.5} />
+                            Create first application
+                        </Link>
+                    </div>
+                )}
+            </AsyncState>
+        </>
     )
 }
 

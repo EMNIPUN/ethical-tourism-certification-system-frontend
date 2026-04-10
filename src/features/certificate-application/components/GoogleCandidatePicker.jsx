@@ -1,82 +1,204 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, MapPin, Search } from 'lucide-react'
+
+function confidenceClass(conf) {
+    if (conf >= 0.75) return 'ca-confidence-fill--high'
+    if (conf >= 0.45) return 'ca-confidence-fill--medium'
+    return 'ca-confidence-fill--low'
+}
 
 function CandidateCard({ candidate, selected, onSelect }) {
+    const conf = typeof candidate?.confidence === 'number' ? candidate.confidence : null
+
     return (
         <button
             type='button'
             onClick={onSelect}
-            className={
-                'w-full rounded-2xl border p-5 text-left shadow-(--shadow-soft) transition focus:outline-none focus:ring-4 focus:ring-(--brand-700)/15 ' +
-                (selected
-                    ? 'border-(--brand-700) bg-(--surface-white)'
-                    : 'border-(--border-soft) bg-(--surface-white) hover:border-(--brand-700)')
-            }
+            className={`ca-candidate-card${selected ? ' ca-candidate-card--selected' : ''}`}
         >
-            <div className='flex items-start justify-between gap-4'>
-                <div>
-                    <h3 className='text-base font-bold text-(--text-950)'>{candidate?.title || 'Unknown place'}</h3>
-                    <p className='mt-1 text-sm font-medium text-(--text-700)'>{candidate?.address || 'No address provided'}</p>
-                    <p className='mt-3 text-xs font-semibold text-(--text-500)'>place_id: {candidate?.place_id}</p>
+            {/* Top row */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className='ca-candidate-title'>{candidate?.title || 'Unknown place'}</p>
+                    <p className='ca-candidate-address'>
+                        <MapPin size={11} strokeWidth={2.5} style={{ display: 'inline', marginRight: '0.2rem', verticalAlign: 'middle' }} />
+                        {candidate?.address || 'No address provided'}
+                    </p>
+                    <span className='ca-candidate-place-id'>{candidate?.place_id}</span>
                 </div>
-                <div className='flex flex-col items-end gap-2'>
-                    {typeof candidate?.confidence === 'number' ? (
-                        <span className='badge-chip'>Confidence {Math.round(candidate.confidence * 100)}%</span>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
+                    {conf !== null ? (
+                        <span
+                            style={{
+                                background: conf >= 0.75
+                                    ? 'rgba(31,108,68,0.1)'
+                                    : conf >= 0.45
+                                        ? 'rgba(200,140,20,0.1)'
+                                        : 'rgba(200,80,20,0.1)',
+                                border: `1px solid ${conf >= 0.75
+                                    ? 'rgba(31,108,68,0.25)'
+                                    : conf >= 0.45
+                                        ? 'rgba(200,140,20,0.25)'
+                                        : 'rgba(200,80,20,0.25)'}`,
+                                color: conf >= 0.75 ? '#1f6c44' : conf >= 0.45 ? '#92620a' : '#a04010',
+                                borderRadius: '999px',
+                                padding: '0.22rem 0.65rem',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                letterSpacing: '0.05em',
+                                whiteSpace: 'nowrap',
+                            }}
+                        >
+                            {Math.round(conf * 100)}% match
+                        </span>
                     ) : null}
                     {selected ? (
-                        <span className='inline-flex items-center gap-2 rounded-xl bg-(--success-100) px-3 py-2 text-xs font-bold text-(--success-600)'>
-                            <CheckCircle2 size={16} /> Selected
+                        <span
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                                background: 'rgba(88,104,216,0.1)',
+                                border: '1px solid rgba(88,104,216,0.25)',
+                                color: '#4a52c9',
+                                borderRadius: '999px',
+                                padding: '0.22rem 0.65rem',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                            }}
+                        >
+                            <CheckCircle2 size={11} strokeWidth={2.5} />
+                            Selected
                         </span>
                     ) : null}
                 </div>
             </div>
+
+            {/* Confidence bar */}
+            {conf !== null ? (
+                <div style={{ marginTop: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#8c98af', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                            Match confidence
+                        </span>
+                    </div>
+                    <div className='ca-confidence-bar'>
+                        <div
+                            className={`ca-confidence-fill ${confidenceClass(conf)}`}
+                            style={{ width: `${Math.round(conf * 100)}%` }}
+                        />
+                    </div>
+                </div>
+            ) : null}
         </button>
     )
 }
 
 function GoogleCandidatePicker({ candidates = [], selectedPlaceId, onChange, allowManualEntry = true }) {
     return (
-        <div className='grid gap-5'>
-            <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                <h2 className='text-lg font-bold text-(--text-950)'>Choose the matching Google Business profile</h2>
-                <p className='mt-1 text-sm font-medium text-(--text-700)'>This improves review scoring accuracy and reduces manual verification time.</p>
-
+        <div style={{ display: 'grid', gap: '1.25rem' }}>
+            {/* Section card */}
+            <div className='ca-section-card'>
+                <div className='ca-section-header'>
+                    <div className='ca-section-icon'>
+                        <Search size={18} strokeWidth={2} />
+                    </div>
+                    <div>
+                        <p className='ca-section-title'>Choose Google Business profile</p>
+                        <p className='ca-section-desc'>
+                            Selecting the correct listing enables accurate review-based scoring for your certification.
+                        </p>
+                    </div>
+                </div>
                 {allowManualEntry ? (
-                    <label className='mt-5 block text-sm font-semibold text-(--text-950)'>
-                        Or paste a place_id
-                        <input
-                            value={selectedPlaceId || ''}
-                            onChange={(event) => onChange(event.target.value)}
-                            placeholder='place_id (optional)'
-                            className='mt-2 h-12 w-full rounded-xl border border-(--border-soft) bg-white px-4 text-sm text-(--text-950) outline-none transition focus:border-(--brand-700) focus:ring-4 focus:ring-(--brand-700)/15'
-                        />
-                        <p className='mt-2 text-xs font-medium text-(--text-500)'>Leave blank and select “No match” if none apply.</p>
-                    </label>
+                    <div className='ca-section-body'>
+                        <div className='ca-field'>
+                            <label className='ca-field-label'>
+                                Or enter a place_id manually
+                            </label>
+                            <span className='ca-field-hint'>
+                                Leave blank and click "No match" if none of the suggestions apply.
+                            </span>
+                            <input
+                                value={selectedPlaceId || ''}
+                                onChange={(e) => onChange(e.target.value)}
+                                placeholder='ChIJ… (optional)'
+                                className='ca-input'
+                                style={{ fontFamily: 'monospace', fontSize: '0.84rem' }}
+                            />
+                        </div>
+                    </div>
                 ) : null}
             </div>
 
+            {/* Candidates grid */}
             {candidates.length ? (
-                <div className='grid gap-4 md:grid-cols-2'>
-                    {candidates.map((candidate) => (
-                        <CandidateCard
-                            key={candidate.place_id}
-                            candidate={candidate}
-                            selected={candidate.place_id === selectedPlaceId}
-                            onSelect={() => onChange(candidate.place_id)}
-                        />
-                    ))}
+                <div>
+                    <p
+                        style={{
+                            margin: '0 0 0.75rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            color: '#4a5878',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.08em',
+                        }}
+                    >
+                        {candidates.length} suggested match{candidates.length !== 1 ? 'es' : ''}
+                    </p>
+                    <div style={{ display: 'grid', gap: '0.85rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                        {candidates.map((c) => (
+                            <CandidateCard
+                                key={c.place_id}
+                                candidate={c}
+                                selected={c.place_id === selectedPlaceId}
+                                onSelect={() => onChange(c.place_id)}
+                            />
+                        ))}
+                    </div>
                 </div>
             ) : (
-                <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                    <p className='text-sm font-semibold text-(--text-700)'>No candidates returned. You can still paste a place_id above or continue with “No match”.</p>
+                <div
+                    style={{
+                        borderRadius: '1.25rem',
+                        border: '1px dashed rgba(207,216,230,0.9)',
+                        background: 'rgba(248,250,255,0.7)',
+                        padding: '2rem',
+                        textAlign: 'center',
+                    }}
+                >
+                    <div
+                        style={{
+                            width: '3rem',
+                            height: '3rem',
+                            borderRadius: '0.85rem',
+                            background: 'rgba(207,216,230,0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#8c98af',
+                            margin: '0 auto 0.75rem',
+                        }}
+                    >
+                        <Search size={20} strokeWidth={1.5} />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1a2345' }}>
+                        No candidates found
+                    </p>
+                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', fontWeight: 500, color: '#8c98af' }}>
+                        No Google Business listings were found automatically. Paste a place_id above or select "No match".
+                    </p>
                 </div>
             )}
 
+            {/* No match button */}
             <button
                 type='button'
                 onClick={() => onChange('')}
-                className='inline-flex w-full items-center justify-center rounded-xl border border-(--border-soft) bg-(--surface-white) px-4 py-3 text-sm font-semibold text-(--text-700) transition hover:border-(--brand-700) hover:text-(--brand-900)'
+                className='ca-btn-secondary'
+                style={{ width: '100%', justifyContent: 'center' }}
             >
-                No match (manual review)
+                No matching profile — proceed with manual review
             </button>
         </div>
     )

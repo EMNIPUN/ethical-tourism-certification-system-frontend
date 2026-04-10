@@ -1,4 +1,14 @@
-import { ArrowLeft, ArrowRight, CheckCircle2, FileText, UploadCloud } from 'lucide-react'
+import {
+    ArrowLeft,
+    ArrowRight,
+    Building2,
+    CheckCircle2,
+    FileText,
+    Mail,
+    MapPin,
+    Pencil,
+    UploadCloud,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import EvidenceUploadFields from './EvidenceUploadFields'
 import HotelApplicationForm from './HotelApplicationForm'
@@ -6,100 +16,111 @@ import HotelApplicationForm from './HotelApplicationForm'
 const STEPS = [
     {
         key: 'details',
-        title: 'Hotel details',
-        description: 'Business identity and contact info.',
-        icon: FileText,
+        title: 'Hotel Details',
+        description: 'Business identity & contact',
+        icon: Building2,
     },
     {
         key: 'evidence',
-        title: 'Evidence uploads',
-        description: 'Legal and employee policy documents.',
+        title: 'Evidence Uploads',
+        description: 'Legal & HR documents',
         icon: UploadCloud,
     },
     {
         key: 'review',
-        title: 'Review & submit',
-        description: 'Confirm everything looks correct.',
+        title: 'Review & Submit',
+        description: 'Confirm before submitting',
         icon: CheckCircle2,
     },
 ]
 
-function isRequiredDraftComplete(draft) {
-    const requiredPaths = [
-        'businessInfo.name',
-        'businessInfo.registrationNumber',
-        'businessInfo.licenseNumber',
-        'businessInfo.businessType',
-        'businessInfo.contact.ownerName',
-        'businessInfo.contact.phone',
-        'businessInfo.contact.email',
-        'businessInfo.contact.address',
-        'guestServices.facilities.numberOfRooms',
-    ]
+const REQUIRED_PATHS = [
+    'businessInfo.name',
+    'businessInfo.registrationNumber',
+    'businessInfo.licenseNumber',
+    'businessInfo.businessType',
+    'businessInfo.contact.ownerName',
+    'businessInfo.contact.phone',
+    'businessInfo.contact.email',
+    'businessInfo.contact.address',
+    'guestServices.facilities.numberOfRooms',
+]
 
-    return requiredPaths.every((path) => {
-        const value = path.split('.').reduce((cursor, segment) => (cursor ? cursor[segment] : undefined), draft)
+function isRequiredDraftComplete(draft) {
+    return REQUIRED_PATHS.every((path) => {
+        const value = path.split('.').reduce((c, s) => (c ? c[s] : undefined), draft)
         return value !== undefined && value !== null && value !== ''
     })
 }
 
-function SummaryRow({ label, value }) {
-    return (
-        <div className='flex items-start justify-between gap-4 rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
-            <span className='text-xs font-bold uppercase tracking-[0.08em] text-(--text-500)'>{label}</span>
-            <span className='text-sm font-semibold text-(--text-950)'>{value || '—'}</span>
-        </div>
-    )
+function get(draft, path) {
+    return path.split('.').reduce((c, s) => (c ? c[s] : undefined), draft)
 }
 
+/* ── Stepper ─────────────────────────────────────────── */
 function Stepper({ stepIndex }) {
-    const progressPercent = STEPS.length > 1 ? Math.round((stepIndex / (STEPS.length - 1)) * 100) : 0
+    const pct = STEPS.length > 1 ? Math.round((stepIndex / (STEPS.length - 1)) * 100) : 0
 
     return (
-        <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-            <div className='flex items-center justify-between gap-4'>
-                <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--text-500)'>Progress</p>
-                <span className='badge-chip'>Step {stepIndex + 1} of {STEPS.length}</span>
-            </div>
-
-            <div className='mt-3 h-2 w-full overflow-hidden rounded-full bg-(--surface-soft)'>
+        <div className='ca-stepper ca-animate-up'>
+            <div className='ca-stepper-header'>
+                <div>
+                    <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8c98af' }}>
+                        Application progress
+                    </p>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.92rem', fontWeight: 700, color: '#1a2345' }}>
+                        Step {stepIndex + 1} of {STEPS.length} — {STEPS[stepIndex].title}
+                    </p>
+                </div>
                 <div
-                    className='h-full rounded-full bg-(--brand-700) transition-[width] duration-300'
-                    style={{ width: `${progressPercent}%` }}
-                />
+                    style={{
+                        background: stepIndex === STEPS.length - 1 ? 'rgba(31,108,68,0.09)' : 'rgba(88,104,216,0.09)',
+                        border: `1px solid ${stepIndex === STEPS.length - 1 ? 'rgba(31,108,68,0.22)' : 'rgba(88,104,216,0.22)'}`,
+                        color: stepIndex === STEPS.length - 1 ? '#1f6c44' : '#4a52c9',
+                        borderRadius: '999px',
+                        padding: '0.28rem 0.8rem',
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                    }}
+                >
+                    {pct}% complete
+                </div>
             </div>
 
-            <div className='mt-5 grid gap-3 md:grid-cols-3'>
-                {STEPS.map((step, index) => {
+            {/* Progress track */}
+            <div className='ca-progress-track'>
+                <div className='ca-progress-fill' style={{ width: `${pct}%` }} />
+            </div>
+
+            {/* Step indicators */}
+            <div className='ca-steps-grid'>
+                {STEPS.map((step, i) => {
                     const Icon = step.icon
-                    const active = index === stepIndex
-                    const completed = index < stepIndex
+                    const active    = i === stepIndex
+                    const completed = i < stepIndex
 
                     return (
                         <div
                             key={step.key}
-                            className={
-                                'flex items-start gap-4 rounded-xl border px-4 py-3 transition ' +
-                                (active
-                                    ? 'border-(--brand-700) bg-(--surface-soft)'
-                                    : completed
-                                        ? 'border-(--border-soft) bg-(--surface-white)'
-                                        : 'border-(--border-soft) bg-(--surface-white) opacity-80')
-                            }
+                            className={`ca-step-item${active ? '' : completed ? '' : ' ca-step-item--pending'}`}
                         >
-                            <span
-                                className={
-                                    'inline-flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset ' +
-                                    (active || completed
-                                        ? 'bg-(--brand-700) text-white ring-(--brand-700)'
-                                        : 'bg-(--surface-soft) text-(--brand-900) ring-(--border-soft)')
-                                }
+                            <div
+                                className={`ca-step-bubble ${
+                                    completed ? 'ca-step-bubble--done' :
+                                    active    ? 'ca-step-bubble--active' :
+                                                'ca-step-bubble--pending'
+                                }`}
                             >
-                                <Icon size={18} />
-                            </span>
+                                {completed
+                                    ? <CheckCircle2 size={16} strokeWidth={2.5} />
+                                    : <Icon size={16} strokeWidth={2} />
+                                }
+                            </div>
                             <div>
-                                <p className='text-sm font-bold text-(--text-950)'>{step.title}</p>
-                                <p className='mt-1 text-xs font-medium text-(--text-700)'>{step.description}</p>
+                                <p className='ca-step-label'>{step.title}</p>
+                                <p className='ca-step-desc'>{step.description}</p>
                             </div>
                         </div>
                     )
@@ -109,6 +130,17 @@ function Stepper({ stepIndex }) {
     )
 }
 
+/* ── Review row ──────────────────────────────────────── */
+function ReviewItem({ label, value }) {
+    return (
+        <div className='ca-review-item'>
+            <p className='ca-review-label'>{label}</p>
+            <p className='ca-review-value'>{value || '—'}</p>
+        </div>
+    )
+}
+
+/* ── Wizard ──────────────────────────────────────────── */
 function HotelApplicationWizard({
     draft,
     step,
@@ -122,19 +154,17 @@ function HotelApplicationWizard({
 }) {
     const [files, setFiles] = useState({
         legalDocuments: [],
-        salarySlips: null,
-        staffHandbook: null,
-        hrPolicy: null,
+        salarySlips:    null,
+        staffHandbook:  null,
+        hrPolicy:       null,
     })
 
-    const stepIndex = Math.max(0, Math.min(STEPS.length - 1, (step || 1) - 1))
-    const canProceedFromDetails = useMemo(() => isRequiredDraftComplete(draft || {}), [draft])
+    const stepIndex          = Math.max(0, Math.min(STEPS.length - 1, (step || 1) - 1))
+    const canProceed         = useMemo(() => isRequiredDraftComplete(draft || {}), [draft])
+    const isLastStep         = stepIndex === STEPS.length - 1
 
     function handleNext() {
-        if (stepIndex === 0 && !canProceedFromDetails) {
-            return
-        }
-
+        if (stepIndex === 0 && !canProceed) return
         onStepChange(stepIndex + 2)
     }
 
@@ -142,24 +172,50 @@ function HotelApplicationWizard({
         onStepChange(stepIndex)
     }
 
-    return (
-        <div className='grid gap-6'>
-            <header className='glass-panel rounded-2xl p-7'>
-                <div className='flex flex-col gap-4 md:flex-row md:items-start md:justify-between'>
-                    <div>
-                        <p className='text-xs font-extrabold uppercase tracking-[0.12em] text-(--brand-900)'>Certificate application</p>
-                        <h1 className='mt-2 text-3xl font-bold tracking-tight text-(--text-950)'>{header}</h1>
-                        <p className='mt-2 max-w-3xl text-sm font-medium text-(--text-700)'>{subheader}</p>
-                    </div>
+    const totalFiles =
+        (files.legalDocuments?.length || 0) +
+        (files.salarySlips ? 1 : 0) +
+        (files.staffHandbook ? 1 : 0) +
+        (files.hrPolicy ? 1 : 0)
 
-                    <div className='flex items-center gap-2'>
-                        <span className='badge-chip'>Draft saved locally</span>
+    return (
+        <div style={{ display: 'grid', gap: '1.25rem' }}>
+            {/* Hero header */}
+            <header className='ca-hero ca-animate-up'>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div>
+                        <span className='ca-hero-eyebrow'>
+                            <Pencil size={11} strokeWidth={3} />
+                            Certificate Application
+                        </span>
+                        <h1 className='ca-hero-title' style={{ fontSize: 'clamp(1.4rem,2.8vw,2rem)' }}>{header}</h1>
+                        <p className='ca-hero-desc'>{subheader}</p>
+                    </div>
+                    <div
+                        style={{
+                            background: 'rgba(88,104,216,0.07)',
+                            border: '1px solid rgba(88,104,216,0.18)',
+                            borderRadius: '0.85rem',
+                            padding: '0.6rem 1rem',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            color: '#4a52c9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        <CheckCircle2 size={13} strokeWidth={2.5} />
+                        Draft auto-saved
                     </div>
                 </div>
             </header>
 
+            {/* Step indicator */}
             <Stepper stepIndex={stepIndex} />
 
+            {/* Step: Hotel details */}
             {stepIndex === 0 ? (
                 <HotelApplicationForm
                     draft={draft}
@@ -167,71 +223,183 @@ function HotelApplicationWizard({
                 />
             ) : null}
 
-            {stepIndex === 1 ? <EvidenceUploadFields files={files} onFilesChange={setFiles} /> : null}
+            {/* Step: Evidence uploads */}
+            {stepIndex === 1 ? (
+                <EvidenceUploadFields files={files} onFilesChange={setFiles} />
+            ) : null}
 
+            {/* Step: Review */}
             {stepIndex === 2 ? (
-                <div className='grid gap-6'>
-                    <div className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                        <h2 className='text-lg font-bold text-(--text-950)'>Review</h2>
-                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Confirm the critical fields before submitting.</p>
-
-                        <div className='mt-6 grid gap-3 md:grid-cols-2'>
-                            <SummaryRow label='Hotel name' value={draft?.businessInfo?.name} />
-                            <SummaryRow label='Business type' value={draft?.businessInfo?.businessType} />
-                            <SummaryRow label='Registration' value={draft?.businessInfo?.registrationNumber} />
-                            <SummaryRow label='License' value={draft?.businessInfo?.licenseNumber} />
-                            <SummaryRow label='Owner' value={draft?.businessInfo?.contact?.ownerName} />
-                            <SummaryRow label='Contact email' value={draft?.businessInfo?.contact?.email} />
-                            <SummaryRow label='Rooms' value={draft?.guestServices?.facilities?.numberOfRooms} />
-                            <SummaryRow label='Address' value={draft?.businessInfo?.contact?.address} />
+                <div style={{ display: 'grid', gap: '1.25rem' }}>
+                    {/* Business review */}
+                    <div className='ca-section-card ca-animate-up'>
+                        <div className='ca-section-header'>
+                            <div className='ca-section-icon'>
+                                <Building2 size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <p className='ca-section-title'>Review your application</p>
+                                <p className='ca-section-desc'>Confirm all details are correct before submitting.</p>
+                            </div>
                         </div>
+                        <div className='ca-section-body'>
+                            <div className='ca-review-row'>
+                                <ReviewItem label='Hotel name'      value={get(draft, 'businessInfo.name')} />
+                                <ReviewItem label='Business type'   value={get(draft, 'businessInfo.businessType')} />
+                                <ReviewItem label='Registration no.' value={get(draft, 'businessInfo.registrationNumber')} />
+                                <ReviewItem label='License no.'     value={get(draft, 'businessInfo.licenseNumber')} />
+                            </div>
 
-                        <div className='mt-6 rounded-xl border border-(--border-soft) bg-(--surface-soft) px-4 py-3'>
-                            <p className='text-xs font-semibold text-(--text-700)'>Selected files</p>
-                            <p className='mt-2 text-sm font-medium text-(--text-500)'>
-                                Legal documents: {files.legalDocuments?.length || 0} · Salary slips: {files.salarySlips ? '1' : '0'} · Staff handbook:{' '}
-                                {files.staffHandbook ? '1' : '0'} · HR policy: {files.hrPolicy ? '1' : '0'}
-                            </p>
+                            <div style={{ height: '1px', background: 'rgba(207,216,230,0.6)', margin: '1rem 0' }} />
+
+                            <div className='ca-review-row'>
+                                <ReviewItem label='Owner name'   value={get(draft, 'businessInfo.contact.ownerName')} />
+                                <ReviewItem label='Email'        value={get(draft, 'businessInfo.contact.email')} />
+                                <ReviewItem label='Phone'        value={get(draft, 'businessInfo.contact.phone')} />
+                                <ReviewItem label='No. of rooms' value={get(draft, 'guestServices.facilities.numberOfRooms')} />
+                            </div>
+
+                            {/* Address full-width */}
+                            <div style={{ marginTop: '0.75rem' }}>
+                                <div className='ca-review-item' style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                                    <MapPin size={14} strokeWidth={2.2} style={{ color: '#5868d8', marginTop: '0.15rem', flexShrink: 0 }} />
+                                    <div>
+                                        <p className='ca-review-label'>Address</p>
+                                        <p className='ca-review-value'>{get(draft, 'businessInfo.contact.address') || '—'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Documents summary */}
+                    <div className='ca-section-card ca-animate-up-1'>
+                        <div className='ca-section-header'>
+                            <div className='ca-section-icon'>
+                                <FileText size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <p className='ca-section-title'>Uploaded documents</p>
+                                <p className='ca-section-desc'>{totalFiles} file{totalFiles !== 1 ? 's' : ''} selected for upload.</p>
+                            </div>
+                        </div>
+                        <div className='ca-section-body'>
+                            <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+                                {[
+                                    { label: 'Legal documents', count: files.legalDocuments?.length || 0 },
+                                    { label: 'Salary slips',    count: files.salarySlips ? 1 : 0 },
+                                    { label: 'Staff handbook',  count: files.staffHandbook ? 1 : 0 },
+                                    { label: 'HR policy',       count: files.hrPolicy ? 1 : 0 },
+                                ].map(({ label, count }) => (
+                                    <div
+                                        key={label}
+                                        style={{
+                                            borderRadius: '0.85rem',
+                                            border: `1px solid ${count > 0 ? 'rgba(31,108,68,0.2)' : 'rgba(207,216,230,0.7)'}`,
+                                            background: count > 0 ? 'rgba(31,108,68,0.05)' : 'rgba(248,250,255,0.9)',
+                                            padding: '0.75rem 1rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#4a5878' }}>{label}</span>
+                                        <span
+                                            style={{
+                                                fontSize: '0.74rem',
+                                                fontWeight: 800,
+                                                color: count > 0 ? '#1f6c44' : '#8c98af',
+                                            }}
+                                        >
+                                            {count} {count === 1 ? 'file' : 'files'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {totalFiles === 0 ? (
+                                <div
+                                    style={{
+                                        marginTop: '0.8rem',
+                                        borderRadius: '0.85rem',
+                                        border: '1px solid rgba(200,140,20,0.25)',
+                                        background: 'rgba(200,140,20,0.06)',
+                                        padding: '0.75rem 1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                    }}
+                                >
+                                    <Mail size={14} strokeWidth={2.2} style={{ color: '#92620a', flexShrink: 0 }} />
+                                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: '#92620a' }}>
+                                        No documents uploaded. You can still submit and add them later during review.
+                                    </p>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>
             ) : null}
 
-            <div className='flex flex-col-reverse gap-3 rounded-2xl border border-(--border-soft) bg-(--surface-white) p-5 shadow-(--shadow-soft) sm:flex-row sm:items-center sm:justify-between'>
+            {/* Action bar */}
+            <div className='ca-action-bar ca-animate-up'>
+                {/* Back button */}
                 <button
                     type='button'
                     onClick={handleBack}
                     disabled={stepIndex === 0 || submitting}
-                    className='inline-flex items-center justify-center gap-2 rounded-xl border border-(--border-soft) bg-(--surface-white) px-4 py-3 text-sm font-semibold text-(--text-700) transition hover:border-(--brand-700) hover:text-(--brand-900) disabled:cursor-not-allowed disabled:opacity-60'
+                    className='ca-btn-secondary'
                 >
-                    <ArrowLeft size={16} />
+                    <ArrowLeft size={15} strokeWidth={2.5} />
                     Back
                 </button>
 
-                <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
-                    {stepIndex === 0 && !canProceedFromDetails ? (
-                        <p className='text-xs font-semibold text-(--error-600)'>Fill all required fields to continue.</p>
+                {/* Right side */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    {stepIndex === 0 && !canProceed ? (
+                        <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#c0392b' }}>
+                            Complete all required fields to continue
+                        </p>
                     ) : null}
 
-                    {stepIndex < 2 ? (
+                    {!isLastStep ? (
                         <button
                             type='button'
                             onClick={handleNext}
-                            disabled={submitting || (stepIndex === 0 && !canProceedFromDetails)}
-                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
+                            disabled={submitting || (stepIndex === 0 && !canProceed)}
+                            className='ca-btn-primary'
                         >
-                            Next
-                            <ArrowRight size={16} />
+                            Continue
+                            <ArrowRight size={15} strokeWidth={2.5} />
                         </button>
                     ) : (
                         <button
                             type='button'
                             onClick={() => onSubmit({ draft: draft || {}, files })}
                             disabled={submitting}
-                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-(--brand-700) px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
+                            className='ca-btn-primary'
                         >
-                            {submitting ? 'Submitting...' : submitLabel}
-                            <ArrowRight size={16} />
+                            {submitting ? (
+                                <>
+                                    <span
+                                        style={{
+                                            width: '1rem',
+                                            height: '1rem',
+                                            borderRadius: '50%',
+                                            border: '2px solid rgba(255,255,255,0.4)',
+                                            borderTopColor: '#fff',
+                                            animation: 'spin-smooth 0.75s linear infinite',
+                                            display: 'inline-block',
+                                        }}
+                                    />
+                                    Submitting…
+                                </>
+                            ) : (
+                                <>
+                                    {submitLabel}
+                                    <ArrowRight size={15} strokeWidth={2.5} />
+                                </>
+                            )}
                         </button>
                     )}
                 </div>

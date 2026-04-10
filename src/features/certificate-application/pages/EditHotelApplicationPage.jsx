@@ -21,23 +21,21 @@ import {
 } from '../store/certificateApplicationSlice'
 
 function EditHotelApplicationPage() {
-    const { id } = useParams()
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+    const { id }      = useParams()
+    const dispatch    = useDispatch()
+    const navigate    = useNavigate()
 
-    const hotel = useSelector(selectHotelDetails)
+    const hotel       = useSelector(selectHotelDetails)
     const hotelStatus = useSelector(selectHotelDetailsStatus)
-    const hotelError = useSelector(selectHotelDetailsError)
+    const hotelError  = useSelector(selectHotelDetailsError)
 
-    const draft = useSelector(selectCertificateApplicationDraft)
-    const step = useSelector(selectCertificateApplicationStep)
+    const draft       = useSelector(selectCertificateApplicationDraft)
+    const step        = useSelector(selectCertificateApplicationStep)
 
     const updateStatus = useSelector(selectUpdateStatus)
-    const updateError = useSelector(selectUpdateError)
+    const updateError  = useSelector(selectUpdateError)
 
-    const loadHotel = useCallback(() => {
-        dispatch(fetchHotel(id))
-    }, [dispatch, id])
+    const loadHotel = useCallback(() => { dispatch(fetchHotel(id)) }, [dispatch, id])
 
     useEffect(() => {
         dispatch(setApplicationStep(1))
@@ -45,49 +43,44 @@ function EditHotelApplicationPage() {
     }, [dispatch, loadHotel])
 
     useEffect(() => {
-        if (hotel?._id === id) {
-            dispatch(setApplicationDraft(hotel))
-        }
+        if (hotel?._id === id) dispatch(setApplicationDraft(hotel))
     }, [dispatch, hotel, id])
 
     async function handleSubmit({ draft: payloadDraft, files }) {
         const action = await dispatch(submitHotelUpdate({ hotelId: id, hotelData: payloadDraft, files }))
-
         if (submitHotelUpdate.fulfilled.match(action)) {
             navigate(`/certificate-application/${id}`, { replace: true })
         }
     }
 
     return (
-        <main className='min-h-screen bg-(--surface-canvas) py-10'>
-            <div className='ui-shell'>
-                {updateError ? (
-                    <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--error-100) px-6 py-4 shadow-(--shadow-soft)'>
-                        <p className='text-sm font-semibold text-(--error-600)'>{updateError}</p>
-                    </div>
-                ) : null}
+        <div style={{ display: 'grid', gap: '1rem' }}>
+            {updateError ? (
+                <div className='ca-banner ca-banner--error ca-animate-up'>
+                    <p className='ca-banner-text'>{updateError}</p>
+                </div>
+            ) : null}
 
-                <AsyncState
-                    status={hotelStatus}
-                    error={hotelError}
-                    loadingMessage='Loading application...'
-                    onRetry={loadHotel}
-                    retryLabel='Reload'
-                >
-                    <HotelApplicationWizard
-                        draft={draft}
-                        step={step}
-                        onChangeDraft={(path, value) => dispatch(updateApplicationDraftField({ path, value }))}
-                        onStepChange={(nextStep) => dispatch(setApplicationStep(nextStep))}
-                        onSubmit={handleSubmit}
-                        submitting={updateStatus === 'loading'}
-                        submitLabel='Save changes'
-                        header='Edit application'
-                        subheader='Update hotel details and re-upload any supporting files as needed.'
-                    />
-                </AsyncState>
-            </div>
-        </main>
+            <AsyncState
+                status={hotelStatus}
+                error={hotelError}
+                loadingMessage='Loading application…'
+                onRetry={loadHotel}
+                retryLabel='Reload'
+            >
+                <HotelApplicationWizard
+                    draft={draft}
+                    step={step}
+                    onChangeDraft={(path, value) => dispatch(updateApplicationDraftField({ path, value }))}
+                    onStepChange={(next) => dispatch(setApplicationStep(next))}
+                    onSubmit={handleSubmit}
+                    submitting={updateStatus === 'loading'}
+                    submitLabel='Save changes'
+                    header='Edit application'
+                    subheader='Update hotel details and re-upload supporting files as needed. Changes are saved on submission.'
+                />
+            </AsyncState>
+        </div>
     )
 }
 

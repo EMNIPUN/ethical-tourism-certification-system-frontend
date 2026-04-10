@@ -1,3 +1,5 @@
+import { Building2, Mail, Phone, Globe, Hash, User, Bed, Users } from 'lucide-react'
+
 const BUSINESS_TYPES = ['Hotel', 'Resort', 'Lodge', 'Guesthouse']
 
 function getValue(draft, path) {
@@ -6,190 +8,231 @@ function getValue(draft, path) {
         .reduce((value, segment) => (value && typeof value === 'object' ? value[segment] : undefined), draft)
 }
 
-function Field({ label, required, hint, value, onChange, type = 'text', placeholder }) {
+function Field({ label, required, hint, value, onChange, type = 'text', placeholder, icon: Icon }) {
     return (
-        <label className='block text-sm font-semibold text-(--text-950)'>
-            <span className='inline-flex items-center gap-2'>
+        <div className='ca-field'>
+            <label className='ca-field-label'>
+                {Icon ? <Icon size={13} strokeWidth={2.5} style={{ color: '#5868d8' }} /> : null}
                 {label}
-                {required ? <span className='text-(--error-600)'>*</span> : null}
-            </span>
-            {hint ? <span className='mt-1 block text-xs font-medium text-(--text-500)'>{hint}</span> : null}
+                {required ? <span className='ca-field-label-required'>*</span> : null}
+            </label>
+            {hint ? <span className='ca-field-hint'>{hint}</span> : null}
             <input
                 type={type}
                 value={value ?? ''}
-                onChange={(event) => onChange(event.target.value)}
+                onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className='mt-2 h-12 w-full rounded-xl border border-(--border-soft) bg-white px-4 text-sm text-(--text-950) outline-none transition focus:border-(--brand-700) focus:ring-4 focus:ring-(--brand-700)/15'
+                className='ca-input'
             />
-        </label>
+        </div>
     )
 }
 
-function Select({ label, required, value, onChange, options }) {
+function Select({ label, required, value, onChange, options, icon: Icon }) {
     return (
-        <label className='block text-sm font-semibold text-(--text-950)'>
-            <span className='inline-flex items-center gap-2'>
+        <div className='ca-field'>
+            <label className='ca-field-label'>
+                {Icon ? <Icon size={13} strokeWidth={2.5} style={{ color: '#5868d8' }} /> : null}
                 {label}
-                {required ? <span className='text-(--error-600)'>*</span> : null}
-            </span>
+                {required ? <span className='ca-field-label-required'>*</span> : null}
+            </label>
             <select
                 value={value ?? ''}
-                onChange={(event) => onChange(event.target.value)}
-                className='mt-2 h-12 w-full rounded-xl border border-(--border-soft) bg-white px-4 text-sm text-(--text-950) outline-none transition focus:border-(--brand-700) focus:ring-4 focus:ring-(--brand-700)/15'
+                onChange={(e) => onChange(e.target.value)}
+                className='ca-select'
             >
-                <option value='' disabled>
-                    Select...
-                </option>
-                {options.map((option) => (
-                    <option key={option} value={option}>
-                        {option}
-                    </option>
+                <option value='' disabled>Select type…</option>
+                {options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
                 ))}
             </select>
-        </label>
+        </div>
+    )
+}
+
+function SectionCard({ icon: Icon, title, description, badge, children }) {
+    return (
+        <div className='ca-section-card ca-animate-up'>
+            <div className='ca-section-header'>
+                <div className='ca-section-icon'>
+                    <Icon size={18} strokeWidth={2} />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <p className='ca-section-title'>{title}</p>
+                    <p className='ca-section-desc'>{description}</p>
+                </div>
+                {badge ? (
+                    <span
+                        style={{
+                            background: 'rgba(88,104,216,0.09)',
+                            border: '1px solid rgba(88,104,216,0.2)',
+                            color: '#4a52c9',
+                            borderRadius: '999px',
+                            padding: '0.2rem 0.65rem',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.09em',
+                        }}
+                    >
+                        {badge}
+                    </span>
+                ) : null}
+            </div>
+            <div className='ca-section-body'>
+                {children}
+            </div>
+        </div>
     )
 }
 
 function HotelApplicationForm({ draft, onChange }) {
-    const businessName = getValue(draft, 'businessInfo.name')
+    const businessName       = getValue(draft, 'businessInfo.name')
     const registrationNumber = getValue(draft, 'businessInfo.registrationNumber')
-    const licenseNumber = getValue(draft, 'businessInfo.licenseNumber')
-    const businessType = getValue(draft, 'businessInfo.businessType')
-    const yearEstablished = getValue(draft, 'businessInfo.yearEstablished')
+    const licenseNumber      = getValue(draft, 'businessInfo.licenseNumber')
+    const businessType       = getValue(draft, 'businessInfo.businessType')
+    const yearEstablished    = getValue(draft, 'businessInfo.yearEstablished')
 
     const ownerName = getValue(draft, 'businessInfo.contact.ownerName')
-    const phone = getValue(draft, 'businessInfo.contact.phone')
-    const email = getValue(draft, 'businessInfo.contact.email')
-    const website = getValue(draft, 'businessInfo.contact.website')
-    const address = getValue(draft, 'businessInfo.contact.address')
+    const phone     = getValue(draft, 'businessInfo.contact.phone')
+    const email     = getValue(draft, 'businessInfo.contact.email')
+    const website   = getValue(draft, 'businessInfo.contact.website')
+    const address   = getValue(draft, 'businessInfo.contact.address')
 
-    const rooms = getValue(draft, 'guestServices.facilities.numberOfRooms')
+    const rooms       = getValue(draft, 'guestServices.facilities.numberOfRooms')
     const maxCapacity = getValue(draft, 'guestServices.facilities.maxCapacity')
 
     return (
-        <div className='grid gap-6'>
-            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                <div className='flex items-start justify-between gap-4'>
-                    <div>
-                        <h2 className='text-lg font-bold text-(--text-950)'>Business information</h2>
-                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Provide the hotel identity details exactly as registered.</p>
-                    </div>
-                    <span className='badge-chip'>Step 1</span>
-                </div>
-
-                <div className='mt-6 grid gap-5 md:grid-cols-2'>
+        <div style={{ display: 'grid', gap: '1.25rem' }}>
+            {/* Business information */}
+            <SectionCard
+                icon={Building2}
+                title='Business information'
+                description='Provide the hotel identity details exactly as registered with authorities.'
+                badge='Required'
+            >
+                <div style={{ display: 'grid', gap: '1.1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
                     <Field
                         label='Hotel name'
                         required
+                        icon={Building2}
                         value={businessName}
-                        onChange={(value) => onChange('businessInfo.name', value)}
+                        onChange={(v) => onChange('businessInfo.name', v)}
                         placeholder='e.g., AYANA Resort Bali'
                     />
                     <Select
                         label='Business type'
                         required
+                        icon={Hash}
                         value={businessType}
-                        onChange={(value) => onChange('businessInfo.businessType', value)}
+                        onChange={(v) => onChange('businessInfo.businessType', v)}
                         options={BUSINESS_TYPES}
                     />
                     <Field
                         label='Registration number'
                         required
+                        icon={Hash}
                         value={registrationNumber}
-                        onChange={(value) => onChange('businessInfo.registrationNumber', value)}
+                        onChange={(v) => onChange('businessInfo.registrationNumber', v)}
                         placeholder='e.g., REG-12345'
                     />
                     <Field
                         label='License number'
                         required
+                        icon={Hash}
                         value={licenseNumber}
-                        onChange={(value) => onChange('businessInfo.licenseNumber', value)}
+                        onChange={(v) => onChange('businessInfo.licenseNumber', v)}
                         placeholder='e.g., LIC-67890'
                     />
                     <Field
                         label='Year established'
                         type='number'
+                        icon={Hash}
                         value={yearEstablished}
-                        onChange={(value) => onChange('businessInfo.yearEstablished', value ? Number(value) : '')}
+                        onChange={(v) => onChange('businessInfo.yearEstablished', v ? Number(v) : '')}
                         placeholder='e.g., 1996'
                     />
                 </div>
-            </section>
+            </SectionCard>
 
-            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                <div className='flex items-start justify-between gap-4'>
-                    <div>
-                        <h2 className='text-lg font-bold text-(--text-950)'>Owner contact</h2>
-                        <p className='mt-1 text-sm font-medium text-(--text-700)'>This is used for follow-ups during verification.</p>
-                    </div>
-                </div>
-
-                <div className='mt-6 grid gap-5 md:grid-cols-2'>
+            {/* Owner contact */}
+            <SectionCard
+                icon={User}
+                title='Owner & contact'
+                description='Used for follow-ups and verification communications during the review process.'
+            >
+                <div style={{ display: 'grid', gap: '1.1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
                     <Field
                         label='Owner name'
                         required
+                        icon={User}
                         value={ownerName}
-                        onChange={(value) => onChange('businessInfo.contact.ownerName', value)}
+                        onChange={(v) => onChange('businessInfo.contact.ownerName', v)}
+                        placeholder='e.g., John Smith'
                     />
                     <Field
-                        label='Phone'
+                        label='Phone number'
                         required
+                        icon={Phone}
                         value={phone}
-                        onChange={(value) => onChange('businessInfo.contact.phone', value)}
-                        placeholder='e.g., +1234567890'
+                        onChange={(v) => onChange('businessInfo.contact.phone', v)}
+                        placeholder='e.g., +1 234 567 890'
                     />
                     <Field
-                        label='Email'
+                        label='Email address'
                         required
                         type='email'
+                        icon={Mail}
                         value={email}
-                        onChange={(value) => onChange('businessInfo.contact.email', value)}
+                        onChange={(v) => onChange('businessInfo.contact.email', v)}
                         placeholder='e.g., hotel@example.com'
                     />
                     <Field
                         label='Website'
+                        icon={Globe}
                         value={website}
-                        onChange={(value) => onChange('businessInfo.contact.website', value)}
-                        placeholder='https://...'
+                        onChange={(v) => onChange('businessInfo.contact.website', v)}
+                        placeholder='https://example.com'
                     />
-                    <div className='md:col-span-2'>
+                    <div style={{ gridColumn: '1 / -1' }}>
                         <Field
-                            label='Address'
+                            label='Full registered address'
                             required
+                            icon={Building2}
                             value={address}
-                            onChange={(value) => onChange('businessInfo.contact.address', value)}
-                            placeholder='Full registered address'
+                            onChange={(v) => onChange('businessInfo.contact.address', v)}
+                            placeholder='Street, City, Country'
                         />
                     </div>
                 </div>
-            </section>
+            </SectionCard>
 
-            <section className='rounded-2xl border border-(--border-soft) bg-(--surface-white) p-6 shadow-(--shadow-soft)'>
-                <div className='flex items-start justify-between gap-4'>
-                    <div>
-                        <h2 className='text-lg font-bold text-(--text-950)'>Guest facilities</h2>
-                        <p className='mt-1 text-sm font-medium text-(--text-700)'>Basic capacity information is required for scoring.</p>
-                    </div>
-                </div>
-
-                <div className='mt-6 grid gap-5 md:grid-cols-2'>
+            {/* Guest facilities */}
+            <SectionCard
+                icon={Bed}
+                title='Guest facilities'
+                description='Basic capacity information is required to accurately calculate your certification score.'
+            >
+                <div style={{ display: 'grid', gap: '1.1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
                     <Field
                         label='Number of rooms'
                         required
                         type='number'
+                        icon={Bed}
                         value={rooms}
-                        onChange={(value) => onChange('guestServices.facilities.numberOfRooms', value ? Number(value) : '')}
-                        placeholder='e.g., 200'
+                        onChange={(v) => onChange('guestServices.facilities.numberOfRooms', v ? Number(v) : '')}
+                        placeholder='e.g., 120'
                     />
                     <Field
                         label='Maximum capacity'
                         type='number'
+                        icon={Users}
                         value={maxCapacity}
-                        onChange={(value) => onChange('guestServices.facilities.maxCapacity', value ? Number(value) : '')}
-                        placeholder='e.g., 450'
+                        onChange={(v) => onChange('guestServices.facilities.maxCapacity', v ? Number(v) : '')}
+                        placeholder='e.g., 300'
                     />
                 </div>
-            </section>
+            </SectionCard>
         </div>
     )
 }

@@ -16,60 +16,52 @@ import {
 } from '../store/certificateApplicationSlice'
 
 const EMPTY_DRAFT = {
-    businessInfo: {
-        contact: {},
-    },
-    guestServices: {
-        facilities: {},
-    },
+    businessInfo: { contact: {} },
+    guestServices: { facilities: {} },
 }
 
 function NewHotelApplicationPage() {
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+    const dispatch     = useDispatch()
+    const navigate     = useNavigate()
 
-    const draft = useSelector(selectCertificateApplicationDraft)
-    const step = useSelector(selectCertificateApplicationStep)
+    const draft        = useSelector(selectCertificateApplicationDraft)
+    const step         = useSelector(selectCertificateApplicationStep)
     const createStatus = useSelector(selectCreateStatus)
-    const createError = useSelector(selectCreateError)
+    const createError  = useSelector(selectCreateError)
 
     useEffect(() => {
         dispatch(setApplicationStep(1))
         if (!draft || !Object.keys(draft).length) {
             dispatch(setApplicationDraft(EMPTY_DRAFT))
         }
-    }, [dispatch])
+    }, [dispatch]) // eslint-disable-line react-hooks/exhaustive-deps
 
     async function handleSubmit({ draft: payloadDraft, files }) {
         const action = await dispatch(submitNewHotel({ hotelData: payloadDraft, files }))
-
         if (submitNewHotel.fulfilled.match(action)) {
-            const hotelId = action.payload.hotelId
-            navigate(`/certificate-application/${hotelId}/confirm-match`, { replace: true })
+            navigate(`/certificate-application/${action.payload.hotelId}/confirm-match`, { replace: true })
         }
     }
 
     return (
-        <main className='min-h-screen bg-(--surface-canvas) py-10'>
-            <div className='ui-shell'>
-                {createError ? (
-                    <div className='mb-6 rounded-2xl border border-(--border-soft) bg-(--error-100) px-6 py-4 shadow-(--shadow-soft)'>
-                        <p className='text-sm font-semibold text-(--error-600)'>{createError}</p>
-                    </div>
-                ) : null}
+        <div style={{ display: 'grid', gap: '1rem' }}>
+            {createError ? (
+                <div className='ca-banner ca-banner--error ca-animate-up'>
+                    <p className='ca-banner-text'>{createError}</p>
+                </div>
+            ) : null}
 
-                <HotelApplicationWizard
-                    draft={draft}
-                    step={step}
-                    onChangeDraft={(path, value) => dispatch(updateApplicationDraftField({ path, value }))}
-                    onStepChange={(nextStep) => dispatch(setApplicationStep(nextStep))}
-                    onSubmit={handleSubmit}
-                    submitting={createStatus === 'loading'}
-                    header='Create a new application'
-                    subheader='Submit your hotel details and supporting evidence. You will then confirm the correct Google Business profile match for scoring.'
-                />
-            </div>
-        </main>
+            <HotelApplicationWizard
+                draft={draft}
+                step={step}
+                onChangeDraft={(path, value) => dispatch(updateApplicationDraftField({ path, value }))}
+                onStepChange={(next) => dispatch(setApplicationStep(next))}
+                onSubmit={handleSubmit}
+                submitting={createStatus === 'loading'}
+                header='Create a new application'
+                subheader='Submit your hotel details and supporting evidence. You will then confirm the correct Google Business profile for review-based scoring.'
+            />
+        </div>
     )
 }
 

@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import CertificateApplicationLayout from '../components/CertificateApplicationLayout'
 import HotelApplicationsListPage from '../pages/HotelApplicationsListPage'
 import NewHotelApplicationPage from '../pages/NewHotelApplicationPage'
 import HotelApplicationDetailsPage from '../pages/HotelApplicationDetailsPage'
@@ -8,11 +9,13 @@ import EditHotelApplicationPage from '../pages/EditHotelApplicationPage'
 function CertificateApplicationRoutes() {
 	return (
 		<Routes>
-			<Route index element={<HotelApplicationsListPage />} />
-			<Route path='new' element={<NewHotelApplicationPage />} />
-			<Route path=':id' element={<HotelApplicationDetailsPage />} />
-			<Route path=':id/confirm-match' element={<ConfirmHotelMatchPage />} />
-			<Route path=':id/edit' element={<EditHotelApplicationPage />} />
+			<Route element={<CertificateApplicationLayout />}>
+				<Route index element={<HotelApplicationsListPage />} />
+				<Route path='new' element={<NewHotelApplicationPage />} />
+				<Route path=':id' element={<HotelApplicationDetailsPage />} />
+				<Route path=':id/confirm-match' element={<ConfirmHotelMatchPage />} />
+				<Route path=':id/edit' element={<EditHotelApplicationPage />} />
+			</Route>
 		</Routes>
 	)
 }
