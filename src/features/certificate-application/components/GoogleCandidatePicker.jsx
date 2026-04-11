@@ -19,7 +19,11 @@ function confidenceClass(conf) {
 }
 
 function CandidateCard({ candidate, selected, onSelect }) {
-    const conf      = typeof candidate?.confidence === 'number' ? candidate.confidence : null
+    // Backend returns confidence as 0-100; normalize to 0-1 for display math
+    const rawConf = candidate?.confidence
+    const conf    = typeof rawConf === 'number'
+        ? (rawConf > 1 ? rawConf / 100 : rawConf)
+        : null
     const thumbnail = upgradeGoogleImageUrl(candidate?.thumbnail, 800)
 
     return (
