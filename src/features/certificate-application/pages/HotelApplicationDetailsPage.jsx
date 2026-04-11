@@ -74,71 +74,99 @@ function HotelApplicationDetailsPage() {
     return (
         <>
             {/* Hero header */}
-            <header className='ca-hero ca-animate-up' style={{ padding: 0, overflow: 'hidden' }}>
+            <header className='ca-hero ca-animate-up' style={{ padding: 0, overflow: 'hidden', border: 'none', background: 'transparent', boxShadow: 'none' }}>
                 {/* Cover photo banner */}
-                {thumbnail ? (
-                    <div style={{
-                        height: '11rem',
-                        background: `linear-gradient(to bottom, rgba(26,35,69,0.15), rgba(26,35,69,0.55)), url('${thumbnail}') center/cover no-repeat`,
-                        position: 'relative',
-                    }} />
-                ) : null}
-
-                <div style={{ padding: 'clamp(1.4rem, 3vw, 2rem)' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.25rem' }}>
-                    <div>
-                        {/* Breadcrumb */}
-                        <Link
-                            to='/certificate-application'
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.35rem',
-                                fontSize: '0.78rem',
-                                fontWeight: 700,
-                                color: '#7b88a6',
-                                textDecoration: 'none',
-                                transition: 'color 160ms ease',
-                                marginBottom: '0.65rem',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.color = '#5868d8')}
-                            onMouseLeave={e => (e.currentTarget.style.color = '#7b88a6')}
-                        >
-                            <ArrowLeft size={13} strokeWidth={2.5} />
-                            All applications
-                            <ChevronRight size={12} strokeWidth={2.5} style={{ opacity: 0.5 }} />
-                            <span style={{ color: '#1a2345' }}>Details</span>
-                        </Link>
-
-                        <span className='ca-hero-eyebrow'>
-                            <Award size={11} strokeWidth={3} />
-                            Application Details
-                        </span>
-                        <h1 className='ca-hero-title' style={{ fontSize: 'clamp(1.5rem,3vw,2.1rem)' }}>
-                            {hotel?.businessInfo?.name || 'Application details'}
-                        </h1>
-                        <p className='ca-hero-desc' style={{ marginTop: '0.4rem' }}>
-                            {hotel?.businessInfo?.contact?.address || '—'}
-                        </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <Link to={`/certificate-application/${id}/edit`} className='ca-btn-secondary'>
-                            <Pencil size={14} strokeWidth={2.5} />
-                            Edit
-                        </Link>
-                        <button
-                            type='button'
-                            onClick={handleDelete}
-                            disabled={deleteStatus === 'loading'}
-                            className='ca-btn-danger'
-                        >
-                            <Trash2 size={14} strokeWidth={2.5} />
-                            {deleteStatus === 'loading' ? 'Deleting…' : 'Delete'}
-                        </button>
-                    </div>
+                <div style={{
+                    height: thumbnail ? '18rem' : '8rem',
+                    background: thumbnail
+                        ? `url('${thumbnail}') center/cover no-repeat`
+                        : 'linear-gradient(135deg, rgba(88,104,216,0.12), rgba(88,104,216,0.03))',
+                    position: 'relative',
+                    borderRadius: '1.75rem',
+                    overflow: 'hidden',
+                }}>
+                    {thumbnail ? (
+                        <div style={{ 
+                            position: 'absolute', 
+                            inset: 0, 
+                            background: 'linear-gradient(180deg, rgba(30,42,80,0.4) 0%, rgba(30,42,80,0.1) 40%, rgba(240,244,252,1) 100%)' 
+                        }} />
+                    ) : null}
                 </div>
+
+                {/* Overlapping Glass Card */}
+                <div style={{ 
+                    padding: '0 clamp(1.5rem, 3vw, 2rem)', 
+                    position: 'relative', 
+                    zIndex: 1, 
+                    marginTop: thumbnail ? '-6.5rem' : '-4rem',
+                    marginBottom: '0.5rem',
+                }}>
+                    <div style={{ 
+                        background: 'rgba(255,255,255,0.85)', 
+                        backdropFilter: 'blur(20px) saturate(180%)', 
+                        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                        borderRadius: '1.4rem', 
+                        padding: '1.8rem 2rem', 
+                        boxShadow: '0 12px 32px -12px rgba(30,42,80,0.15), 0 0 0 1px rgba(255,255,255,0.7) inset',
+                        border: '1px solid rgba(207,216,230,0.65)',
+                        display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' 
+                    }}>
+                        <div>
+                            {/* Breadcrumb */}
+                            <Link
+                                to='/certificate-application'
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.35rem',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 700,
+                                    color: '#7b88a6',
+                                    textDecoration: 'none',
+                                    transition: 'color 160ms ease',
+                                    marginBottom: '0.8rem',
+                                }}
+                                onMouseEnter={e => (e.currentTarget.style.color = '#5868d8')}
+                                onMouseLeave={e => (e.currentTarget.style.color = '#7b88a6')}
+                            >
+                                <ArrowLeft size={13} strokeWidth={2.5} />
+                                All applications
+                                <ChevronRight size={12} strokeWidth={2.5} style={{ opacity: 0.5 }} />
+                                <span style={{ color: '#1a2345' }}>Details</span>
+                            </Link>
+
+                            <div style={{ marginBottom: '0.5rem' }}>
+                                <span className='ca-hero-eyebrow' style={{ background: '#fff', boxShadow: '0 2px 8px rgba(30,42,80,0.05)' }}>
+                                    <Award size={11} strokeWidth={3} />
+                                    Application Details
+                                </span>
+                            </div>
+                            <h1 className='ca-hero-title' style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)' }}>
+                                {hotel?.businessInfo?.name || 'Application details'}
+                            </h1>
+                            <p className='ca-hero-desc' style={{ marginTop: '0.5rem', fontSize: '0.95rem' }}>
+                                {hotel?.businessInfo?.contact?.address || '—'}
+                            </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <Link to={`/certificate-application/${id}/edit`} className='ca-btn-secondary' style={{ background: '#fff' }}>
+                                <Pencil size={14} strokeWidth={2.5} />
+                                Edit
+                            </Link>
+                            <button
+                                type='button'
+                                onClick={handleDelete}
+                                disabled={deleteStatus === 'loading'}
+                                className='ca-btn-danger'
+                            >
+                                <Trash2 size={14} strokeWidth={2.5} />
+                                {deleteStatus === 'loading' ? 'Deleting…' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -160,102 +188,59 @@ function HotelApplicationDetailsPage() {
                     <div style={{ display: 'grid', gap: '1.25rem' }} className='ca-animate-up-1'>
 
                         {/* Scoring stat cards */}
-                        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+                        <div className='ca-stats-row'>
                             {/* Cert level */}
-                            <div className='ca-detail-stat' style={{ borderTop: `3px solid ${certStyle.border}` }}>
-                                <div
-                                    style={{
-                                        width: '2.2rem',
-                                        height: '2.2rem',
-                                        borderRadius: '0.65rem',
-                                        background: certStyle.bg,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: certStyle.text,
-                                        marginBottom: '0.4rem',
-                                    }}
-                                >
-                                    <Award size={16} strokeWidth={2} />
+                            <div className='ca-stat-card' style={{ borderBottom: `4px solid ${certStyle.border.replace('0.25', '0.6')}` }}>
+                                <div className='ca-stat-icon' style={{ background: certStyle.bg, color: certStyle.text }}>
+                                    <Award size={22} strokeWidth={2.5} />
                                 </div>
-                                <p className='ca-detail-stat-label'>Certification level</p>
-                                <p className='ca-detail-stat-value' style={{ fontSize: '1.2rem', color: certStyle.text }}>{certLevel}</p>
+                                <div style={{ flex: 1 }}>
+                                    <p className='ca-stat-value' style={{ color: certStyle.text }}>{certLevel}</p>
+                                    <p className='ca-stat-label'>Certification level</p>
+                                </div>
                             </div>
 
                             {/* Google score */}
-                            <div className='ca-detail-stat'>
-                                <div
-                                    style={{
-                                        width: '2.2rem',
-                                        height: '2.2rem',
-                                        borderRadius: '0.65rem',
-                                        background: 'rgba(249,186,20,0.12)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#b8860b',
-                                        marginBottom: '0.4rem',
-                                    }}
-                                >
-                                    <Star size={16} strokeWidth={2} />
+                            <div className='ca-stat-card'>
+                                <div className='ca-stat-icon ca-stat-icon--amber'>
+                                    <Star size={22} strokeWidth={2.5} />
                                 </div>
-                                <p className='ca-detail-stat-label'>Google review score</p>
-                                <p className='ca-detail-stat-value'>
-                                    {typeof hotel?.scoring?.googleReviewScore === 'number'
-                                        ? hotel.scoring.googleReviewScore.toFixed(1)
-                                        : '—'}
-                                </p>
+                                <div style={{ flex: 1 }}>
+                                    <p className='ca-stat-value'>
+                                        {typeof hotel?.scoring?.googleReviewScore === 'number'
+                                            ? hotel.scoring.googleReviewScore.toFixed(1)
+                                            : '—'}
+                                    </p>
+                                    <p className='ca-stat-label'>Google review score</p>
+                                </div>
                             </div>
 
                             {/* Data completion */}
-                            <div className='ca-detail-stat'>
-                                <div
-                                    style={{
-                                        width: '2.2rem',
-                                        height: '2.2rem',
-                                        borderRadius: '0.65rem',
-                                        background: 'rgba(88,104,216,0.1)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#5868d8',
-                                        marginBottom: '0.4rem',
-                                    }}
-                                >
-                                    <TrendingUp size={16} strokeWidth={2} />
+                            <div className='ca-stat-card'>
+                                <div className='ca-stat-icon ca-stat-icon--blue'>
+                                    <TrendingUp size={22} strokeWidth={2.5} />
                                 </div>
-                                <p className='ca-detail-stat-label'>Data completion</p>
-                                <p className='ca-detail-stat-value'>
-                                    {typeof hotel?.scoring?.dataCompletionScore === 'number'
-                                        ? `${Math.round(hotel.scoring.dataCompletionScore)}%`
-                                        : '—'}
-                                </p>
+                                <div style={{ flex: 1 }}>
+                                    <p className='ca-stat-value'>
+                                        {typeof hotel?.scoring?.dataCompletionScore === 'number'
+                                            ? `${Math.round(hotel.scoring.dataCompletionScore)}%`
+                                            : '—'}
+                                    </p>
+                                    <p className='ca-stat-label'>Data completion</p>
+                                </div>
                             </div>
 
                             {/* Google match status */}
-                            <div className='ca-detail-stat' style={{ borderTop: `3px solid ${hasPlaceId ? 'rgba(31,108,68,0.3)' : 'rgba(200,140,20,0.3)'}` }}>
-                                <div
-                                    style={{
-                                        width: '2.2rem',
-                                        height: '2.2rem',
-                                        borderRadius: '0.65rem',
-                                        background: hasPlaceId ? 'rgba(31,108,68,0.1)' : 'rgba(200,140,20,0.1)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: hasPlaceId ? '#1f6c44' : '#92620a',
-                                        marginBottom: '0.4rem',
-                                    }}
-                                >
-                                    <Globe size={16} strokeWidth={2} />
+                            <div className='ca-stat-card' style={{ borderBottom: `4px solid ${hasPlaceId ? 'rgba(31,108,68,0.45)' : 'rgba(200,140,20,0.45)'}` }}>
+                                <div className={`ca-stat-icon ${hasPlaceId ? 'ca-stat-icon--green' : 'ca-stat-icon--amber'}`}>
+                                    <Globe size={22} strokeWidth={2.5} />
                                 </div>
-                                <p className='ca-detail-stat-label'>Google profile</p>
-                                <p
-                                    className='ca-detail-stat-value'
-                                    style={{ fontSize: '0.95rem', color: hasPlaceId ? '#1f6c44' : '#92620a' }}
-                                >
-                                    {hasPlaceId ? 'Confirmed' : 'Pending'}
-                                </p>
+                                <div style={{ flex: 1 }}>
+                                    <p className='ca-stat-value' style={{ fontSize: '1.25rem', color: hasPlaceId ? '#1f6c44' : '#92620a' }}>
+                                        {hasPlaceId ? 'Confirmed' : 'Pending'}
+                                    </p>
+                                    <p className='ca-stat-label'>Google profile</p>
+                                </div>
                             </div>
                         </div>
 
@@ -375,7 +360,20 @@ function HotelApplicationDetailsPage() {
                                             <Globe size={12} strokeWidth={2.5} style={{ color: '#5868d8' }} />
                                             <span className='ca-contact-label'>Website</span>
                                         </div>
-                                        <div className='ca-contact-value'>{hotel?.businessInfo?.contact?.website || '—'}</div>
+                                        <div className='ca-contact-value' style={{ marginTop: '0.4rem' }}>
+                                            {hotel?.businessInfo?.contact?.website ? (
+                                                <a 
+                                                    href={hotel.businessInfo.contact.website.startsWith('http') ? hotel.businessInfo.contact.website : `https://${hotel.businessInfo.contact.website}`} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="ca-btn-secondary"
+                                                    style={{ display: 'inline-flex', padding: '0 0.8rem', height: '2.1rem', fontSize: '0.75rem', gap: '0.3rem', width: 'fit-content', textDecoration: 'none' }}
+                                                >
+                                                    Visit Website
+                                                    <ChevronRight size={12} strokeWidth={2.5} style={{ opacity: 0.6 }} />
+                                                </a>
+                                            ) : '—'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
