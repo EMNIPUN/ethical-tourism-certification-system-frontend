@@ -62,48 +62,57 @@ function ConfirmHotelMatchPage() {
 
     return (
         <>
-            {/* Hero header */}
-            <header className='ca-hero ca-animate-up'>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.25rem' }}>
-                    <div>
+            {/* ── Premium Hero Header ─────────────────────────────────────────── */}
+            <header className='ca-animate-up' style={{ 
+                position: 'relative', 
+                overflow: 'hidden', 
+                padding: '3rem 3.5rem', 
+                borderRadius: '1.5rem', 
+                background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)', 
+                color: '#fff', 
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+                marginBottom: '1rem'
+            }}>
+                {/* Background glowing effects */}
+                <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(88,104,216,0.12) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '80%', height: '150%', background: 'radial-gradient(circle, rgba(45,212,191,0.08) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                
+                {/* Abstract grid overlay */}
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none' }} />
+
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '2rem' }}>
+                    <div style={{ maxWidth: '650px' }}>
                         {/* Breadcrumb */}
-                        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.65rem' }}>
-                            <Link
-                                to='/certificate-application'
-                                style={{ fontSize: '0.78rem', fontWeight: 700, color: '#7b88a6', textDecoration: 'none' }}
-                            >
-                                Applications
-                            </Link>
-                            <ChevronRight size={12} strokeWidth={2.5} style={{ color: '#8c98af' }} />
-                            <Link
-                                to={`/certificate-application/${id}`}
-                                style={{ fontSize: '0.78rem', fontWeight: 700, color: '#7b88a6', textDecoration: 'none' }}
-                            >
-                                Details
-                            </Link>
-                            <ChevronRight size={12} strokeWidth={2.5} style={{ color: '#8c98af' }} />
-                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1a2345' }}>Confirm match</span>
+                        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                            <Link to='/certificate-application' style={{ fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', textDecoration: 'none' }}>Applications</Link>
+                            <ChevronRight size={12} strokeWidth={3} style={{ color: '#475569' }} />
+                            <Link to={`/certificate-application/${id}`} style={{ fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', textDecoration: 'none' }}>Details</Link>
+                            <ChevronRight size={12} strokeWidth={3} style={{ color: '#475569' }} />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc' }}>Confirm match</span>
                         </nav>
 
-                        <span className='ca-hero-eyebrow'>
-                            <MapPin size={11} strokeWidth={3} />
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '999px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1.25rem' }}>
+                            <MapPin size={13} strokeWidth={2.5} style={{ color: '#818cf8' }} />
                             Step 2 — Google Profile Match
-                        </span>
-                        <h1 className='ca-hero-title' style={{ fontSize: 'clamp(1.4rem,2.8vw,2rem)' }}>
+                        </div>
+                        <h1 style={{ fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 1rem 0', color: '#f8fafc' }}>
                             Confirm Google Business profile
                         </h1>
-                        <p className='ca-hero-desc'>
+                        <p style={{ fontSize: '1.05rem', lineHeight: 1.6, color: '#94a3b8', margin: 0, fontWeight: 400 }}>
                             Select the correct listing to enable accurate review-based scoring for your certification.
                         </p>
                     </div>
 
-                    <Link
-                        to={`/certificate-application/${id}`}
-                        className='ca-btn-secondary'
-                    >
-                        <ArrowLeft size={14} strokeWidth={2.5} />
-                        Back to details
-                    </Link>
+                    <div style={{ flexShrink: 0 }}>
+                        <Link
+                            to={`/certificate-application/${id}`}
+                            className='ca-btn-secondary'
+                            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.85rem' }}
+                        >
+                            <ArrowLeft size={16} strokeWidth={2.5} />
+                            Back to details
+                        </Link>
+                    </div>
                 </div>
             </header>
 
@@ -123,9 +132,9 @@ function ConfirmHotelMatchPage() {
                 onRetry={loadHotel}
                 retryLabel='Reload'
             >
-                <div className='ca-section-card ca-animate-up-1'>
+                <div className='ca-section-card ca-animate-up-1' style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
                     <div className='ca-section-header'>
-                        <div className='ca-section-icon'>
+                        <div className='ca-section-icon' style={{ background: 'rgba(88,104,216,0.1)', color: '#5868d8' }}>
                             <Building2 size={18} strokeWidth={2} />
                         </div>
                         <div>
@@ -166,7 +175,7 @@ function ConfirmHotelMatchPage() {
 
             {/* Evaluation result card */}
             {confirmResult?.evaluation ? (
-                <div className='ca-section-card ca-animate-scale'>
+                <div className='ca-section-card ca-animate-scale' style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
                     <div className='ca-section-header'>
                         <div className='ca-section-icon' style={{ background: 'rgba(31,108,68,0.1)', color: '#1f6c44' }}>
                             <BarChart2 size={18} strokeWidth={2} />
@@ -181,17 +190,17 @@ function ConfirmHotelMatchPage() {
                                 border: '1px solid rgba(31,108,68,0.22)',
                                 color: '#1f6c44',
                                 borderRadius: '999px',
-                                padding: '0.25rem 0.8rem',
+                                padding: '0.35rem 0.85rem',
                                 fontSize: '0.7rem',
                                 fontWeight: 800,
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.09em',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.35rem',
+                                gap: '0.4rem',
                             }}
                         >
-                            <CheckCircle2 size={12} strokeWidth={2.5} />
+                            <CheckCircle2 size={13} strokeWidth={2.5} />
                             Evaluated
                         </span>
                     </div>
@@ -238,6 +247,7 @@ function ConfirmHotelMatchPage() {
                     onClick={handleConfirm}
                     disabled={isLoading}
                     className='ca-btn-primary'
+                    style={{ background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', boxShadow: '0 4px 15px -4px rgba(88,104,216,0.4)', border: 'none', color: '#fff', padding: '0 1.5rem', height: '2.8rem', borderRadius: '0.85rem' }}
                 >
                     {isLoading ? (
                         <>
@@ -256,8 +266,8 @@ function ConfirmHotelMatchPage() {
                         </>
                     ) : (
                         <>
-                            Confirm match &amp; evaluate
-                            <ArrowRight size={15} strokeWidth={2.5} />
+                            Confirm match & evaluate
+                            <ArrowRight size={16} strokeWidth={2.5} />
                         </>
                     )}
                 </button>

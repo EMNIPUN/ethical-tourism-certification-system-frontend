@@ -100,16 +100,16 @@ function HotelApplicationDetailsPage() {
                     position: 'relative', 
                     zIndex: 1, 
                     marginTop: thumbnail ? '-6.5rem' : '-4rem',
-                    marginBottom: '0.5rem',
+                    marginBottom: '1rem',
                 }}>
                     <div style={{ 
-                        background: 'rgba(255,255,255,0.85)', 
-                        backdropFilter: 'blur(20px) saturate(180%)', 
-                        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                        borderRadius: '1.4rem', 
-                        padding: '1.8rem 2rem', 
-                        boxShadow: '0 12px 32px -12px rgba(30,42,80,0.15), 0 0 0 1px rgba(255,255,255,0.7) inset',
-                        border: '1px solid rgba(207,216,230,0.65)',
+                        background: 'rgba(255,255,255,0.88)', 
+                        backdropFilter: 'blur(24px) saturate(200%)', 
+                        WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                        borderRadius: '1.5rem', 
+                        padding: '2rem 2.25rem', 
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.8) inset',
+                        border: '1px solid rgba(207,216,230,0.5)',
                         display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' 
                     }}>
                         <div>
@@ -245,9 +245,9 @@ function HotelApplicationDetailsPage() {
                         </div>
 
                         {/* Workflow card */}
-                        <div className='ca-section-card'>
+                        <div className='ca-section-card' style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
                             <div className='ca-section-header'>
-                                <div className='ca-section-icon'>
+                                <div className='ca-section-icon' style={{ background: 'rgba(88,104,216,0.1)', color: '#5868d8' }}>
                                     <CheckCircle2 size={18} strokeWidth={2} />
                                 </div>
                                 <div>
@@ -323,9 +323,9 @@ function HotelApplicationDetailsPage() {
                         </div>
 
                         {/* Contact section */}
-                        <div className='ca-section-card'>
+                        <div className='ca-section-card' style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
                             <div className='ca-section-header'>
-                                <div className='ca-section-icon'>
+                                <div className='ca-section-icon' style={{ background: 'rgba(56,189,248,0.1)', color: '#0369a1' }}>
                                     <Building2 size={18} strokeWidth={2} />
                                 </div>
                                 <div>
@@ -380,14 +380,16 @@ function HotelApplicationDetailsPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className='ca-empty ca-animate-scale'>
-                        <div className='ca-empty-icon'>
-                            <Building2 size={28} strokeWidth={1.5} />
+                    <div className='ca-empty ca-animate-scale' style={{ padding: '4rem 2rem', background: '#ffffff', borderRadius: '1.5rem', border: '1px dashed rgba(203,213,225,0.8)', textAlign: 'center', margin: '2rem 1.5rem' }}>
+                        <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.05) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', color: '#5868d8' }}>
+                            <Building2 size={32} strokeWidth={2} />
                         </div>
-                        <p className='ca-empty-title'>Application not found</p>
-                        <p className='ca-empty-desc'>This application may have been deleted or the link is invalid.</p>
-                        <Link to='/certificate-application' className='ca-btn-primary' style={{ marginTop: '0.75rem' }}>
-                            <ArrowLeft size={15} strokeWidth={2.5} />
+                        <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>Application not found</h2>
+                        <p style={{ margin: '0 auto 1.5rem auto', fontSize: '0.95rem', color: '#64748b', maxWidth: '350px', lineHeight: 1.6 }}>
+                            This application may have been deleted or the link is invalid. Check your URL.
+                        </p>
+                        <Link to='/certificate-application' className='ca-btn-primary' style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.8rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 15px -4px rgba(88,104,216,0.4)' }}>
+                            <ArrowLeft size={16} strokeWidth={2.5} />
                             Back to applications
                         </Link>
                     </div>

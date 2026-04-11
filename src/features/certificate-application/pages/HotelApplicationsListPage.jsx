@@ -46,13 +46,13 @@ const TYPE_OPTIONS = ['Hotel', 'Resort', 'Lodge', 'Guesthouse']
 const CERT_OPTIONS = ['None', 'Bronze', 'Silver', 'Gold', 'Platinum']
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-function certBadgeClass(level) {
+function getCertColors(level) {
     switch ((level || '').toLowerCase()) {
-        case 'bronze':   return 'ca-cert-badge ca-cert-badge--bronze'
-        case 'silver':   return 'ca-cert-badge ca-cert-badge--silver'
-        case 'gold':     return 'ca-cert-badge ca-cert-badge--gold'
-        case 'platinum': return 'ca-cert-badge ca-cert-badge--platinum'
-        default:         return 'ca-cert-badge ca-cert-badge--none'
+        case 'bronze':   return { color: '#92400e', bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: 'rgba(217,119,6,0.3)' }
+        case 'silver':   return { color: '#334155', bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', border: 'rgba(148,163,184,0.3)' }
+        case 'gold':     return { color: '#b45309', bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: 'rgba(245,158,11,0.5)' }
+        case 'platinum': return { color: '#0f172a', bg: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', border: 'rgba(100,116,139,0.5)' }
+        default:         return { color: '#64748b', bg: '#f8fafc', border: 'rgba(203,213,225,0.8)' }
     }
 }
 
@@ -65,59 +65,100 @@ function HotelCard({ hotel, index }) {
     const dataScore   = hotel?.scoring?.dataCompletionScore
     const hasMatch    = Boolean(hotel?.googleMapsData?.placeId)
     const thumbnail   = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 600)
+    
+    const badgeColors = getCertColors(certLevel)
 
     return (
         <Link
             to={`/certificate-application/${hotel?._id}`}
-            className='ca-hotel-card ca-animate-up'
-            style={{ animationDelay: `${index * 45}ms`, padding: 0, overflow: 'hidden' }}
+            className='ca-animate-up'
+            style={{
+                display: 'block', textDecoration: 'none', color: 'inherit',
+                animationDelay: `${index * 40}ms`,
+                background: '#ffffff',
+                borderRadius: '1.25rem',
+                border: '1px solid rgba(226,232,240,0.8)',
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 20px 40px -15px rgba(88,104,216,0.15)';
+                e.currentTarget.style.borderColor = 'rgba(88,104,216,0.3)';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 4px 20px -10px rgba(15,23,42,0.05)';
+                e.currentTarget.style.borderColor = 'rgba(226,232,240,0.8)';
+            }}
         >
             {/* Cover image */}
             <div style={{
-                height: '9rem',
+                height: '11rem',
                 background: thumbnail
                     ? `url('${thumbnail}') center/cover no-repeat`
-                    : 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.04) 100%)',
+                    : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-                {!thumbnail && <Building2 size={32} strokeWidth={1.2} style={{ color: 'rgba(88,104,216,0.3)' }} />}
-                <span
-                    className={certBadgeClass(certLevel)}
-                    style={{ position: 'absolute', top: '0.65rem', right: '0.65rem', backdropFilter: 'blur(6px)', background: 'rgba(255,255,255,0.88)' }}
-                >
-                    <Award size={11} />{certLevel}
+                {thumbnail && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%)' }} />}
+                {!thumbnail && <Building2 size={36} strokeWidth={1} style={{ color: '#94a3b8' }} />}
+                
+                <span style={{ 
+                    position: 'absolute', top: '1rem', right: '1rem', 
+                    background: badgeColors.bg, color: badgeColors.color, border: `1px solid ${badgeColors.border}`,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)', padding: '0.4rem 0.85rem', 
+                    borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                    fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em'
+                }}>
+                    <Award size={14} style={{ opacity: certLevel === 'None' ? 0.6 : 1 }} strokeWidth={2.5} />
+                    {certLevel}
                 </span>
             </div>
 
             {/* Card body */}
-            <div style={{ padding: '1.1rem 1.25rem 1.25rem' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', minWidth: 0 }}>
+            <div style={{ padding: '1.25rem 1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', minWidth: 0, marginBottom: '0.85rem' }}>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                        <p className='ca-hotel-name' style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</p>
-                        <p className='ca-hotel-type'>{type}</p>
+                        <h3 style={{ margin: '0 0 0.2rem 0', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.02em' }}>
+                            {name}
+                        </h3>
+                        <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {type}
+                        </p>
                     </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'rgba(207,216,230,0.55)', margin: '0.85rem 0' }} />
-
-                <div className='ca-hotel-meta'>
-                    {typeof googleScore === 'number' ? (
-                        <span className='ca-meta-chip'><Star size={11} strokeWidth={2.5} />{googleScore.toFixed(1)} Google</span>
-                    ) : null}
-                    {typeof dataScore === 'number' ? (
-                        <span className='ca-meta-chip'><TrendingUp size={11} strokeWidth={2.5} />{Math.round(dataScore)}% complete</span>
-                    ) : null}
-                    {hasMatch ? (
-                        <span className='ca-meta-chip' style={{ color: '#1f6c44', borderColor: 'rgba(31,108,68,0.25)', background: 'rgba(31,108,68,0.07)' }}>
-                            <Globe size={11} strokeWidth={2.5} />Match confirmed
-                        </span>
-                    ) : (
-                        <span className='ca-meta-chip' style={{ color: '#92620a', borderColor: 'rgba(180,120,20,0.25)', background: 'rgba(180,120,20,0.07)' }}>
-                            Match pending
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                    {typeof googleScore === 'number' && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: '#b45309', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem' }}>
+                            <Star size={12} strokeWidth={2.5} fill="currentColor" />{googleScore.toFixed(1)}
                         </span>
                     )}
-                    <span className='ca-hotel-cta'>View <ArrowRight size={14} strokeWidth={2.5} /></span>
+                    {typeof dataScore === 'number' && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: '#0369a1', background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem' }}>
+                            <TrendingUp size={12} strokeWidth={2.5} />{Math.round(dataScore)}% set up
+                        </span>
+                    )}
+                    {hasMatch ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: '#047857', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem' }}>
+                            <Globe size={12} strokeWidth={2.5} />Matched
+                        </span>
+                    ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: '#475569', background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.2)', padding: '0.25rem 0.6rem', borderRadius: '0.4rem' }}>
+                            <Globe size={12} strokeWidth={2.5} />Unmatched
+                        </span>
+                    )}
+                </div>
+
+                <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(226,232,240,0.5) 0%, rgba(226,232,240,1) 50%, rgba(226,232,240,0.5) 100%)', margin: '0 0 1rem 0' }} />
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#5868d8', fontSize: '0.85rem', fontWeight: 700, transition: 'gap 0.2s' }}
+                     onMouseEnter={e => e.currentTarget.style.gap = '0.75rem'}
+                     onMouseLeave={e => e.currentTarget.style.gap = '0.5rem'}
+                >
+                    View application details <ArrowRight size={14} strokeWidth={3} />
                 </div>
             </div>
         </Link>
@@ -127,21 +168,20 @@ function HotelCard({ hotel, index }) {
 /* ── Skeleton card ───────────────────────────────────────────────── */
 function SkeletonCard() {
     return (
-        <div style={{ borderRadius: '1.4rem', border: '1px solid rgba(207,216,230,0.8)', background: 'rgba(255,255,255,0.96)', overflow: 'hidden' }}>
-            <div className='ca-skeleton' style={{ height: '9rem', borderRadius: 0 }} />
-            <div style={{ padding: '1.1rem 1.25rem 1.25rem', display: 'grid', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                    <div style={{ flex: 1, display: 'grid', gap: '0.45rem' }}>
-                        <div className='ca-skeleton' style={{ height: '0.9rem', width: '60%', borderRadius: '0.4rem' }} />
-                        <div className='ca-skeleton' style={{ height: '0.7rem', width: '35%', borderRadius: '0.4rem' }} />
-                    </div>
+        <div style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', overflow: 'hidden' }}>
+            <div className='ca-skeleton' style={{ height: '11rem', borderRadius: 0 }} />
+            <div style={{ padding: '1.25rem 1.5rem', display: 'grid', gap: '0.85rem' }}>
+                <div style={{ flex: 1, display: 'grid', gap: '0.5rem' }}>
+                    <div className='ca-skeleton' style={{ height: '1rem', width: '60%', borderRadius: '0.4rem' }} />
+                    <div className='ca-skeleton' style={{ height: '0.8rem', width: '35%', borderRadius: '0.4rem' }} />
                 </div>
-                <div className='ca-skeleton' style={{ height: '1px', borderRadius: '999px' }} />
-                <div style={{ display: 'flex', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.4rem' }}>
                     {[55, 75, 70].map((w, i) => (
-                        <div key={i} className='ca-skeleton' style={{ height: '1.6rem', width: `${w}px`, borderRadius: '0.6rem' }} />
+                        <div key={i} className='ca-skeleton' style={{ height: '1.8rem', width: `${w}px`, borderRadius: '0.4rem' }} />
                     ))}
                 </div>
+                <div className='ca-skeleton' style={{ height: '1px', borderRadius: '999px', margin: '0.2rem 0' }} />
+                <div className='ca-skeleton' style={{ height: '1rem', width: '40%', margin: '0 auto', borderRadius: '0.4rem' }} />
             </div>
         </div>
     )
@@ -292,21 +332,54 @@ function HotelApplicationsListPage() {
     return (
         <>
             {/* ── Hero ─────────────────────────────────────────── */}
-            <header className='ca-hero ca-animate-up'>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' }}>
-                    <div>
-                        <span className='ca-hero-eyebrow'><Award size={11} strokeWidth={3} />Certificate Applications</span>
-                        <h1 className='ca-hero-title'>Hotel Applications</h1>
-                        <p className='ca-hero-desc'>Create applications, confirm Google profile matches, and track your certification progress.</p>
+            <header className='ca-animate-up' style={{ 
+                position: 'relative', 
+                overflow: 'hidden', 
+                padding: '3.5rem 4rem', 
+                borderRadius: '1.5rem', 
+                background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)', 
+                color: '#fff', 
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+                marginBottom: '2.5rem'
+            }}>
+                {/* Background glowing effects */}
+                <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(88,104,216,0.15) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '80%', height: '150%', background: 'radial-gradient(circle, rgba(45,212,191,0.08) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                
+                {/* Abstract grid overlay */}
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none' }} />
+
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '2.5rem' }}>
+                    <div style={{ maxWidth: '650px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '999px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1.25rem' }}>
+                            <Award size={13} strokeWidth={2.5} style={{ color: '#818cf8' }} />
+                            Certificate Applications
+                        </div>
+                        <h1 style={{ fontSize: '3.2rem', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 1.25rem 0', color: '#f8fafc' }}>
+                            Hotel Applications
+                        </h1>
+                        <p style={{ fontSize: '1.1rem', lineHeight: 1.6, color: '#94a3b8', margin: 0, fontWeight: 400 }}>
+                            Create new applications, confirm Google profile matches, and track your certification progress globally across your entire portfolio.
+                        </p>
                     </div>
-                    <Link to='/certificate-application/new' className='ca-btn-primary'>
-                        <Plus size={16} strokeWidth={2.5} />New application
-                    </Link>
+                    
+                    <div style={{ flexShrink: 0 }}>
+                        <Link to='/certificate-application/new' 
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '1.1rem 1.85rem', borderRadius: '1rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxShadow: '0 10px 25px -5px rgba(88,104,216,0.5)', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid rgba(255,255,255,0.15)' }}
+                              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 18px 35px -8px rgba(88,104,216,0.7)'; }}
+                              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(88,104,216,0.5)'; }}
+                        >
+                            <Plus size={18} strokeWidth={2.5} />
+                            New application
+                        </Link>
+                    </div>
                 </div>
             </header>
 
-            {/* ── Toolbar ───────────────────────────────────────── */}
-            <div className='ca-animate-up-1' style={{ display: 'grid', gap: '0.75rem' }}>
+
+            <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+                {/* ── Toolbar ───────────────────────────────────────── */}
+                <div className='ca-animate-up-1' style={{ display: 'grid', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     {/* Search */}
                     <div style={{ flex: '1 1 220px', position: 'relative' }}>
@@ -375,7 +448,7 @@ function HotelApplicationsListPage() {
 
                 {/* Results count */}
                 {status !== 'loading' && count > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
                         <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: '#7b88a6' }}>
                             Showing <strong style={{ color: '#1a2345' }}>{start}–{end}</strong> of <strong style={{ color: '#1a2345' }}>{count}</strong> application{count !== 1 ? 's' : ''}
                         </p>
@@ -400,22 +473,24 @@ function HotelApplicationsListPage() {
                             {hotels.map((hotel, i) => <HotelCard key={hotel._id} hotel={hotel} index={i} />)}
                         </div>
                     ) : (
-                        <div className='ca-empty ca-animate-scale'>
-                            <div className='ca-empty-icon'>
-                                {hasActiveFilters ? <Search size={28} strokeWidth={1.5} /> : <Building2 size={28} strokeWidth={1.5} />}
+                        <div className='ca-empty ca-animate-scale' style={{ padding: '4rem 2rem', background: '#ffffff', borderRadius: '1.5rem', border: '1px dashed rgba(203,213,225,0.8)', textAlign: 'center' }}>
+                            <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.05) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', color: '#5868d8' }}>
+                                {hasActiveFilters ? <Search size={32} strokeWidth={2} /> : <Building2 size={32} strokeWidth={2} />}
                             </div>
-                            <p className='ca-empty-title'>{hasActiveFilters ? 'No results match your filters' : 'No applications yet'}</p>
-                            <p className='ca-empty-desc'>
+                            <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                                {hasActiveFilters ? 'No results match your filters' : 'No applications yet'}
+                            </h2>
+                            <p style={{ margin: '0 auto 1.5rem auto', fontSize: '0.95rem', color: '#64748b', maxWidth: '350px', lineHeight: 1.6 }}>
                                 {hasActiveFilters
-                                    ? 'Try adjusting your search or clearing the active filters.'
-                                    : 'Start by creating your first hotel application to begin the certification process.'}
+                                    ? 'Try adjusting your search query or clearing the active filters to see more results.'
+                                    : 'Start by creating your first hotel application to begin the ethical tourism certification process.'}
                             </p>
                             {hasActiveFilters ? (
-                                <button onClick={clearAllFilters} className='ca-btn-secondary' style={{ marginTop: '0.75rem' }}>
-                                    <X size={14} strokeWidth={2.5} />Clear filters
+                                <button onClick={clearAllFilters} className='ca-btn-secondary' style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.8rem', fontWeight: 700 }}>
+                                    <X size={16} strokeWidth={2.5} />Clear all filters
                                 </button>
                             ) : (
-                                <Link to='/certificate-application/new' className='ca-btn-primary' style={{ marginTop: '0.75rem' }}>
+                                <Link to='/certificate-application/new' className='ca-btn-primary' style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.8rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 15px -4px rgba(88,104,216,0.4)' }}>
                                     <Plus size={16} strokeWidth={2.5} />Create first application
                                 </Link>
                             )}
@@ -442,6 +517,7 @@ function HotelApplicationsListPage() {
                     </div>
                 </div>
             ) : null}
+            </div>
         </>
     )
 }
