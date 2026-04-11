@@ -29,13 +29,19 @@ npm install
 Create or update `.env`:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_API_BASE_URL=https://ethical-tourism-certification-syste.vercel.app/api/v1
 ```
 
 Notes:
 - `src/shared/api/apiClient.js` reads `VITE_API_BASE_URL`.
 - If `VITE_API_BASE_URL` is missing, it falls back to `http://localhost:5000/api/v1`.
 - `BACKEND_URL` in `.env` is currently not used by the frontend code.
+
+Vercel frontend deployment note:
+- In your frontend Vercel project settings, add an Environment Variable:
+	- Key: `VITE_API_BASE_URL`
+	- Value: `https://ethical-tourism-certification-syste.vercel.app/api/v1`
+	- Environments: `Production`, `Preview`, and optionally `Development`
 
 ### 3. Run development server
 
