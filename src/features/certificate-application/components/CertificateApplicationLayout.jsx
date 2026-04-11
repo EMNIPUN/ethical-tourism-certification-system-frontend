@@ -24,11 +24,9 @@ function CertificateApplicationLayout() {
             <header className='ca-topnav'>
                 <div className='ca-topnav-inner'>
                     {/* Logo */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                        <div className='ca-logo-mark'>ET</div>
+                    <div className='inline-flex items-center gap-2' style={{ flexShrink: 0 }}>
                         <div>
-                            <p className='ca-logo-text-main'>Ethical Tourism</p>
-                            <p className='ca-logo-text-sub'>Certification Portal</p>
+                            <p className='text-[30px] font-semibold leading-none tracking-tight text-[#333]'>Certiguard</p>
                         </div>
                     </div>
 
