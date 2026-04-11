@@ -1,0 +1,19 @@
+export const selectSearchState = (state) => state.search
+export const selectSearchQuery = (state) => state.search.query
+export const selectSearchActiveTab = (state) => state.search.activeTab
+export const selectSearchContacts = (state) => state.search.contacts
+export const selectSearchContactsStatus = (state) => state.search.contactsStatus
+export const selectSearchContactsError = (state) => state.search.contactsError
+export const selectSearchSelectedHotelId = (state) => state.search.selectedHotelId
+export const selectSearchSelectedHotel = (state) => state.search.selectedHotel
+export const selectSearchSelectedHotelStatus = (state) => state.search.selectedHotelStatus
+export const selectSearchSelectedHotelError = (state) => state.search.selectedHotelError
+export const selectSearchSelectedFeedback = (state) => state.search.selectedFeedback
+export const selectSearchFeedbackStatus = (state) => state.search.feedbackStatus
+export const selectSearchFeedbackError = (state) => state.search.feedbackError
+export const selectSearchFeedbackMutationStatus = (state) => state.search.feedbackMutationStatus
+export const selectSearchFeedbackMutationError = (state) => state.search.feedbackMutationError
+export const selectSearchRecommendations = (state) => state.search.recommendations
+export const selectSearchRecommendationsStatus = (state) => state.search.recommendationsStatus
+export const selectSearchRecommendationsError = (state) => state.search.recommendationsError
+
