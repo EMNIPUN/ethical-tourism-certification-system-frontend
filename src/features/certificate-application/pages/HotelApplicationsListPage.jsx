@@ -251,13 +251,8 @@ function HotelApplicationsListPage() {
         const cert  = overrides.cert     ?? certFilter
 
         const filters = {}
-        if (q) {
-            // Backend passes query params directly to Mongoose find().
-            // Use regex filter syntax it supports: businessInfo.name[$regex]=...
-            filters['businessInfo.name[$regex]'] = q
-            filters['businessInfo.name[$options]'] = 'i'
-        }
-        if (type) filters['businessInfo.businessType'] = type
+        if (q)    filters.search                        = q
+        if (type) filters['businessInfo.businessType']  = type
         if (cert) filters['scoring.certificationLevel'] = cert
 
         dispatch(fetchHotels({ page: p, limit: PAGE_SIZE, sort: s, filters }))
