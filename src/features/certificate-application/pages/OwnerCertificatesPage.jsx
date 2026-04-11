@@ -1,15 +1,20 @@
 import {
     Award,
     Calendar,
-    ChevronRight,
+    CheckCircle2,
     Clock,
+    Copy,
+    Download,
+    ExternalLink,
+    Eye,
     RefreshCw,
     Shield,
     ShieldCheck,
     Star,
     TrendingUp,
+    XCircle,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiRequest } from '../../../shared/api/apiClient'
 import { getStoredToken } from '../../auth/services/authService'
@@ -34,216 +39,351 @@ function formatDate(value) {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-/* ── Status / Level styling ─────────────────────────────────────── */
-const STATUS_STYLES = {
-    ACTIVE:   { bg: 'rgba(16,185,129,0.1)',  color: '#047857', border: 'rgba(16,185,129,0.25)', label: 'Active' },
-    EXPIRED:  { bg: 'rgba(245,158,11,0.1)',   color: '#b45309', border: 'rgba(245,158,11,0.25)', label: 'Expired' },
-    REVOKED:  { bg: 'rgba(239,68,68,0.1)',    color: '#b91c1c', border: 'rgba(239,68,68,0.25)',  label: 'Revoked' },
-    INACTIVE: { bg: 'rgba(100,116,139,0.1)',  color: '#475569', border: 'rgba(100,116,139,0.25)',label: 'Inactive' },
+function formatDateFull(value) {
+    const d = toDate(value)
+    if (!d) return '—'
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-const LEVEL_STYLES = {
-    PLATINUM: { bg: 'linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)', color: '#0e7490', border: 'rgba(14,116,144,0.25)' },
-    GOLD:     { bg: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', color: '#b45309', border: 'rgba(245,158,11,0.35)' },
-    SILVER:   { bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', color: '#475569', border: 'rgba(100,116,139,0.3)' },
+/* ── Badge components ───────────────────────────────────────────── */
+const STATUS_META = {
+    ACTIVE:   { bg: 'rgba(16,185,129,0.12)', color: '#047857', border: 'rgba(16,185,129,0.3)', label: 'Active',   dot: '#10b981' },
+    EXPIRED:  { bg: 'rgba(245,158,11,0.12)', color: '#b45309', border: 'rgba(245,158,11,0.3)', label: 'Expired',  dot: '#f59e0b' },
+    REVOKED:  { bg: 'rgba(239,68,68,0.12)',  color: '#b91c1c', border: 'rgba(239,68,68,0.3)',  label: 'Revoked',  dot: '#ef4444' },
+    INACTIVE: { bg: 'rgba(100,116,139,0.12)',color: '#475569', border: 'rgba(100,116,139,0.3)',label: 'Inactive', dot: '#94a3b8' },
 }
 
-function getStatusStyle(status) {
-    return STATUS_STYLES[String(status || '').toUpperCase()] || STATUS_STYLES.INACTIVE
+const LEVEL_COLORS = {
+    PLATINUM: { primary: '#0e7490', secondary: '#06b6d4', bg: 'linear-gradient(135deg, #164e63 0%, #0e7490 50%, #06b6d4 100%)' },
+    GOLD:     { primary: '#b45309', secondary: '#f59e0b', bg: 'linear-gradient(135deg, #92400e 0%, #b45309 50%, #f59e0b 100%)' },
+    SILVER:   { primary: '#475569', secondary: '#94a3b8', bg: 'linear-gradient(135deg, #334155 0%, #475569 50%, #94a3b8 100%)' },
 }
 
-function getLevelStyle(level) {
-    return LEVEL_STYLES[String(level || '').toUpperCase()] || { bg: '#f8fafc', color: '#64748b', border: 'rgba(203,213,225,0.8)' }
-}
+function getStatus(s) { return STATUS_META[String(s || '').toUpperCase()] || STATUS_META.INACTIVE }
+function getLevel(l) { return LEVEL_COLORS[String(l || '').toUpperCase()] || LEVEL_COLORS.SILVER }
 
-/* ── Certificate card ───────────────────────────────────────────── */
-function CertificateCard({ cert, index }) {
-    const status    = String(cert.status || '').toUpperCase()
-    const level     = String(cert.level || '').toUpperCase()
-    const sSt       = getStatusStyle(status)
-    const lSt       = getLevelStyle(level)
-    const hotelName = cert.hotelId?.businessInfo?.name || 'Unknown Hotel'
-    const daysLeft  = daysBetween(new Date(), cert.expiryDate)
+/* ── Trust Score Gauge ──────────────────────────────────────────── */
+function TrustGauge({ score, size = 90 }) {
+    const r = (size - 12) / 2
+    const c = 2 * Math.PI * r
+    const pct = Math.min(100, Math.max(0, score))
+    const offset = c - (pct / 100) * c
+    const gaugeColor = pct >= 75 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444'
 
     return (
-        <div
-            className='ca-animate-up'
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(226,232,240,0.6)" strokeWidth="6" />
+            <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={gaugeColor} strokeWidth="6"
+                strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+            />
+            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central"
+                style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontSize: '1.3rem', fontWeight: 800, fill: '#0f172a' }}>
+                {score}
+            </text>
+        </svg>
+    )
+}
+
+/* ── Expiry Progress Bar ────────────────────────────────────────── */
+function ExpiryBar({ issuedDate, expiryDate }) {
+    const issued = toDate(issuedDate)
+    const expiry = toDate(expiryDate)
+    const now = new Date()
+    if (!issued || !expiry) return null
+
+    const total = expiry.getTime() - issued.getTime()
+    const elapsed = now.getTime() - issued.getTime()
+    const pct = Math.min(100, Math.max(0, (elapsed / total) * 100))
+    const daysLeft = daysBetween(now, expiry)
+    const barColor = daysLeft !== null && daysLeft <= 45 ? '#f59e0b' : daysLeft !== null && daysLeft <= 0 ? '#ef4444' : '#10b981'
+
+    return (
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8' }}>Validity period</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: daysLeft <= 45 ? '#b45309' : '#475569' }}>
+                    {daysLeft !== null ? (daysLeft >= 0 ? `${daysLeft} days remaining` : `${Math.abs(daysLeft)} days overdue`) : '—'}
+                </span>
+            </div>
+            <div style={{ height: '6px', borderRadius: '999px', background: 'rgba(226,232,240,0.6)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: '999px', background: barColor, width: `${pct}%`, transition: 'width 1s ease-out' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem' }}>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{formatDate(issuedDate)}</span>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{formatDate(expiryDate)}</span>
+            </div>
+        </div>
+    )
+}
+
+/* ── Copy to clipboard helper ───────────────────────────────────── */
+function useCopyToClipboard() {
+    const [copied, setCopied] = useState(false)
+    const timerRef = useRef(null)
+
+    const copy = useCallback((text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopied(true)
+            clearTimeout(timerRef.current)
+            timerRef.current = setTimeout(() => setCopied(false), 2000)
+        }).catch(() => {})
+    }, [])
+
+    return { copied, copy }
+}
+
+/* ── Action Button ──────────────────────────────────────────────── */
+function ActionBtn({ icon: Icon, label, onClick, variant = 'default' }) {
+    const styles = {
+        default: { bg: '#fff', color: '#475569', border: 'rgba(226,232,240,0.9)', hoverBg: '#f8fafc' },
+        primary: { bg: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', border: 'rgba(88,104,216,0.4)', hoverBg: 'linear-gradient(135deg, #4a52c9 0%, #3f44b5 100%)' },
+        success: { bg: 'rgba(16,185,129,0.08)', color: '#047857', border: 'rgba(16,185,129,0.25)', hoverBg: 'rgba(16,185,129,0.15)' },
+    }
+    const s = styles[variant] || styles.default
+
+    return (
+        <button
+            onClick={onClick}
             style={{
-                animationDelay: `${index * 50}ms`,
-                background: '#ffffff',
-                borderRadius: '1.25rem',
-                border: '1px solid rgba(226,232,240,0.8)',
-                overflow: 'hidden',
-                boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'default',
+                display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                padding: '0.55rem 0.9rem', borderRadius: '0.65rem',
+                background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+                fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                whiteSpace: 'nowrap',
             }}
-            onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-6px)'
-                e.currentTarget.style.boxShadow = '0 20px 40px -15px rgba(88,104,216,0.15)'
-                e.currentTarget.style.borderColor = 'rgba(88,104,216,0.3)'
-            }}
-            onMouseLeave={e => {
-                e.currentTarget.style.transform = 'none'
-                e.currentTarget.style.boxShadow = '0 4px 20px -10px rgba(15,23,42,0.05)'
-                e.currentTarget.style.borderColor = 'rgba(226,232,240,0.8)'
-            }}
+            onMouseEnter={e => { e.currentTarget.style.background = s.hoverBg; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = s.bg; e.currentTarget.style.transform = 'none' }}
         >
-            {/* Header strip */}
+            <Icon size={14} strokeWidth={2.5} />{label}
+        </button>
+    )
+}
+
+/* ── Featured Certificate (expanded view) ───────────────────────── */
+function FeaturedCertificate({ cert, onCopy, copied }) {
+    const status = String(cert.status || '').toUpperCase()
+    const level = String(cert.level || '').toUpperCase()
+    const sSt = getStatus(status)
+    const lSt = getLevel(level)
+    const hotelName = cert.hotelId?.businessInfo?.name || 'Unknown Hotel'
+    const trustScore = cert.trustScore ?? 0
+    const thumbnail = cert.hotelId?.googleMapsData?.thumbnail || null
+
+    function handleDownload() {
+        // Build a simple downloadable certificate summary
+        const content = [
+            `ETHICAL TOURISM CERTIFICATION`,
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+            ``,
+            `Certificate Number: ${cert.certificateNumber}`,
+            `Hotel: ${hotelName}`,
+            `Level: ${level}`,
+            `Status: ${status}`,
+            `Trust Score: ${trustScore}`,
+            ``,
+            `Issued: ${formatDateFull(cert.issuedDate)}`,
+            `Expires: ${formatDateFull(cert.expiryDate)}`,
+            `Renewals: ${cert.renewalCount ?? 0}`,
+            ``,
+            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+            `This certificate confirms compliance with`,
+            `ethical tourism standards and practices.`,
+            ``,
+            `Verification: ${window.location.origin}/verify/${cert.certificateNumber}`,
+        ].join('\n')
+
+        const blob = new Blob([content], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `certificate-${cert.certificateNumber}.txt`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    return (
+        <div className='ca-animate-up-1' style={{
+            background: '#ffffff',
+            borderRadius: '1.5rem',
+            border: '1px solid rgba(226,232,240,0.8)',
+            overflow: 'hidden',
+            boxShadow: '0 8px 30px -12px rgba(15,23,42,0.1)',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+        }}>
+            {/* Header band with optional thumbnail background */}
             <div style={{
-                padding: '1.25rem 1.5rem',
-                background: lSt.bg,
-                borderBottom: `1px solid ${lSt.border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+                padding: '2rem 2.5rem',
+                background: thumbnail
+                    ? `url('${thumbnail}') center/cover no-repeat`
+                    : lSt.bg,
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: thumbnail ? '12rem' : 'auto',
+                display: 'flex',
+                alignItems: 'flex-end',
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                {/* Dark gradient mask for readability */}
+                {thumbnail && (
                     <div style={{
-                        width: '2.4rem', height: '2.4rem', borderRadius: '0.75rem',
-                        background: 'rgba(255,255,255,0.85)', border: `1px solid ${lSt.border}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    }}>
-                        <Award size={18} strokeWidth={2.5} style={{ color: lSt.color }} />
-                    </div>
+                        position: 'absolute', inset: 0,
+                        background: 'linear-gradient(180deg, rgba(15,23,42,0.35) 0%, rgba(15,23,42,0.65) 50%, rgba(15,23,42,0.92) 100%)',
+                        pointerEvents: 'none',
+                    }} />
+                )}
+                {/* Subtle grid pattern */}
+                <div style={{ position: 'absolute', inset: 0, opacity: thumbnail ? 0.04 : 0.08, backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '24px 24px', pointerEvents: 'none' }} />
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', width: '100%' }}>
                     <div>
-                        <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: lSt.color, opacity: 0.8 }}>
-                            {level || 'N/A'} Certificate
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.01em' }}>
-                            {cert.certificateNumber}
-                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div style={{ width: '3rem', height: '3rem', borderRadius: '0.85rem', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.25)' }}>
+                                <Award size={22} strokeWidth={2.5} style={{ color: '#fff' }} />
+                            </div>
+                            <div>
+                                <p style={{ margin: 0, fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.7)' }}>{level} Certification</p>
+                                <p style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', textShadow: thumbnail ? '0 1px 4px rgba(0,0,0,0.3)' : 'none' }}>{cert.certificateNumber}</p>
+                            </div>
+                        </div>
+                        <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', textShadow: thumbnail ? '0 2px 8px rgba(0,0,0,0.4)' : 'none' }}>{hotelName}</h2>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{
+                            padding: '0.4rem 1rem', borderRadius: '999px',
+                            background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(255,255,255,0.25)',
+                            color: '#fff', fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: sSt.dot, boxShadow: `0 0 6px ${sSt.dot}` }} />
+                            {sSt.label}
+                        </span>
                     </div>
                 </div>
-                <span style={{
-                    padding: '0.3rem 0.7rem', borderRadius: '999px',
-                    background: sSt.bg, color: sSt.color, border: `1px solid ${sSt.border}`,
-                    fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
-                }}>
-                    {sSt.label}
-                </span>
             </div>
 
             {/* Body */}
-            <div style={{ padding: '1.25rem 1.5rem' }}>
-                <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-                    {hotelName}
-                </h3>
+            <div style={{ padding: '2rem 2.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2rem', alignItems: 'start', marginBottom: '2rem' }}>
+                    {/* Trust gauge */}
+                    <div style={{ textAlign: 'center' }}>
+                        <TrustGauge score={trustScore} size={100} />
+                        <p style={{ margin: '0.5rem 0 0', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Trust Score</p>
+                    </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Star size={13} strokeWidth={2.5} style={{ color: '#f59e0b' }} />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>
-                            {cert.trustScore ?? '—'}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>Trust</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Calendar size={13} strokeWidth={2.5} style={{ color: '#6366f1' }} />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
-                            {formatDate(cert.issuedDate)}
-                        </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Clock size={13} strokeWidth={2.5} style={{ color: status === 'ACTIVE' && daysLeft !== null && daysLeft <= 45 ? '#f59e0b' : '#94a3b8' }} />
-                        <span style={{
-                            fontSize: '0.8rem', fontWeight: 600,
-                            color: status === 'ACTIVE' && daysLeft !== null && daysLeft <= 45 ? '#b45309' : '#475569',
-                        }}>
-                            {daysLeft !== null ? (daysLeft >= 0 ? `${daysLeft}d left` : `${Math.abs(daysLeft)}d overdue`) : '—'}
-                        </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <RefreshCw size={13} strokeWidth={2.5} style={{ color: '#94a3b8' }} />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
-                            {cert.renewalCount ?? 0} renewal{(cert.renewalCount ?? 0) !== 1 ? 's' : ''}
-                        </span>
+                    {/* Details grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.25rem' }}>
+                        <div>
+                            <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Issued</p>
+                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>{formatDate(cert.issuedDate)}</p>
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Expires</p>
+                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>{formatDate(cert.expiryDate)}</p>
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Renewals</p>
+                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>{cert.renewalCount ?? 0}</p>
+                        </div>
+                        <div>
+                            <p style={{ margin: 0, fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Level</p>
+                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.92rem', fontWeight: 800, color: lSt.primary }}>{level || 'N/A'}</p>
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(226,232,240,0.5) 0%, rgba(226,232,240,1) 50%, rgba(226,232,240,0.5) 100%)', margin: '0 0 1rem 0' }} />
+                {/* Expiry progress */}
+                <ExpiryBar issuedDate={cert.issuedDate} expiryDate={cert.expiryDate} />
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
-                        Expires {formatDate(cert.expiryDate)}
-                    </span>
-                    <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                        color: '#5868d8', fontSize: '0.82rem', fontWeight: 700,
-                    }}>
-                        Details <ChevronRight size={14} strokeWidth={2.5} />
-                    </span>
+                {/* Actions */}
+                <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(226,232,240,0.6)' }}>
+                    <ActionBtn icon={Download} label="Download" onClick={handleDownload} variant="primary" />
+                    <ActionBtn icon={copied ? CheckCircle2 : Copy} label={copied ? "Copied!" : "Copy ID"} onClick={() => onCopy(cert.certificateNumber)} variant={copied ? "success" : "default"} />
+                    <ActionBtn icon={ExternalLink} label="Share" onClick={() => onCopy(`${window.location.origin}/verify/${cert.certificateNumber}`)} />
+                    <ActionBtn icon={Eye} label="View Application" onClick={() => { if (cert.hotelId?._id) window.location.href = `/certificate-application/${cert.hotelId._id}` }} />
                 </div>
             </div>
         </div>
     )
 }
 
-/* ── Skeleton card ──────────────────────────────────────────────── */
-function SkeletonCard() {
-    return (
-        <div style={{ borderRadius: '1.25rem', border: '1px solid rgba(226,232,240,0.8)', background: '#ffffff', overflow: 'hidden' }}>
-            <div className='ca-skeleton' style={{ height: '5rem', borderRadius: 0 }} />
-            <div style={{ padding: '1.25rem 1.5rem', display: 'grid', gap: '0.65rem' }}>
-                <div className='ca-skeleton' style={{ height: '1.1rem', width: '65%', borderRadius: '0.4rem' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    <div className='ca-skeleton' style={{ height: '0.9rem', borderRadius: '0.4rem' }} />
-                    <div className='ca-skeleton' style={{ height: '0.9rem', borderRadius: '0.4rem' }} />
-                    <div className='ca-skeleton' style={{ height: '0.9rem', borderRadius: '0.4rem' }} />
-                    <div className='ca-skeleton' style={{ height: '0.9rem', borderRadius: '0.4rem' }} />
-                </div>
-                <div className='ca-skeleton' style={{ height: '1px', borderRadius: '999px', margin: '0.3rem 0' }} />
-                <div className='ca-skeleton' style={{ height: '0.9rem', width: '40%', borderRadius: '0.4rem' }} />
-            </div>
-        </div>
-    )
-}
+/* ── Table row for non-featured certificates ────────────────────── */
+function CertificateRow({ cert, index, isSelected, onSelect, onCopy }) {
+    const status = String(cert.status || '').toUpperCase()
+    const level = String(cert.level || '').toUpperCase()
+    const sSt = getStatus(status)
+    const lSt = getLevel(level)
+    const hotelName = cert.hotelId?.businessInfo?.name || 'Unknown Hotel'
+    const daysLeft = daysBetween(new Date(), cert.expiryDate)
 
-/* ── Stat card ──────────────────────────────────────────────────── */
-function StatCard({ icon: Icon, iconBg, iconColor, label, value, subtitle }) {
     return (
-        <div style={{
-            background: '#ffffff',
-            borderRadius: '1.25rem',
-            border: '1px solid rgba(226,232,240,0.8)',
-            padding: '1.5rem',
-            boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-        onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-4px)'
-            e.currentTarget.style.boxShadow = '0 16px 35px -12px rgba(15,23,42,0.12)'
-        }}
-        onMouseLeave={e => {
-            e.currentTarget.style.transform = 'none'
-            e.currentTarget.style.boxShadow = '0 4px 20px -10px rgba(15,23,42,0.05)'
-        }}
+        <tr
+            onClick={() => onSelect(cert)}
+            style={{
+                cursor: 'pointer',
+                background: isSelected ? 'rgba(88,104,216,0.06)' : index % 2 === 0 ? '#fff' : 'rgba(248,250,252,0.5)',
+                transition: 'all 0.15s ease',
+                borderLeft: isSelected ? '3px solid #5868d8' : '3px solid transparent',
+            }}
+            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'rgba(88,104,216,0.03)' }}
+            onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? 'rgba(88,104,216,0.06)' : index % 2 === 0 ? '#fff' : 'rgba(248,250,252,0.5)' }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{
-                    width: '2.8rem', height: '2.8rem', borderRadius: '0.85rem',
-                    background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            <td style={{ padding: '0.75rem 0.85rem' }}>
+                <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{hotelName}</p>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.68rem', color: '#94a3b8', fontFamily: 'monospace' }}>{cert.certificateNumber}</p>
+            </td>
+            <td style={{ padding: '0.75rem 0.85rem' }}>
+                <span style={{
+                    padding: '0.2rem 0.5rem', borderRadius: '999px',
+                    background: sSt.bg, color: sSt.color, border: `1px solid ${sSt.border}`,
+                    fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
                 }}>
-                    <Icon size={20} strokeWidth={2.5} style={{ color: iconColor }} />
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>
-                    {label}
-                </p>
-            </div>
-            <p style={{ margin: 0, fontSize: '2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.04em', lineHeight: 1 }}>
-                {value}
-            </p>
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500 }}>
-                {subtitle}
-            </p>
-        </div>
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: sSt.dot }} />
+                    {sSt.label}
+                </span>
+            </td>
+            <td style={{ padding: '0.75rem 0.85rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: lSt.primary }}>{level || 'N/A'}</span>
+            </td>
+            <td style={{ padding: '0.75rem 0.85rem' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>{cert.trustScore ?? '—'}</span>
+            </td>
+            <td style={{ padding: '0.75rem 0.85rem' }}>
+                <span style={{
+                    fontSize: '0.75rem', fontWeight: 700,
+                    color: status === 'ACTIVE' && daysLeft !== null && daysLeft <= 45 ? '#b45309' : daysLeft !== null && daysLeft < 0 ? '#b91c1c' : '#475569',
+                }}>
+                    {daysLeft !== null ? (daysLeft >= 0 ? `${daysLeft}d` : `−${Math.abs(daysLeft)}d`) : '—'}
+                </span>
+            </td>
+        </tr>
     )
+}
+
+/* ── Skeleton rows ──────────────────────────────────────────────── */
+function SkeletonRows() {
+    return Array.from({ length: 5 }).map((_, i) => (
+        <tr key={i}>
+            {Array.from({ length: 5 }).map((_, j) => (
+                <td key={j} style={{ padding: '0.75rem 0.85rem' }}>
+                    <div className='ca-skeleton' style={{ height: '0.85rem', width: j === 0 ? '80%' : j === 1 ? '55%' : '45%', borderRadius: '0.3rem' }} />
+                    {j === 0 && <div className='ca-skeleton' style={{ height: '0.6rem', width: '60%', borderRadius: '0.3rem', marginTop: '0.3rem' }} />}
+                </td>
+            ))}
+        </tr>
+    ))
 }
 
 /* ── Main page ──────────────────────────────────────────────────── */
 function OwnerCertificatesPage() {
     const [certificates, setCertificates] = useState([])
-    const [status, setStatus]   = useState('idle') // idle | loading | succeeded | failed
-    const [error, setError]     = useState(null)
+    const [status, setStatus] = useState('idle')
+    const [error, setError] = useState(null)
+    const [selected, setSelected] = useState(null)
+    const { copied, copy } = useCopyToClipboard()
 
     const fetchOwnerCertificates = useCallback(async () => {
         setStatus('loading')
@@ -252,7 +392,11 @@ function OwnerCertificatesPage() {
             const token = getStoredToken()
             if (!token) throw new Error('Authentication required')
             const data = await apiRequest('/certification/certificates', { method: 'GET', token })
-            setCertificates(Array.isArray(data?.data) ? data.data : [])
+            const list = Array.isArray(data?.data) ? data.data : []
+            setCertificates(list)
+            // Auto-select the first active cert, or just the first cert
+            const firstActive = list.find(c => c.status === 'ACTIVE')
+            setSelected(firstActive || list[0] || null)
             setStatus('succeeded')
         } catch (err) {
             setError(err?.message || 'Failed to load certificates')
@@ -288,120 +432,165 @@ function OwnerCertificatesPage() {
             <header className='ca-animate-up' style={{
                 position: 'relative',
                 overflow: 'hidden',
-                padding: '3.5rem 4rem',
+                padding: '3rem 3.5rem',
                 borderRadius: '1.5rem',
                 background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
                 color: '#fff',
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
-                marginBottom: '2.5rem',
+                marginBottom: '2rem',
             }}>
-                {/* Background glowing effects */}
-                <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(88,104,216,0.15) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '80%', height: '150%', background: 'radial-gradient(circle, rgba(45,212,191,0.08) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '80%', height: '150%', background: 'radial-gradient(circle, rgba(88,104,216,0.1) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '28px 28px', pointerEvents: 'none' }} />
 
-                {/* Abstract grid overlay */}
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none' }} />
-
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '2.5rem' }}>
-                    <div style={{ maxWidth: '650px' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '999px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1.25rem' }}>
-                            <Shield size={13} strokeWidth={2.5} style={{ color: '#818cf8' }} />
-                            My Certificates
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '2rem', marginBottom: '2rem' }}>
+                        <div>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', borderRadius: '999px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem' }}>
+                                <Shield size={12} strokeWidth={2.5} style={{ color: '#34d399' }} />
+                                Certification Dashboard
+                            </div>
+                            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 0.75rem 0', color: '#f8fafc' }}>
+                                My Certificates
+                            </h1>
+                            <p style={{ fontSize: '1rem', lineHeight: 1.6, color: '#94a3b8', margin: 0 }}>
+                                View, download, and share your ethical tourism certificates. Track trust scores and renewal dates.
+                            </p>
                         </div>
-                        <h1 style={{ fontSize: '3.2rem', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.1, margin: '0 0 1.25rem 0', color: '#f8fafc' }}>
-                            Certification Status
-                        </h1>
-                        <p style={{ fontSize: '1.1rem', lineHeight: 1.6, color: '#94a3b8', margin: 0, fontWeight: 400 }}>
-                            Track your issued ethical tourism certificates, monitor trust scores, and stay ahead of upcoming renewals.
-                        </p>
+                        <Link to='/certificate-application/new'
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.85rem 1.5rem', borderRadius: '0.85rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '0.88rem', fontWeight: 700, textDecoration: 'none', boxShadow: '0 8px 20px -5px rgba(16,185,129,0.5)', transition: 'all 0.2s', border: '1px solid rgba(255,255,255,0.15)' }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 28px -6px rgba(16,185,129,0.6)' }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 20px -5px rgba(16,185,129,0.5)' }}
+                        >
+                            <Award size={16} strokeWidth={2.5} /> New Application
+                        </Link>
                     </div>
 
-                    <div style={{ flexShrink: 0 }}>
-                        <Link to='/certificate-application/new'
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '1.1rem 1.85rem', borderRadius: '1rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontSize: '0.95rem', fontWeight: 700, textDecoration: 'none', boxShadow: '0 10px 25px -5px rgba(88,104,216,0.5)', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid rgba(255,255,255,0.15)' }}
-                              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 18px 35px -8px rgba(88,104,216,0.7)' }}
-                              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(88,104,216,0.5)' }}
-                        >
-                            <Award size={18} strokeWidth={2.5} />
-                            New Application
-                        </Link>
+                    {/* Inline stats */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
+                        {[
+                            { label: 'Total', value: metrics.total, icon: Award, color: '#818cf8' },
+                            { label: 'Active', value: metrics.active, icon: ShieldCheck, color: '#34d399' },
+                            { label: 'Avg Trust', value: metrics.avgTrust, icon: TrendingUp, color: '#fbbf24' },
+                            { label: 'Expiring', value: metrics.expiringSoon, icon: Clock, color: metrics.expiringSoon > 0 ? '#f87171' : '#94a3b8' },
+                        ].map(stat => (
+                            <div key={stat.label} style={{
+                                padding: '1rem 1.25rem', borderRadius: '1rem',
+                                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(8px)',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                    <stat.icon size={14} strokeWidth={2.5} style={{ color: stat.color }} />
+                                    <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{stat.label}</span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.03em' }}>{stat.value}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </header>
 
-            <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-                {/* ── Stat cards ──────────────────────────────────── */}
-                <div className='ca-animate-up-1' style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '2rem' }}>
-                    <StatCard
-                        icon={Award}
-                        iconBg='rgba(99,102,241,0.1)'
-                        iconColor='#6366f1'
-                        label='Total Certificates'
-                        value={metrics.total}
-                        subtitle={`${metrics.active} currently active`}
-                    />
-                    <StatCard
-                        icon={ShieldCheck}
-                        iconBg='rgba(16,185,129,0.1)'
-                        iconColor='#10b981'
-                        label='Active'
-                        value={metrics.active}
-                        subtitle={metrics.total ? `${Math.round((metrics.active / metrics.total) * 100)}% of all certificates` : 'No certificates yet'}
-                    />
-                    <StatCard
-                        icon={TrendingUp}
-                        iconBg='rgba(245,158,11,0.1)'
-                        iconColor='#f59e0b'
-                        label='Avg Trust Score'
-                        value={metrics.avgTrust}
-                        subtitle='Across active certificates'
-                    />
-                    <StatCard
-                        icon={Clock}
-                        iconBg={metrics.expiringSoon > 0 ? 'rgba(239,68,68,0.1)' : 'rgba(100,116,139,0.1)'}
-                        iconColor={metrics.expiringSoon > 0 ? '#ef4444' : '#64748b'}
-                        label='Expiring Soon'
-                        value={metrics.expiringSoon}
-                        subtitle={metrics.expiringSoon > 0 ? 'Within next 45 days' : 'No immediate pressure'}
-                    />
-                </div>
-
-                {/* ── Certificate grid ──────────────────────────── */}
-                {status === 'loading' ? (
-                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
-                        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
-                    </div>
-                ) : status === 'failed' ? (
-                    <div className='ca-animate-up-2' style={{ padding: '3rem 2rem', background: '#ffffff', borderRadius: '1.5rem', border: '1px solid rgba(239,68,68,0.2)', textAlign: 'center', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)' }}>
+            <div style={{ width: '100%', margin: '0 auto' }}>
+                {/* ── Error state ────────── */}
+                {status === 'failed' && (
+                    <div className='ca-animate-up-1' style={{ padding: '2.5rem 2rem', background: '#ffffff', borderRadius: '1.25rem', border: '1px solid rgba(239,68,68,0.2)', textAlign: 'center', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', marginBottom: '1.5rem' }}>
+                        <XCircle size={40} strokeWidth={1.5} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
                         <p style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 700, color: '#b91c1c' }}>{error}</p>
-                        <button
-                            onClick={fetchOwnerCertificates}
-                            className='ca-btn-primary'
-                            style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.8rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, boxShadow: '0 4px 15px -4px rgba(88,104,216,0.4)', border: 'none', cursor: 'pointer' }}
-                        >
-                            <RefreshCw size={16} strokeWidth={2.5} /> Retry
+                        <button onClick={fetchOwnerCertificates} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.2rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px -4px rgba(88,104,216,0.4)' }}>
+                            <RefreshCw size={15} strokeWidth={2.5} /> Retry
                         </button>
                     </div>
-                ) : certificates.length ? (
-                    <div className='ca-animate-up-2' style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))' }}>
-                        {certificates.map((cert, i) => (
-                            <CertificateCard key={cert._id || cert.certificateNumber} cert={cert} index={i} />
-                        ))}
-                    </div>
-                ) : (
-                    <div className='ca-animate-scale' style={{ padding: '4rem 2rem', background: '#ffffff', borderRadius: '1.5rem', border: '1px dashed rgba(203,213,225,0.8)', textAlign: 'center', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)' }}>
-                        <div style={{ width: '4.5rem', height: '4.5rem', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.05) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', color: '#5868d8' }}>
-                            <Award size={32} strokeWidth={2} />
+                )}
+
+                {/* ── Master-Detail Side-by-Side Layout ── */}
+                {status !== 'failed' && (
+                    <div className='ca-animate-up-1' style={{
+                        display: 'grid',
+                        gridTemplateColumns: certificates.length > 0 && selected ? '1fr 1fr' : '1fr',
+                        gap: '1.25rem',
+                        alignItems: 'stretch',
+                    }}>
+                        {/* LEFT: Certificate List Table */}
+                        <div style={{
+                            background: '#ffffff',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(226,232,240,0.8)',
+                            overflow: 'hidden',
+                            boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)',
+                        }}>
+                            {/* Table header */}
+                            <div style={{
+                                padding: '1rem 1.25rem',
+                                borderBottom: '1px solid rgba(226,232,240,0.6)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                                    <div style={{ width: '2rem', height: '2rem', borderRadius: '0.55rem', background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Star size={14} strokeWidth={2.5} style={{ color: '#6366f1' }} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>All Certificates</h3>
+                                        <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>Select a row to view details</p>
+                                    </div>
+                                </div>
+                                <span style={{ padding: '0.25rem 0.65rem', borderRadius: '999px', background: 'rgba(99,102,241,0.08)', color: '#6366f1', fontSize: '0.7rem', fontWeight: 700 }}>
+                                    {certificates.length} cert{certificates.length !== 1 ? 's' : ''}
+                                </span>
+                            </div>
+
+                            {/* Table */}
+                            <div style={{ overflowX: 'auto', maxHeight: '520px', overflowY: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                                    <thead style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+                                        <tr style={{ background: 'rgba(248,250,252,0.95)', borderBottom: '1px solid rgba(226,232,240,0.6)' }}>
+                                            {['Property', 'Status', 'Level', 'Trust', 'Days Left'].map(h => (
+                                                <th key={h} style={{ padding: '0.6rem 0.85rem', textAlign: 'left', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    {h}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {status === 'loading' ? (
+                                            <SkeletonRows />
+                                        ) : certificates.length > 0 ? (
+                                            certificates.map((cert, i) => (
+                                                <CertificateRow
+                                                    key={cert._id || cert.certificateNumber}
+                                                    cert={cert}
+                                                    index={i}
+                                                    isSelected={selected?._id === cert._id}
+                                                    onSelect={setSelected}
+                                                    onCopy={copy}
+                                                />
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+                                                    <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.05) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto', color: '#5868d8' }}>
+                                                        <Award size={24} strokeWidth={2} />
+                                                    </div>
+                                                    <p style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>No certificates yet</p>
+                                                    <p style={{ margin: '0 auto 1rem', fontSize: '0.85rem', color: '#64748b', maxWidth: '350px' }}>
+                                                        Submit a hotel application and complete verification to receive your first certificate.
+                                                    </p>
+                                                    <Link to='/certificate-application/new' style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: '0.7rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none', boxShadow: '0 4px 12px -4px rgba(88,104,216,0.4)' }}>
+                                                        <Award size={14} strokeWidth={2.5} /> Create Application
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
-                            No certificates yet
-                        </h2>
-                        <p style={{ margin: '0 auto 1.5rem auto', fontSize: '0.95rem', color: '#64748b', maxWidth: '400px', lineHeight: 1.6 }}>
-                            Your certificates will appear here once they have been issued. Start by submitting a hotel application and completing the verification process.
-                        </p>
-                        <Link to='/certificate-application/new' className='ca-btn-primary' style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', height: '2.8rem', padding: '0 1.25rem', borderRadius: '0.8rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 15px -4px rgba(88,104,216,0.4)' }}>
-                            <Award size={16} strokeWidth={2.5} /> Create Application
-                        </Link>
+
+                        {/* RIGHT: Detail Panel */}
+                        {status === 'succeeded' && selected && (
+                            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <FeaturedCertificate cert={selected} onCopy={copy} copied={copied} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
