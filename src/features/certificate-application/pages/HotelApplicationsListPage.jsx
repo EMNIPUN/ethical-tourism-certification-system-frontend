@@ -25,6 +25,14 @@ import {
 } from '../store/certificateApplicationSelectors'
 import { fetchHotels, setHotelsQuery } from '../store/certificateApplicationSlice'
 
+/** Upgrade Google CDN thumbnail to higher resolution by replacing size params */
+function upgradeGoogleImageUrl(url, width = 600) {
+    if (!url) return url
+    return url
+        .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+        .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+}
+
 /* ── Constants ───────────────────────────────────────────────────── */
 const PAGE_SIZE    = 10
 const SORT_OPTIONS = [
@@ -56,7 +64,7 @@ function HotelCard({ hotel, index }) {
     const googleScore = hotel?.scoring?.googleReviewScore
     const dataScore   = hotel?.scoring?.dataCompletionScore
     const hasMatch    = Boolean(hotel?.googleMapsData?.placeId)
-    const thumbnail   = hotel?.googleMapsData?.thumbnail
+    const thumbnail   = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 600)
 
     return (
         <Link

@@ -25,6 +25,14 @@ import {
 } from '../store/certificateApplicationSelectors'
 import { fetchHotel, submitHotelDelete } from '../store/certificateApplicationSlice'
 
+/** Upgrade Google CDN thumbnail to higher resolution by replacing size params */
+function upgradeGoogleImageUrl(url, width = 1200) {
+    if (!url) return url
+    return url
+        .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+        .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+}
+
 function certColor(level) {
     switch ((level || '').toLowerCase()) {
         case 'bronze':   return { bg: 'rgba(180,120,50,0.1)',  text: '#7a4d12', border: 'rgba(180,120,50,0.25)' }
@@ -59,7 +67,7 @@ function HotelApplicationDetailsPage() {
     }
 
     const hasPlaceId = Boolean(hotel?.googleMapsData?.placeId)
-    const thumbnail  = hotel?.googleMapsData?.thumbnail
+    const thumbnail  = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 1200)
     const certLevel  = hotel?.scoring?.certificationLevel || 'None'
     const certStyle  = certColor(certLevel)
 

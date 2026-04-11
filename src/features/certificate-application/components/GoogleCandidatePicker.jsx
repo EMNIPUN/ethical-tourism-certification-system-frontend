@@ -1,5 +1,17 @@
 import { CheckCircle2, MapPin, Search } from 'lucide-react'
 
+/**
+ * Google's image CDN supports arbitrary resizing via URL params.
+ * Replace the size suffix (e.g. =w137-h92-k-no) with a larger one.
+ */
+function upgradeGoogleImageUrl(url, width = 800) {
+    if (!url) return url
+    // Replace =wNNN-hNNN-... or =sNNN patterns
+    return url
+        .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+        .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+}
+
 function confidenceClass(conf) {
     if (conf >= 0.75) return 'ca-confidence-fill--high'
     if (conf >= 0.45) return 'ca-confidence-fill--medium'
@@ -8,7 +20,7 @@ function confidenceClass(conf) {
 
 function CandidateCard({ candidate, selected, onSelect }) {
     const conf      = typeof candidate?.confidence === 'number' ? candidate.confidence : null
-    const thumbnail = candidate?.thumbnail
+    const thumbnail = upgradeGoogleImageUrl(candidate?.thumbnail, 800)
 
     return (
         <button
