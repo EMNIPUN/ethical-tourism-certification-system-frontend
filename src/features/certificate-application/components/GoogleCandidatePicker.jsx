@@ -7,17 +7,70 @@ function confidenceClass(conf) {
 }
 
 function CandidateCard({ candidate, selected, onSelect }) {
-    const conf = typeof candidate?.confidence === 'number' ? candidate.confidence : null
+    const conf      = typeof candidate?.confidence === 'number' ? candidate.confidence : null
+    const thumbnail = candidate?.thumbnail
 
     return (
         <button
             type='button'
             onClick={onSelect}
             className={`ca-candidate-card${selected ? ' ca-candidate-card--selected' : ''}`}
+            style={{ padding: 0, overflow: 'hidden' }}
         >
-            {/* Top row */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Thumbnail cover */}
+            <div style={{
+                height: '7rem',
+                background: thumbnail
+                    ? `url('${thumbnail}') center/cover no-repeat`
+                    : 'linear-gradient(135deg, rgba(88,104,216,0.08) 0%, rgba(88,104,216,0.03) 100%)',
+                position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderBottom: '1px solid rgba(207,216,230,0.6)',
+            }}>
+                {!thumbnail && <MapPin size={22} strokeWidth={1.4} style={{ color: 'rgba(88,104,216,0.25)' }} />}
+
+                {/* Confidence badge on image */}
+                {conf !== null ? (
+                    <span style={{
+                        position: 'absolute', top: '0.55rem', right: '0.55rem',
+                        backdropFilter: 'blur(6px)',
+                        background: conf >= 0.75
+                            ? 'rgba(31,108,68,0.88)' : conf >= 0.45
+                            ? 'rgba(146,98,10,0.88)' : 'rgba(160,64,16,0.88)',
+                        color: '#fff',
+                        borderRadius: '999px',
+                        padding: '0.2rem 0.6rem',
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.04em',
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {Math.round(conf * 100)}% match
+                    </span>
+                ) : null}
+
+                {/* Selected badge on image */}
+                {selected ? (
+                    <span style={{
+                        position: 'absolute', top: '0.55rem', left: '0.55rem',
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        backdropFilter: 'blur(6px)',
+                        background: 'rgba(88,104,216,0.9)',
+                        color: '#fff',
+                        borderRadius: '999px',
+                        padding: '0.2rem 0.6rem',
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                    }}>
+                        <CheckCircle2 size={10} strokeWidth={2.5} />Selected
+                    </span>
+                ) : null}
+            </div>
+
+            {/* Card body */}
+            <div style={{ padding: '0.9rem 1rem 1rem' }}>
+                {/* Title + address */}
+                <div style={{ marginBottom: conf !== null ? '0.8rem' : 0 }}>
                     <p className='ca-candidate-title'>{candidate?.title || 'Unknown place'}</p>
                     <p className='ca-candidate-address'>
                         <MapPin size={11} strokeWidth={2.5} style={{ display: 'inline', marginRight: '0.2rem', verticalAlign: 'middle' }} />
@@ -26,70 +79,23 @@ function CandidateCard({ candidate, selected, onSelect }) {
                     <span className='ca-candidate-place-id'>{candidate?.place_id}</span>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
-                    {conf !== null ? (
-                        <span
-                            style={{
-                                background: conf >= 0.75
-                                    ? 'rgba(31,108,68,0.1)'
-                                    : conf >= 0.45
-                                        ? 'rgba(200,140,20,0.1)'
-                                        : 'rgba(200,80,20,0.1)',
-                                border: `1px solid ${conf >= 0.75
-                                    ? 'rgba(31,108,68,0.25)'
-                                    : conf >= 0.45
-                                        ? 'rgba(200,140,20,0.25)'
-                                        : 'rgba(200,80,20,0.25)'}`,
-                                color: conf >= 0.75 ? '#1f6c44' : conf >= 0.45 ? '#92620a' : '#a04010',
-                                borderRadius: '999px',
-                                padding: '0.22rem 0.65rem',
-                                fontSize: '0.7rem',
-                                fontWeight: 800,
-                                letterSpacing: '0.05em',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            {Math.round(conf * 100)}% match
-                        </span>
-                    ) : null}
-                    {selected ? (
-                        <span
-                            style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                background: 'rgba(88,104,216,0.1)',
-                                border: '1px solid rgba(88,104,216,0.25)',
-                                color: '#4a52c9',
-                                borderRadius: '999px',
-                                padding: '0.22rem 0.65rem',
-                                fontSize: '0.7rem',
-                                fontWeight: 800,
-                            }}
-                        >
-                            <CheckCircle2 size={11} strokeWidth={2.5} />
-                            Selected
-                        </span>
-                    ) : null}
-                </div>
+                {/* Confidence bar */}
+                {conf !== null ? (
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#8c98af', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                Match confidence
+                            </span>
+                        </div>
+                        <div className='ca-confidence-bar'>
+                            <div
+                                className={`ca-confidence-fill ${confidenceClass(conf)}`}
+                                style={{ width: `${Math.round(conf * 100)}%` }}
+                            />
+                        </div>
+                    </div>
+                ) : null}
             </div>
-
-            {/* Confidence bar */}
-            {conf !== null ? (
-                <div style={{ marginTop: '0.9rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#8c98af', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            Match confidence
-                        </span>
-                    </div>
-                    <div className='ca-confidence-bar'>
-                        <div
-                            className={`ca-confidence-fill ${confidenceClass(conf)}`}
-                            style={{ width: `${Math.round(conf * 100)}%` }}
-                        />
-                    </div>
-                </div>
-            ) : null}
         </button>
     )
 }
