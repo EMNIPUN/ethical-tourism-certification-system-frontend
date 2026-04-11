@@ -49,12 +49,12 @@ function ConfirmHotelMatchPage() {
     const candidateHotelId = useSelector(selectCandidateSearchHotelId)
 
     const candidates = useMemo(() => {
-        if (createResult?.hotelId === id) {
-            return createResult?.candidates || []
-        }
-
         if (candidateHotelId === id) {
             return candidateItems || []
+        }
+
+        if (createResult?.hotelId === id) {
+            return createResult?.candidates || []
         }
 
         return []
@@ -68,7 +68,6 @@ function ConfirmHotelMatchPage() {
 
     useEffect(() => {
         if (!id) return
-        if (createResult?.hotelId === id) return
         if (candidateStatus === 'loading') return
         if (candidateHotelId === id && (candidateItems?.length || 0) > 0) return
 
