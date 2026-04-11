@@ -5,6 +5,7 @@ import {
   deleteHotelById,
   getHotelById,
   listHotels,
+  listOwnerCertificates,
   updateHotelApplication,
 } from '../api/certificateApplicationApi'
 
@@ -70,6 +71,20 @@ export const fetchHotel = createAsyncThunk(
       return response?.data || null
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error, 'Failed to load application details'))
+    }
+  },
+)
+
+export const fetchOwnerCertificates = createAsyncThunk(
+  'certificateApplication/fetchOwnerCertificates',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const token = requireAuthToken(getState)
+      const response = await listOwnerCertificates(token)
+      const list = Array.isArray(response?.data) ? response.data : []
+      return list
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Failed to load certificates'))
     }
   },
 )
@@ -148,6 +163,11 @@ const initialState = {
   },
   hotelDetails: {
     data: null,
+    status: 'idle',
+    error: null,
+  },
+  ownerCertificates: {
+    items: [],
     status: 'idle',
     error: null,
   },
@@ -234,6 +254,18 @@ const certificateApplicationSlice = createSlice({
       .addCase(fetchHotel.rejected, (state, action) => {
         state.hotelDetails.status = 'failed'
         state.hotelDetails.error = action.payload || 'Failed to load application details'
+      })
+      .addCase(fetchOwnerCertificates.pending, (state) => {
+        state.ownerCertificates.status = 'loading'
+        state.ownerCertificates.error = null
+      })
+      .addCase(fetchOwnerCertificates.fulfilled, (state, action) => {
+        state.ownerCertificates.status = 'succeeded'
+        state.ownerCertificates.items = action.payload
+      })
+      .addCase(fetchOwnerCertificates.rejected, (state, action) => {
+        state.ownerCertificates.status = 'failed'
+        state.ownerCertificates.error = action.payload || 'Failed to load certificates'
       })
       .addCase(submitNewHotel.pending, (state) => {
         state.create.status = 'loading'

@@ -26,3 +26,6 @@ export const selectUpdateError = (state) => state.certificateApplication.update.
 export const selectDeleteStatus = (state) => state.certificateApplication.delete.status
 export const selectDeleteError = (state) => state.certificateApplication.delete.error
 
+export const selectOwnerCertificatesItems = (state) => state.certificateApplication.ownerCertificates.items
+export const selectOwnerCertificatesStatus = (state) => state.certificateApplication.ownerCertificates.status
+export const selectOwnerCertificatesError = (state) => state.certificateApplication.ownerCertificates.error

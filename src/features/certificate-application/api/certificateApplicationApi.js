@@ -142,3 +142,10 @@ export function updateHotelApplication(id, { hotelData, files } = {}, token) {
         formData,
     })
 }
+
+export function listOwnerCertificates(token) {
+    return apiRequest('/certification/certificates', {
+        method: 'GET',
+        token,
+    })
+}

@@ -18,6 +18,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiRequest } from '../../../shared/api/apiClient'
 import { getStoredToken } from '../../auth/services/authService'
+import { useDispatch, useSelector } from 'react-redux'
+import { 
+    selectOwnerCertificatesItems, 
+    selectOwnerCertificatesStatus, 
+    selectOwnerCertificatesError 
+} from '../store/certificateApplicationSelectors'
+import { fetchOwnerCertificates } from '../store/certificateApplicationSlice'
 
 /* ── Helpers ────────────────────────────────────────────────────── */
 function toDate(value) {
@@ -379,32 +386,27 @@ function SkeletonRows() {
 
 /* ── Main page ──────────────────────────────────────────────────── */
 function OwnerCertificatesPage() {
-    const [certificates, setCertificates] = useState([])
-    const [status, setStatus] = useState('idle')
-    const [error, setError] = useState(null)
+    const dispatch = useDispatch()
+    const certificates = useSelector(selectOwnerCertificatesItems)
+    const status = useSelector(selectOwnerCertificatesStatus)
+    const error = useSelector(selectOwnerCertificatesError)
+
     const [selected, setSelected] = useState(null)
     const { copied, copy } = useCopyToClipboard()
 
-    const fetchOwnerCertificates = useCallback(async () => {
-        setStatus('loading')
-        setError(null)
-        try {
-            const token = getStoredToken()
-            if (!token) throw new Error('Authentication required')
-            const data = await apiRequest('/certification/certificates', { method: 'GET', token })
-            const list = Array.isArray(data?.data) ? data.data : []
-            setCertificates(list)
-            // Auto-select the first active cert, or just the first cert
-            const firstActive = list.find(c => c.status === 'ACTIVE')
-            setSelected(firstActive || list[0] || null)
-            setStatus('succeeded')
-        } catch (err) {
-            setError(err?.message || 'Failed to load certificates')
-            setStatus('failed')
+    useEffect(() => {
+        if (status === 'idle') {
+            dispatch(fetchOwnerCertificates())
         }
-    }, [])
+    }, [status, dispatch])
 
-    useEffect(() => { fetchOwnerCertificates() }, [fetchOwnerCertificates])
+    // Auto-select the first active cert when certificates load and we haven't selected one
+    useEffect(() => {
+        if (certificates.length > 0 && !selected) {
+            const firstActive = certificates.find(c => c.status === 'ACTIVE')
+            setSelected(firstActive || certificates[0] || null)
+        }
+    }, [certificates, selected])
 
     /* ── Derived metrics ───────── */
     const metrics = useMemo(() => {
