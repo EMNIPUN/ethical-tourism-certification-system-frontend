@@ -19,10 +19,10 @@ import { Link } from 'react-router-dom'
 import { apiRequest } from '../../../shared/api/apiClient'
 import { getStoredToken } from '../../auth/services/authService'
 import { useDispatch, useSelector } from 'react-redux'
-import { 
-    selectOwnerCertificatesItems, 
-    selectOwnerCertificatesStatus, 
-    selectOwnerCertificatesError 
+import {
+    selectOwnerCertificatesItems,
+    selectOwnerCertificatesStatus,
+    selectOwnerCertificatesError
 } from '../store/certificateApplicationSelectors'
 import { fetchOwnerCertificates } from '../store/certificateApplicationSlice'
 
@@ -54,16 +54,16 @@ function formatDateFull(value) {
 
 /* ── Badge components ───────────────────────────────────────────── */
 const STATUS_META = {
-    ACTIVE:   { bg: 'rgba(16,185,129,0.12)', color: '#047857', border: 'rgba(16,185,129,0.3)', label: 'Active',   dot: '#10b981' },
-    EXPIRED:  { bg: 'rgba(245,158,11,0.12)', color: '#b45309', border: 'rgba(245,158,11,0.3)', label: 'Expired',  dot: '#f59e0b' },
-    REVOKED:  { bg: 'rgba(239,68,68,0.12)',  color: '#b91c1c', border: 'rgba(239,68,68,0.3)',  label: 'Revoked',  dot: '#ef4444' },
-    INACTIVE: { bg: 'rgba(100,116,139,0.12)',color: '#475569', border: 'rgba(100,116,139,0.3)',label: 'Inactive', dot: '#94a3b8' },
+    ACTIVE: { bg: 'rgba(16,185,129,0.12)', color: '#047857', border: 'rgba(16,185,129,0.3)', label: 'Active', dot: '#10b981' },
+    EXPIRED: { bg: 'rgba(245,158,11,0.12)', color: '#b45309', border: 'rgba(245,158,11,0.3)', label: 'Expired', dot: '#f59e0b' },
+    REVOKED: { bg: 'rgba(239,68,68,0.12)', color: '#b91c1c', border: 'rgba(239,68,68,0.3)', label: 'Revoked', dot: '#ef4444' },
+    INACTIVE: { bg: 'rgba(100,116,139,0.12)', color: '#475569', border: 'rgba(100,116,139,0.3)', label: 'Inactive', dot: '#94a3b8' },
 }
 
 const LEVEL_COLORS = {
     PLATINUM: { primary: '#0e7490', secondary: '#06b6d4', bg: 'linear-gradient(135deg, #164e63 0%, #0e7490 50%, #06b6d4 100%)' },
-    GOLD:     { primary: '#b45309', secondary: '#f59e0b', bg: 'linear-gradient(135deg, #92400e 0%, #b45309 50%, #f59e0b 100%)' },
-    SILVER:   { primary: '#475569', secondary: '#94a3b8', bg: 'linear-gradient(135deg, #334155 0%, #475569 50%, #94a3b8 100%)' },
+    GOLD: { primary: '#b45309', secondary: '#f59e0b', bg: 'linear-gradient(135deg, #92400e 0%, #b45309 50%, #f59e0b 100%)' },
+    SILVER: { primary: '#475569', secondary: '#94a3b8', bg: 'linear-gradient(135deg, #334155 0%, #475569 50%, #94a3b8 100%)' },
 }
 
 function getStatus(s) { return STATUS_META[String(s || '').toUpperCase()] || STATUS_META.INACTIVE }
@@ -134,7 +134,7 @@ function useCopyToClipboard() {
             setCopied(true)
             clearTimeout(timerRef.current)
             timerRef.current = setTimeout(() => setCopied(false), 2000)
-        }).catch(() => {})
+        }).catch(() => { })
     }, [])
 
     return { copied, copy }
@@ -573,9 +573,6 @@ function OwnerCertificatesPage() {
                                                         <Award size={24} strokeWidth={2} />
                                                     </div>
                                                     <p style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>No certificates yet</p>
-                                                    <p style={{ margin: '0 auto 1rem', fontSize: '0.85rem', color: '#64748b', maxWidth: '350px' }}>
-                                                        Submit a hotel application and complete verification to receive your first certificate.
-                                                    </p>
                                                     <Link to='/certificate-application/new' style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: '0.7rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none', boxShadow: '0 4px 12px -4px rgba(88,104,216,0.4)' }}>
                                                         <Award size={14} strokeWidth={2.5} /> Create Application
                                                     </Link>

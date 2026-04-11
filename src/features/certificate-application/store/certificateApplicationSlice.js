@@ -3,6 +3,7 @@ import {
   confirmHotelMatch,
   createHotelApplication,
   deleteHotelById,
+  getHotelCandidates,
   getHotelById,
   listHotels,
   listOwnerCertificates,
@@ -89,6 +90,22 @@ export const fetchOwnerCertificates = createAsyncThunk(
   },
 )
 
+export const fetchHotelCandidates = createAsyncThunk(
+  'certificateApplication/fetchHotelCandidates',
+  async (hotelId, { getState, rejectWithValue }) => {
+    try {
+      const token = requireAuthToken(getState)
+      const response = await getHotelCandidates(hotelId, token)
+      return {
+        hotelId,
+        candidates: Array.isArray(response?.data) ? response.data : [],
+      }
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Failed to load candidates'))
+    }
+  },
+)
+
 export const submitNewHotel = createAsyncThunk(
   'certificateApplication/submitNewHotel',
   async ({ hotelData, files }, { getState, rejectWithValue }) => {
@@ -163,6 +180,12 @@ const initialState = {
   },
   hotelDetails: {
     data: null,
+    status: 'idle',
+    error: null,
+  },
+  candidateSearch: {
+    hotelId: null,
+    items: [],
     status: 'idle',
     error: null,
   },
@@ -267,6 +290,19 @@ const certificateApplicationSlice = createSlice({
         state.ownerCertificates.status = 'failed'
         state.ownerCertificates.error = action.payload || 'Failed to load certificates'
       })
+      .addCase(fetchHotelCandidates.pending, (state) => {
+        state.candidateSearch.status = 'loading'
+        state.candidateSearch.error = null
+      })
+      .addCase(fetchHotelCandidates.fulfilled, (state, action) => {
+        state.candidateSearch.status = 'succeeded'
+        state.candidateSearch.hotelId = action.payload.hotelId
+        state.candidateSearch.items = action.payload.candidates
+      })
+      .addCase(fetchHotelCandidates.rejected, (state, action) => {
+        state.candidateSearch.status = 'failed'
+        state.candidateSearch.error = action.payload || 'Failed to load candidates'
+      })
       .addCase(submitNewHotel.pending, (state) => {
         state.create.status = 'loading'
         state.create.error = null
@@ -314,7 +350,7 @@ const certificateApplicationSlice = createSlice({
       })
       .addCase(submitHotelDelete.fulfilled, (state, action) => {
         state.delete.status = 'succeeded'
-        state.hotels.items  = state.hotels.items.filter((item) => item?._id !== action.payload)
+        state.hotels.items = state.hotels.items.filter((item) => item?._id !== action.payload)
         state.hotels.status = 'idle'   // force re-fetch next time the list mounts
         if (state.hotelDetails.data?._id === action.payload) {
           state.hotelDetails.data = null

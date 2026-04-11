@@ -43,9 +43,9 @@ async function apiMultipartRequest(path, { method = 'POST', formData, token } = 
 function buildHotelsQuery({ page, limit, sort, fields, filters } = {}) {
     const params = new URLSearchParams()
 
-    if (page)   params.set('page',   String(page))
-    if (limit)  params.set('limit',  String(limit))
-    if (sort)   params.set('sort',   sort)
+    if (page) params.set('page', String(page))
+    if (limit) params.set('limit', String(limit))
+    if (sort) params.set('sort', sort)
     if (fields) params.set('fields', fields)
 
     if (filters && typeof filters === 'object') {
@@ -105,6 +105,13 @@ export function getHotelById(id, token) {
     })
 }
 
+export function getHotelCandidates(id, token) {
+    return apiRequest(`/hotels/${encodeURIComponent(id)}/candidates`, {
+        method: 'GET',
+        token,
+    })
+}
+
 export function deleteHotelById(id, token) {
     return apiRequest(`/hotels/${encodeURIComponent(id)}`, {
         method: 'DELETE',
@@ -117,7 +124,7 @@ export function confirmHotelMatch(id, placeId, token, thumbnail) {
         method: 'POST',
         token,
         body: {
-            placeId:   placeId   ?? null,
+            placeId: placeId ?? null,
             thumbnail: thumbnail ?? null,   // pass from candidate so backend skips second SerpAPI call
         },
     })
@@ -144,7 +151,7 @@ export function updateHotelApplication(id, { hotelData, files } = {}, token) {
 }
 
 export function listOwnerCertificates(token) {
-    return apiRequest('/certification/certificates', {
+    return apiRequest('/certification/certificates/owner', {
         method: 'GET',
         token,
     })
