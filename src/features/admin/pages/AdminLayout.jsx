@@ -13,12 +13,15 @@ import {
   ShieldCheck,
   Hotel,
   Users,
+  Menu,
+  ChevronLeft
 } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import LogoutButton from '../../auth/components/LogoutButton'
 
 const sidebarLinks = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/audit-initialize', label: 'Initialize Audit', icon: FilePlus2 },
   { to: '/admin/certificate-management', label: 'Certificates', icon: ShieldCheck },
   { to: '/admin/user-management', label: 'Users', icon: Users },
   { to: '/admin/audit-management', label: 'Audits', icon: ClipboardCheck },
@@ -32,6 +35,7 @@ const certificateManagementSubLinks = [
 ]
 
 function AdminLayout() {
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [isCertificateManagementExpanded, setIsCertificateManagementExpanded] = useState(true)
 
   return (

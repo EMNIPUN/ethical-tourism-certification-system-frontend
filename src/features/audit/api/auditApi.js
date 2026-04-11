@@ -58,4 +58,7 @@ export const auditApi = {
   },
   
   chatWithHotelData: (hotelId, data, token) => apiRequest(`/audits/hotels/${hotelId}/chat`, { method: 'POST', body: data, token }),
+
+  getHotels: (token) => apiRequest('/hotels', { token }),
+  getAuditors: (token) => apiRequest('/auth/users?role=Auditor', { token }),
 }
