@@ -105,23 +105,6 @@ function HotelSearch() {
     dispatch(loadHotelContacts())
   }
 
-  function handleRefreshRecommendations() {
-    if (isRecommendationsLoading) {
-      return
-    }
-
-    dispatch(setSearchActiveTab('recommendations'))
-    dispatch(loadHotelRecommendations())
-  }
-
-  function handleScrollToFeedback() {
-    const target = document.getElementById('feedback-panel')
-
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
   function handleSelectHotel(hotelId, sourceTab) {
     dispatch(setSelectedHotelId(hotelId))
     dispatch(setSearchActiveTab(sourceTab))
@@ -131,13 +114,7 @@ function HotelSearch() {
   return (
     <main className='min-h-screen w-full overflow-x-hidden px-0 py-0'>
       <div className='flex min-h-screen w-full flex-col gap-5'>
-        <SearchNavbar
-          user={user}
-          onShowAll={handleShowAll}
-          onRefreshRecommendations={handleRefreshRecommendations}
-          onScrollToFeedback={handleScrollToFeedback}
-          onDiscover={() => dispatch(setSearchActiveTab('discover'))}
-        />
+        <SearchNavbar user={user} />
 
         <SearchHero
           user={user}
@@ -145,7 +122,14 @@ function HotelSearch() {
           setSearchInput={setSearchInput}
           onSearch={runSearch}
           onShowAll={handleShowAll}
-          onRefreshRecommendations={handleRefreshRecommendations}
+          onRefreshRecommendations={() => {
+            if (isRecommendationsLoading) {
+              return
+            }
+
+            dispatch(setSearchActiveTab('recommendations'))
+            dispatch(loadHotelRecommendations())
+          }}
           isRefreshingRecommendations={isRecommendationsLoading}
         />
 

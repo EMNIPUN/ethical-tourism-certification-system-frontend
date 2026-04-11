@@ -11,12 +11,13 @@ import AboutUsPage from '../../features/common/pages/AboutUsPage'
 import ContactUsPage from '../../features/common/pages/ContactUsPage'
 import PrivacyPolicyPage from '../../features/common/pages/PrivacyPolicyPage'
 import TermsAndConditionsPage from '../../features/common/pages/TermsAndConditionsPage'
+import LandingPage from '../../features/common/pages/LandingPage'
 import ProtectedRoute from '../../features/auth/components/ProtectedRoute'
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path={FEATURE_ROUTES.landing} element={<Navigate to={FEATURE_ROUTES.login} replace />} />
+      <Route path={FEATURE_ROUTES.landing} element={<LandingPage />} />
       <Route path={FEATURE_ROUTES.login} element={<LoginPage />} />
       <Route path={FEATURE_ROUTES.register} element={<RegisterPage />} />
       <Route path={FEATURE_ROUTES.about} element={<AboutUsPage />} />
@@ -65,7 +66,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path='*' element={<Navigate to={FEATURE_ROUTES.login} replace />} />
+      <Route path='*' element={<Navigate to={FEATURE_ROUTES.landing} replace />} />
     </Routes>
   )
 }

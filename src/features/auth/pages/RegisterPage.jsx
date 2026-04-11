@@ -52,7 +52,7 @@ function RegisterPage() {
   }
 
   return (
-    <main className='h-screen w-screen overflow-hidden bg-[var(--surface-canvas)]'>
+    <main className='auth-page-transition h-screen w-screen overflow-hidden bg-[var(--surface-canvas)]'>
       <div className='grid h-full w-full overflow-hidden border border-[#d5dced] bg-[#eef2f8] shadow-[0_10px_30px_-20px_rgba(21,34,67,0.5)] md:grid-cols-2'>
         <section className='flex items-center justify-center bg-[#f7f8fb] px-6 py-8 sm:px-8 md:px-12'>
           <div className='w-full max-w-[460px]'>
