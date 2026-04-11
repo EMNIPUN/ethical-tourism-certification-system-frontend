@@ -686,17 +686,8 @@ function CertificateDetailsPage() {
           <p className='text-sm text-slate-500'>Loading certificate details...</p>
         </article>
       ) : certificate ? (
-        <div className='space-y-5'>
-          {!isAdmin ? (
-            <article className='rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm mx-auto max-w-[950px]'>
-              <h3 className='text-lg font-bold text-amber-900'>Actions</h3>
-              <p className='mt-1 text-sm text-amber-700'>
-                You can view certificate details and timeline, but lifecycle actions are restricted to admins.
-              </p>
-            </article>
-          ) : null}
-          <div className={isAdmin ? 'grid gap-4 xl:grid-cols-12' : 'mx-auto max-w-[950px]'}>
-            <div className={`space-y-4 ${isAdmin ? 'xl:col-span-8' : 'w-full'}`}>
+        <div className='grid gap-4 xl:grid-cols-12'>
+          <div className='space-y-4 xl:col-span-8'>
             <article className='certificate-stage' style={certificateThemeStyle}>
               <div ref={certificateExportRef} className='certificate-export-surface'>
                 <div className='certificate-ribbon'>
@@ -1028,8 +1019,9 @@ function CertificateDetailsPage() {
             </article>
           </div>
 
-          {isAdmin ? (
-            <aside className='space-y-4 xl:col-span-4'>
+          <aside className='space-y-4 xl:col-span-4'>
+            {isAdmin ? (
+              <>
               <article className='rounded-2xl border border-slate-200 bg-white p-5 shadow-sm'>
                 <h3 className='text-lg font-bold text-slate-900'>Edit Certificate Details</h3>
                 <p className='mt-1 text-xs text-slate-500'>Admin can update full certificate fields including status.</p>
@@ -1278,9 +1270,16 @@ function CertificateDetailsPage() {
               </article>
 
           
-            </aside>
-          ) : null}
-          </div>
+              </>
+            ) : (
+              <article className='rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm'>
+                <h3 className='text-lg font-bold text-amber-900'>Actions</h3>
+                <p className='mt-2 text-sm text-amber-700'>
+                  You can view certificate details and timeline, but lifecycle actions are restricted to admins.
+                </p>
+              </article>
+            )}
+          </aside>
         </div>
       ) : (
         <article className='rounded-2xl border border-slate-200 bg-white p-6 shadow-sm'>
