@@ -6,6 +6,7 @@ import HotelApplicationDetailsPage from '../pages/HotelApplicationDetailsPage'
 import ConfirmHotelMatchPage from '../pages/ConfirmHotelMatchPage'
 import EditHotelApplicationPage from '../pages/EditHotelApplicationPage'
 import ProfilePage from '../pages/ProfilePage'
+import OwnerCertificatesPage from '../pages/OwnerCertificatesPage'
 
 function CertificateApplicationRoutes() {
 	return (
@@ -13,6 +14,7 @@ function CertificateApplicationRoutes() {
 			<Route element={<CertificateApplicationLayout />}>
 				<Route index element={<HotelApplicationsListPage />} />
 				<Route path='profile' element={<ProfilePage />} />
+				<Route path='certificates' element={<OwnerCertificatesPage />} />
 				<Route path='new' element={<NewHotelApplicationPage />} />
 				<Route path=':id' element={<HotelApplicationDetailsPage />} />
 				<Route path=':id/confirm-match' element={<ConfirmHotelMatchPage />} />

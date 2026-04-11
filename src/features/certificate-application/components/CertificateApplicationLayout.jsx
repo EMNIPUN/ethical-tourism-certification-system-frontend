@@ -51,7 +51,7 @@ function CertificateApplicationLayout() {
                     <nav className='ca-nav-pill-group'>
                         <NavPill to='/certificate-application' label='Applications' icon={LayoutDashboard} end />
                         <NavPill to='/certificate-application/new' label='New Application' icon={FileText} />
-                        <NavPill to='/certificate-management' label='Certificates' icon={Award} />
+                        <NavPill to='/certificate-application/certificates' label='Certificates' icon={Award} />
                     </nav>
 
                     {/* Profile Dropdown */}
