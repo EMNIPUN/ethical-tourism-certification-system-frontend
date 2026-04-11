@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from '../pages/AdminLayout'
 import AdminDashboard from '../pages/AdminDashboard'
-import AuditDashboard from '../../audit/pages/AuditDashboard'
+import CertificateManagementRoutes from '../../certificate-management/routes/CertificateManagementRoutes'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -20,13 +20,8 @@ function AdminRoutes() {
       <Route element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route
-          path='certificate-management'
-          element={
-            <PlaceholderPage
-              title='Certificate Management'
-              description='Manage certificate requests, approvals, renewals, and lifecycle updates for all registered hotels.'
-            />
-          }
+          path='certificate-management/*'
+          element={<CertificateManagementRoutes />}
         />
         <Route
           path='user-management'

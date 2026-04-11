@@ -1,5 +1,19 @@
 import { useState } from 'react'
-import { Bell, CircleHelp, ClipboardCheck, LayoutDashboard, Search, ShieldCheck, Hotel, Users, ChevronLeft, ChevronRight, Menu } from 'lucide-react'
+import {
+  Bell,
+  BookOpenText,
+  ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  ClipboardCheck,
+  FilePlus2,
+  ListChecks,
+  LayoutDashboard,
+  Search,
+  ShieldCheck,
+  Hotel,
+  Users,
+} from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import LogoutButton from '../../auth/components/LogoutButton'
 
@@ -11,8 +25,14 @@ const sidebarLinks = [
   { to: '/admin/hotel-management', label: 'Hotels', icon: Hotel },
 ]
 
+const certificateManagementSubLinks = [
+  { to: '/admin/certificate-management', label: 'Overview', icon: BookOpenText, end: true },
+  { to: '/admin/certificate-management/issuance', label: 'Issuance Hub', icon: FilePlus2 },
+  { to: '/admin/certificate-management/certificates', label: 'Manage Certificates', icon: ListChecks },
+]
+
 function AdminLayout() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCertificateManagementExpanded, setIsCertificateManagementExpanded] = useState(true)
 
   return (
     <div className='h-screen w-screen overflow-hidden bg-[var(--surface-canvas)]'>
@@ -40,24 +60,94 @@ function AdminLayout() {
             {sidebarLinks.map((item) => {
               const Icon = item.icon
               return (
-                <NavLink
-                  key={item.to}
-                  end={item.to === '/admin'}
-                  to={item.to}
-                  title={isCollapsed ? item.label : ''}
-                  className={({ isActive }) =>
-                    [
-                      'group flex items-center gap-3 rounded-xl py-3 transition-all duration-200',
-                      isCollapsed ? 'justify-center px-0' : 'px-4',
-                      isActive
-                        ? 'bg-[var(--brand-600)] text-white shadow-lg shadow-[var(--brand-600)]/20 active-sidebar-link'
-                        : 'text-[#5f6f8c] hover:bg-[#f4f7fc] hover:text-[var(--brand-700)]',
-                    ].join(' ')
-                  }
-                >
-                  <Icon size={isCollapsed ? 22 : 18} />
-                  {!isCollapsed && <span className='text-sm font-bold'>{item.label}</span>}
-                </NavLink>
+                <div key={item.to}>
+                  {item.to === '/admin/certificate-management' ? (
+                    <div>
+                      <NavLink
+                        end={item.to === '/admin'}
+                        to={item.to}
+                        className={({ isActive }) =>
+                          [
+                            'flex items-center gap-2.5 rounded-md px-3 py-2.5 text-[15px] font-medium transition',
+                            isActive
+                              ? 'bg-[var(--brand-600)] text-white shadow-[0_14px_28px_-20px_rgba(87,105,216,0.95)]'
+                              : 'text-[#4f5b72] hover:bg-[#edf2fc]',
+                          ].join(' ')
+                        }
+                      >
+                        <Icon size={16} />
+                        <span className='flex-1'>{item.label}</span>
+
+                        <span
+                          role='button'
+                          tabIndex={0}
+                          onClick={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            setIsCertificateManagementExpanded((current) => !current)
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              setIsCertificateManagementExpanded((current) => !current)
+                            }
+                          }}
+                          className='inline-flex h-5 w-5 items-center justify-center rounded-sm'
+                          aria-label={
+                            isCertificateManagementExpanded
+                              ? 'Collapse certificate management links'
+                              : 'Expand certificate management links'
+                          }
+                        >
+                          {isCertificateManagementExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        </span>
+                      </NavLink>
+                    </div>
+                  ) : (
+                    <NavLink
+                      end={item.to === '/admin'}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        [
+                          'flex items-center gap-2.5 rounded-md px-3 py-2.5 text-[15px] font-medium transition',
+                          isActive
+                            ? 'bg-[var(--brand-600)] text-white shadow-[0_14px_28px_-20px_rgba(87,105,216,0.95)]'
+                            : 'text-[#4f5b72] hover:bg-[#edf2fc]',
+                        ].join(' ')
+                      }
+                    >
+                      <Icon size={16} />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  )}
+
+                  {item.to === '/admin/certificate-management' && isCertificateManagementExpanded ? (
+                    <div className='mt-1.5 space-y-1 pl-7'>
+                      {certificateManagementSubLinks.map((subLink) => {
+                        const SubIcon = subLink.icon
+                        return (
+                          <NavLink
+                            key={subLink.to}
+                            to={subLink.to}
+                            end={subLink.end}
+                            className={({ isActive }) =>
+                              [
+                                'flex items-center gap-2 rounded-md border-l-2 border-transparent px-2.5 py-1.5 text-[14px] font-medium transition',
+                                isActive
+                                  ? 'border-[var(--brand-600)] text-[#2d4cbd]'
+                                  : 'text-[#5e6c86] hover:border-[#c8d3ea] hover:text-[#445072]',
+                              ].join(' ')
+                            }
+                          >
+                            <SubIcon size={14} />
+                            <span>{subLink.label}</span>
+                          </NavLink>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
               )
             })}
           </nav>

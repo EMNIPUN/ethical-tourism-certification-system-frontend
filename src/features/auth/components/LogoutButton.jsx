@@ -3,7 +3,7 @@ import { LogOut } from 'lucide-react'
 import { FEATURE_ROUTES } from '../../../app/router/featureRoutes'
 import { useAuth } from '../hooks/useAuth'
 
-function LogoutButton({ className = '', label = 'Log out', isCollapsed = false }) {
+function LogoutButton({ className = '', children, label = 'Log out', ...props }) {
   const navigate = useNavigate()
   const { logout } = useAuth()
 
@@ -13,9 +13,8 @@ function LogoutButton({ className = '', label = 'Log out', isCollapsed = false }
   }
 
   return (
-    <button type='button' onClick={handleLogout} title={isCollapsed ? label : ''} className={className}>
-      <LogOut size={18} />
-      {!isCollapsed && <span>{label}</span>}
+    <button type='button' onClick={handleLogout} className={className} {...props}>
+      {children || label}
     </button>
   )
 }
