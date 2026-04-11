@@ -7,6 +7,10 @@ import SearchRoutes from '../../features/search/routes/SearchRoutes'
 import AdminRoutes from '../../features/admin/routes/AdminRoutes'
 import LoginPage from '../../features/auth/pages/LoginPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
+import AboutUsPage from '../../features/common/pages/AboutUsPage'
+import ContactUsPage from '../../features/common/pages/ContactUsPage'
+import PrivacyPolicyPage from '../../features/common/pages/PrivacyPolicyPage'
+import TermsAndConditionsPage from '../../features/common/pages/TermsAndConditionsPage'
 import ProtectedRoute from '../../features/auth/components/ProtectedRoute'
 
 function AppRoutes() {
@@ -15,6 +19,10 @@ function AppRoutes() {
       <Route path={FEATURE_ROUTES.landing} element={<Navigate to={FEATURE_ROUTES.login} replace />} />
       <Route path={FEATURE_ROUTES.login} element={<LoginPage />} />
       <Route path={FEATURE_ROUTES.register} element={<RegisterPage />} />
+      <Route path={FEATURE_ROUTES.about} element={<AboutUsPage />} />
+      <Route path={FEATURE_ROUTES.contact} element={<ContactUsPage />} />
+      <Route path={FEATURE_ROUTES.privacy} element={<PrivacyPolicyPage />} />
+      <Route path={FEATURE_ROUTES.terms} element={<TermsAndConditionsPage />} />
 
       <Route
         path={FEATURE_ROUTES.admin}
