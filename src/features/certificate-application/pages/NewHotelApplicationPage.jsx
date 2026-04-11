@@ -9,6 +9,7 @@ import {
     selectCreateStatus,
 } from '../store/certificateApplicationSelectors'
 import {
+    invalidateHotelsList,
     setApplicationDraft,
     setApplicationStep,
     submitNewHotel,
@@ -39,6 +40,7 @@ function NewHotelApplicationPage() {
     async function handleSubmit({ draft: payloadDraft, files }) {
         const action = await dispatch(submitNewHotel({ hotelData: payloadDraft, files }))
         if (submitNewHotel.fulfilled.match(action)) {
+            dispatch(invalidateHotelsList()) // force list to re-fetch on next visit
             navigate(`/certificate-application/${action.payload.hotelId}/confirm-match`, { replace: true })
         }
     }

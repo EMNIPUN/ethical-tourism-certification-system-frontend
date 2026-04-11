@@ -112,12 +112,13 @@ export function deleteHotelById(id, token) {
     })
 }
 
-export function confirmHotelMatch(id, placeId, token) {
+export function confirmHotelMatch(id, placeId, token, thumbnail) {
     return apiRequest(`/hotels/${encodeURIComponent(id)}/confirm-match`, {
         method: 'POST',
         token,
         body: {
-            placeId: placeId ?? null,
+            placeId:   placeId   ?? null,
+            thumbnail: thumbnail ?? null,   // pass from candidate so backend skips second SerpAPI call
         },
     })
 }

@@ -1,11 +1,12 @@
 export const selectCertificateApplicationState = (state) => state.certificateApplication
-export const selectCertificateApplicationStep = (state) => state.certificateApplication.currentStep
+export const selectCertificateApplicationStep  = (state) => state.certificateApplication.currentStep
 export const selectCertificateApplicationDraft = (state) => state.certificateApplication.draft
 
-export const selectHotelApplications = (state) => state.certificateApplication.hotels.items
+export const selectHotelApplications      = (state) => state.certificateApplication.hotels.items
 export const selectHotelApplicationsStatus = (state) => state.certificateApplication.hotels.status
-export const selectHotelApplicationsError = (state) => state.certificateApplication.hotels.error
-export const selectHotelApplicationsCount = (state) => state.certificateApplication.hotels.count
+export const selectHotelApplicationsError  = (state) => state.certificateApplication.hotels.error
+export const selectHotelApplicationsCount  = (state) => state.certificateApplication.hotels.count
+export const selectHotelListQuery          = (state) => state.certificateApplication.hotels.query
 
 export const selectHotelDetails = (state) => state.certificateApplication.hotelDetails.data
 export const selectHotelDetailsStatus = (state) => state.certificateApplication.hotelDetails.status

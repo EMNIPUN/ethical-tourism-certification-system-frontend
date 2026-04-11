@@ -152,7 +152,7 @@ function GoogleCandidatePicker({ candidates = [], selectedPlaceId, onChange, all
                                 key={c.place_id}
                                 candidate={c}
                                 selected={c.place_id === selectedPlaceId}
-                                onSelect={() => onChange(c.place_id)}
+                                onSelect={() => onChange(c.place_id, c.thumbnail)}
                             />
                         ))}
                     </div>

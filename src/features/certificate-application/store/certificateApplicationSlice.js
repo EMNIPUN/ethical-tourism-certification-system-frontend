@@ -93,10 +93,10 @@ export const submitNewHotel = createAsyncThunk(
 
 export const submitConfirmMatch = createAsyncThunk(
   'certificateApplication/submitConfirmMatch',
-  async ({ hotelId, placeId }, { getState, rejectWithValue }) => {
+  async ({ hotelId, placeId, thumbnail }, { getState, rejectWithValue }) => {
     try {
       const token = requireAuthToken(getState)
-      const response = await confirmHotelMatch(hotelId, placeId, token)
+      const response = await confirmHotelMatch(hotelId, placeId, token, thumbnail)
       return {
         evaluation: response?.evaluation || null,
         hotel: response?.data?.hotel || null,
@@ -143,6 +143,8 @@ const initialState = {
     count: 0,
     status: 'idle',
     error: null,
+    // Stores the last query used to fetch — used to skip re-fetching on navigation back
+    query: { page: 1, sort: '-createdAt', search: '', typeFilter: '', certFilter: '' },
   },
   hotelDetails: {
     data: null,
@@ -196,6 +198,14 @@ const certificateApplicationSlice = createSlice({
     },
     resetApplicationDraft() {
       return initialState
+    },
+    // Persist list query state so the list page restores its position on navigation back
+    setHotelsQuery(state, action) {
+      state.hotels.query = { ...state.hotels.query, ...action.payload }
+    },
+    // Force a refresh next time the list mounts (e.g., after create/delete)
+    invalidateHotelsList(state) {
+      state.hotels.status = 'idle'
     },
   },
   extraReducers: (builder) => {
@@ -272,7 +282,8 @@ const certificateApplicationSlice = createSlice({
       })
       .addCase(submitHotelDelete.fulfilled, (state, action) => {
         state.delete.status = 'succeeded'
-        state.hotels.items = state.hotels.items.filter((item) => item?._id !== action.payload)
+        state.hotels.items  = state.hotels.items.filter((item) => item?._id !== action.payload)
+        state.hotels.status = 'idle'   // force re-fetch next time the list mounts
         if (state.hotelDetails.data?._id === action.payload) {
           state.hotelDetails.data = null
         }
@@ -287,7 +298,8 @@ const certificateApplicationSlice = createSlice({
 export const { setApplicationStep, updateApplicationDraftField, resetApplicationDraft } =
   certificateApplicationSlice.actions
 
-export const { setApplicationDraft } = certificateApplicationSlice.actions
+export const { setApplicationDraft, setHotelsQuery, invalidateHotelsList } =
+  certificateApplicationSlice.actions
 
 export default certificateApplicationSlice.reducer
 

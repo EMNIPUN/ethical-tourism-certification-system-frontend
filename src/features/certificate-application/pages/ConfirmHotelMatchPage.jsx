@@ -44,14 +44,15 @@ function ConfirmHotelMatchPage() {
         [createResult, id]
     )
 
-    const [placeId, setPlaceId] = useState('')
+    const [placeId,   setPlaceId]   = useState('')
+    const [thumbnail, setThumbnail] = useState('')
 
     const loadHotel = useCallback(() => { dispatch(fetchHotel(id)) }, [dispatch, id])
     useEffect(() => { loadHotel() }, [loadHotel])
 
     async function handleConfirm() {
         const resolved = placeId?.trim() ? placeId.trim() : null
-        const action   = await dispatch(submitConfirmMatch({ hotelId: id, placeId: resolved }))
+        const action   = await dispatch(submitConfirmMatch({ hotelId: id, placeId: resolved, thumbnail }))
         if (submitConfirmMatch.fulfilled.match(action)) {
             navigate(`/certificate-application/${id}`, { replace: true })
         }
@@ -158,7 +159,7 @@ function ConfirmHotelMatchPage() {
                 <GoogleCandidatePicker
                     candidates={candidates}
                     selectedPlaceId={placeId}
-                    onChange={setPlaceId}
+                    onChange={(id, thumb) => { setPlaceId(id); setThumbnail(thumb || '') }}
                     allowManualEntry
                 />
             </div>
