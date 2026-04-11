@@ -10,7 +10,6 @@ import {
   clearFeedbackMutationState,
   clearSelectedHotel,
   editHotelFeedback,
-  loadHotelRecommendations,
   loadSelectedHotel,
   loadSelectedHotelFeedback,
   removeHotelFeedback,
@@ -21,7 +20,6 @@ import {
   selectSearchFeedbackMutationError,
   selectSearchFeedbackMutationStatus,
   selectSearchFeedbackStatus,
-  selectSearchRecommendationsStatus,
   selectSearchSelectedFeedback,
   selectSearchSelectedHotel,
   selectSearchSelectedHotelId,
@@ -74,7 +72,6 @@ function HotelDetails() {
   const feedbackStatus = useAppSelector(selectSearchFeedbackStatus)
   const feedbackMutationStatus = useAppSelector(selectSearchFeedbackMutationStatus)
   const feedbackMutationError = useAppSelector(selectSearchFeedbackMutationError)
-  const recommendationsStatus = useAppSelector(selectSearchRecommendationsStatus)
 
   const [feedbackForm, setFeedbackForm] = useState({ rating: '5', feedback: '' })
   const [editingFeedbackId, setEditingFeedbackId] = useState(null)
@@ -112,7 +109,6 @@ function HotelDetails() {
   const isAdmin = String(user?.role || '').toLowerCase() === 'admin'
   const canManageFeedback = ['tourist', 'admin'].includes(String(user?.role || '').toLowerCase())
   const isFeedbackMutationLoading = feedbackMutationStatus === 'loading'
-  const isRecommendationsLoading = recommendationsStatus === 'loading'
 
   function updateFeedbackField(fieldName, value) {
     setFeedbackForm((prev) => ({
@@ -200,42 +196,15 @@ function HotelDetails() {
     }
   }
 
-  function handleScrollToFeedback() {
-    const target = document.getElementById('feedback-panel')
-
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
   function goToSearch(tab = 'discover') {
     dispatch(setSearchActiveTab(tab))
-    navigate('/search')
-  }
-
-  function handleRefreshRecommendations() {
-    if (isRecommendationsLoading) {
-      return
-    }
-
-    dispatch(setSearchActiveTab('recommendations'))
-    dispatch(loadHotelRecommendations())
     navigate('/search')
   }
 
   return (
     <main className='min-h-screen w-full overflow-x-hidden px-0 py-0'>
       <div className='flex min-h-screen w-full flex-col gap-5'>
-        <SearchNavbar
-          user={user}
-          onShowAll={() => {
-            dispatch(clearSelectedHotel())
-            goToSearch('discover')
-          }}
-          onRefreshRecommendations={handleRefreshRecommendations}
-          onScrollToFeedback={handleScrollToFeedback}
-          onDiscover={() => goToSearch('discover')}
-        />
+        <SearchNavbar user={user} />
 
         <section className='w-full px-4 pt-4 sm:px-6 lg:px-8'>
           <button
