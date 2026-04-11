@@ -22,37 +22,63 @@ import {
     selectHotelDetails,
     selectHotelDetailsError,
     selectHotelDetailsStatus,
+    selectCandidateSearchError,
+    selectCandidateSearchHotelId,
+    selectCandidateSearchItems,
+    selectCandidateSearchStatus,
 } from '../store/certificateApplicationSelectors'
-import { fetchHotel, submitConfirmMatch } from '../store/certificateApplicationSlice'
+import { fetchHotel, fetchHotelCandidates, submitConfirmMatch } from '../store/certificateApplicationSlice'
 
 function ConfirmHotelMatchPage() {
-    const { id }       = useParams()
-    const dispatch     = useDispatch()
-    const navigate     = useNavigate()
+    const { id } = useParams()
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
-    const createResult  = useSelector(selectCreateResult)
+    const createResult = useSelector(selectCreateResult)
     const confirmStatus = useSelector(selectConfirmStatus)
-    const confirmError  = useSelector(selectConfirmError)
+    const confirmError = useSelector(selectConfirmError)
     const confirmResult = useSelector(selectConfirmResult)
 
-    const hotel       = useSelector(selectHotelDetails)
+    const hotel = useSelector(selectHotelDetails)
     const hotelStatus = useSelector(selectHotelDetailsStatus)
-    const hotelError  = useSelector(selectHotelDetailsError)
+    const hotelError = useSelector(selectHotelDetailsError)
 
-    const candidates = useMemo(
-        () => (createResult?.hotelId === id ? createResult?.candidates || [] : []),
-        [createResult, id]
-    )
+    const candidateItems = useSelector(selectCandidateSearchItems)
+    const candidateStatus = useSelector(selectCandidateSearchStatus)
+    const candidateError = useSelector(selectCandidateSearchError)
+    const candidateHotelId = useSelector(selectCandidateSearchHotelId)
 
-    const [placeId,   setPlaceId]   = useState('')
+    const candidates = useMemo(() => {
+        if (candidateHotelId === id) {
+            return candidateItems || []
+        }
+
+        if (createResult?.hotelId === id) {
+            return createResult?.candidates || []
+        }
+
+        return []
+    }, [candidateHotelId, candidateItems, createResult, id])
+
+    const [placeId, setPlaceId] = useState('')
     const [thumbnail, setThumbnail] = useState('')
 
     const loadHotel = useCallback(() => { dispatch(fetchHotel(id)) }, [dispatch, id])
     useEffect(() => { loadHotel() }, [loadHotel])
 
+    useEffect(() => {
+        if (!id) return
+        if (candidateStatus === 'loading') return
+        if (candidateHotelId === id && (candidateItems?.length || 0) > 0) return
+
+        if (hotelStatus === 'succeeded' && hotel?.businessInfo?.name) {
+            dispatch(fetchHotelCandidates(id))
+        }
+    }, [candidateHotelId, candidateItems, candidateStatus, createResult, dispatch, hotel, hotelStatus, id])
+
     async function handleConfirm() {
         const resolved = placeId?.trim() ? placeId.trim() : null
-        const action   = await dispatch(submitConfirmMatch({ hotelId: id, placeId: resolved, thumbnail }))
+        const action = await dispatch(submitConfirmMatch({ hotelId: id, placeId: resolved, thumbnail }))
         if (submitConfirmMatch.fulfilled.match(action)) {
             navigate(`/certificate-application/${id}`, { replace: true })
         }
@@ -63,20 +89,20 @@ function ConfirmHotelMatchPage() {
     return (
         <>
             {/* ── Premium Hero Header ─────────────────────────────────────────── */}
-            <header className='ca-animate-up' style={{ 
-                position: 'relative', 
-                overflow: 'hidden', 
-                padding: '3rem 3.5rem', 
-                borderRadius: '1.5rem', 
-                background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)', 
-                color: '#fff', 
+            <header className='ca-animate-up' style={{
+                position: 'relative',
+                overflow: 'hidden',
+                padding: '3rem 3.5rem',
+                borderRadius: '1.5rem',
+                background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
+                color: '#fff',
                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
                 marginBottom: '1rem'
             }}>
                 {/* Background glowing effects */}
                 <div style={{ position: 'absolute', top: '-50%', left: '-20%', width: '100%', height: '200%', background: 'radial-gradient(circle, rgba(88,104,216,0.12) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: '-40%', right: '-10%', width: '80%', height: '150%', background: 'radial-gradient(circle, rgba(45,212,191,0.08) 0%, rgba(0,0,0,0) 60%)', pointerEvents: 'none' }} />
-                
+
                 {/* Abstract grid overlay */}
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none' }} />
 
@@ -121,6 +147,13 @@ function ConfirmHotelMatchPage() {
                 <div className='ca-banner ca-banner--error ca-animate-up'>
                     <AlertTriangle size={16} strokeWidth={2.2} className='ca-banner-icon' />
                     <p className='ca-banner-text'>{confirmError}</p>
+                </div>
+            ) : null}
+
+            {candidateError && candidates.length === 0 ? (
+                <div className='ca-banner ca-banner--error ca-animate-up'>
+                    <AlertTriangle size={16} strokeWidth={2.2} className='ca-banner-icon' />
+                    <p className='ca-banner-text'>{candidateError}</p>
                 </div>
             ) : null}
 
