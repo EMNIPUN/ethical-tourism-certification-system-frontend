@@ -41,25 +41,29 @@ async function apiMultipartRequest(path, { method = 'POST', formData, token } = 
 }
 
 function buildHotelsQuery({ page, limit, sort, fields, filters } = {}) {
-    const params = new URLSearchParams()
+    const rawParts = []
 
-    if (page) params.set('page', String(page))
-    if (limit) params.set('limit', String(limit))
-    if (sort) params.set('sort', sort)
-    if (fields) params.set('fields', fields)
+    if (page)   rawParts.push(`page=${encodeURIComponent(page)}`)
+    if (limit)  rawParts.push(`limit=${encodeURIComponent(limit)}`)
+    if (sort)   rawParts.push(`sort=${encodeURIComponent(sort)}`)
+    if (fields) rawParts.push(`fields=${encodeURIComponent(fields)}`)
 
     if (filters && typeof filters === 'object') {
         Object.entries(filters).forEach(([key, value]) => {
-            if (value === undefined || value === null || value === '') {
-                return
-            }
+            if (value === undefined || value === null || value === '') return
 
-            params.set(key, String(value))
+            if (key === 'nameSearch') {
+                // Backend resolves query params directly into Mongoose find().
+                // Use qs bracket syntax so Express parses it as { 'businessInfo.name': { $regex: ..., $options: 'i' } }
+                rawParts.push(`businessInfo.name[$regex]=${encodeURIComponent(value)}`)
+                rawParts.push(`businessInfo.name[$options]=i`)
+            } else {
+                rawParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            }
         })
     }
 
-    const queryString = params.toString()
-    return queryString ? `?${queryString}` : ''
+    return rawParts.length ? `?${rawParts.join('&')}` : ''
 }
 
 function buildHotelFormData({ hotelData, files } = {}) {

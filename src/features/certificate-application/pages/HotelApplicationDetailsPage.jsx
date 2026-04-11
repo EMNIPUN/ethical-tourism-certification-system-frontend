@@ -59,13 +59,24 @@ function HotelApplicationDetailsPage() {
     }
 
     const hasPlaceId = Boolean(hotel?.googleMapsData?.placeId)
+    const thumbnail  = hotel?.googleMapsData?.thumbnail
     const certLevel  = hotel?.scoring?.certificationLevel || 'None'
     const certStyle  = certColor(certLevel)
 
     return (
         <>
             {/* Hero header */}
-            <header className='ca-hero ca-animate-up'>
+            <header className='ca-hero ca-animate-up' style={{ padding: 0, overflow: 'hidden' }}>
+                {/* Cover photo banner */}
+                {thumbnail ? (
+                    <div style={{
+                        height: '11rem',
+                        background: `linear-gradient(to bottom, rgba(26,35,69,0.15), rgba(26,35,69,0.55)), url('${thumbnail}') center/cover no-repeat`,
+                        position: 'relative',
+                    }} />
+                ) : null}
+
+                <div style={{ padding: 'clamp(1.4rem, 3vw, 2rem)' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.25rem' }}>
                     <div>
                         {/* Breadcrumb */}
@@ -119,6 +130,7 @@ function HotelApplicationDetailsPage() {
                             {deleteStatus === 'loading' ? 'Deleting…' : 'Delete'}
                         </button>
                     </div>
+                </div>
                 </div>
             </header>
 

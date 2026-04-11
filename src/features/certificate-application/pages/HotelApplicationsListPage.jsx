@@ -55,56 +55,76 @@ function HotelCard({ hotel, index }) {
     const googleScore = hotel?.scoring?.googleReviewScore
     const dataScore   = hotel?.scoring?.dataCompletionScore
     const hasMatch    = Boolean(hotel?.googleMapsData?.placeId)
+    const thumbnail   = hotel?.googleMapsData?.thumbnail
 
     return (
         <Link
             to={`/certificate-application/${hotel?._id}`}
             className='ca-hotel-card ca-animate-up'
-            style={{ animationDelay: `${index * 45}ms` }}
+            style={{ animationDelay: `${index * 45}ms`, padding: 0, overflow: 'hidden' }}
         >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
-                    <div style={{
-                        width: '2.8rem', height: '2.8rem', borderRadius: '0.85rem', flexShrink: 0,
-                        background: 'linear-gradient(140deg, rgba(88,104,216,0.14), rgba(88,104,216,0.06))',
-                        border: '1px solid rgba(88,104,216,0.15)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5868d8',
-                    }}>
-                        <Building2 size={16} strokeWidth={2.5} />
-                    </div>
-                    <div style={{ minWidth: 0 }}>
+            {/* Cover image */}
+            <div style={{
+                height: '9rem',
+                background: thumbnail
+                    ? `url('${thumbnail}') center/cover no-repeat`
+                    : 'linear-gradient(135deg, rgba(88,104,216,0.1) 0%, rgba(88,104,216,0.04) 100%)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                {!thumbnail && (
+                    <Building2 size={32} strokeWidth={1.2} style={{ color: 'rgba(88,104,216,0.3)' }} />
+                )}
+                {/* Cert badge overlaid on image */}
+                <span
+                    className={certBadgeClass(certLevel)}
+                    style={{
+                        position: 'absolute',
+                        top: '0.65rem',
+                        right: '0.65rem',
+                        backdropFilter: 'blur(6px)',
+                        background: 'rgba(255,255,255,0.88)',
+                    }}
+                >
+                    <Award size={11} />{certLevel}
+                </span>
+            </div>
+
+            {/* Card body */}
+            <div style={{ padding: '1.1rem 1.25rem 1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', minWidth: 0 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
                         <p className='ca-hotel-name' style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {name}
                         </p>
                         <p className='ca-hotel-type'>{type}</p>
                     </div>
                 </div>
-                <span className={certBadgeClass(certLevel)} style={{ flexShrink: 0 }}>
-                    <Award size={11} />{certLevel}
-                </span>
-            </div>
 
-            <div style={{ height: '1px', background: 'rgba(207,216,230,0.55)', margin: '1rem 0' }} />
+                <div style={{ height: '1px', background: 'rgba(207,216,230,0.55)', margin: '0.85rem 0' }} />
 
-            <div className='ca-hotel-meta'>
-                {typeof googleScore === 'number' ? (
-                    <span className='ca-meta-chip'><Star size={11} strokeWidth={2.5} />{googleScore.toFixed(1)} Google</span>
-                ) : null}
-                {typeof dataScore === 'number' ? (
-                    <span className='ca-meta-chip'><TrendingUp size={11} strokeWidth={2.5} />{Math.round(dataScore)}% complete</span>
-                ) : null}
-                {hasMatch ? (
-                    <span className='ca-meta-chip' style={{ color: '#1f6c44', borderColor: 'rgba(31,108,68,0.25)', background: 'rgba(31,108,68,0.07)' }}>
-                        <Globe size={11} strokeWidth={2.5} />Match confirmed
+                <div className='ca-hotel-meta'>
+                    {typeof googleScore === 'number' ? (
+                        <span className='ca-meta-chip'><Star size={11} strokeWidth={2.5} />{googleScore.toFixed(1)} Google</span>
+                    ) : null}
+                    {typeof dataScore === 'number' ? (
+                        <span className='ca-meta-chip'><TrendingUp size={11} strokeWidth={2.5} />{Math.round(dataScore)}% complete</span>
+                    ) : null}
+                    {hasMatch ? (
+                        <span className='ca-meta-chip' style={{ color: '#1f6c44', borderColor: 'rgba(31,108,68,0.25)', background: 'rgba(31,108,68,0.07)' }}>
+                            <Globe size={11} strokeWidth={2.5} />Match confirmed
+                        </span>
+                    ) : (
+                        <span className='ca-meta-chip' style={{ color: '#92620a', borderColor: 'rgba(180,120,20,0.25)', background: 'rgba(180,120,20,0.07)' }}>
+                            Match pending
+                        </span>
+                    )}
+                    <span className='ca-hotel-cta'>
+                        View <ArrowRight size={14} strokeWidth={2.5} />
                     </span>
-                ) : (
-                    <span className='ca-meta-chip' style={{ color: '#92620a', borderColor: 'rgba(180,120,20,0.25)', background: 'rgba(180,120,20,0.07)' }}>
-                        Match pending
-                    </span>
-                )}
-                <span className='ca-hotel-cta'>
-                    View <ArrowRight size={14} strokeWidth={2.5} />
-                </span>
+                </div>
             </div>
         </Link>
     )
@@ -231,7 +251,12 @@ function HotelApplicationsListPage() {
         const cert  = overrides.cert     ?? certFilter
 
         const filters = {}
-        if (q)    filters.search                       = q
+        if (q) {
+            // Backend passes query params directly to Mongoose find().
+            // Use regex filter syntax it supports: businessInfo.name[$regex]=...
+            filters['businessInfo.name[$regex]'] = q
+            filters['businessInfo.name[$options]'] = 'i'
+        }
         if (type) filters['businessInfo.businessType'] = type
         if (cert) filters['scoring.certificationLevel'] = cert
 
