@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminLayout from '../pages/AdminLayout'
 import AdminDashboard from '../pages/AdminDashboard'
+import InitializeAudit from '../pages/InitializeAudit'
 import CertificateManagementRoutes from '../../certificate-management/routes/CertificateManagementRoutes'
+import AuditDashboard from '../../audit/pages/AuditDashboard'
 
 function PlaceholderPage({ title, description }) {
   return (
@@ -19,6 +21,7 @@ function AdminRoutes() {
     <Routes>
       <Route element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
+        <Route path='audit-initialize' element={<InitializeAudit />} />
         <Route
           path='certificate-management/*'
           element={<CertificateManagementRoutes />}
@@ -34,12 +37,7 @@ function AdminRoutes() {
         />
         <Route
           path='audit-management'
-          element={
-            <PlaceholderPage
-              title='Audit Management'
-              description='Track audit schedules, auditor assignments, findings, and compliance follow-up actions.'
-            />
-          }
+          element={<AuditDashboard />}
         />
         <Route
           path='hotel-management'

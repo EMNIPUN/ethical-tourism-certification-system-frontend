@@ -1,10 +1,15 @@
 import { Route, Routes } from 'react-router-dom'
-import AuditExample from '../pages/AuditExample'
+import AuditLayout from '../pages/AuditLayout'
+import AuditDashboard from '../pages/AuditDashboard'
+import AuditDetails from '../pages/AuditDetails'
 
 function AuditRoutes() {
 	return (
 		<Routes>
-			<Route index element={<AuditExample />} />
+			<Route element={<AuditLayout />}>
+				<Route index element={<AuditDashboard />} />
+				<Route path=":id" element={<AuditDetails />} />
+			</Route>
 		</Routes>
 	)
 }
