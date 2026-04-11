@@ -30,29 +30,29 @@ function upgradeGoogleImageUrl(url, width = 1200) {
     if (!url) return url
     return url
         .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
-        .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+        .replace(/=s\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
 }
 
 function certColor(level) {
     switch ((level || '').toLowerCase()) {
-        case 'bronze':   return { bg: 'rgba(180,120,50,0.1)',  text: '#7a4d12', border: 'rgba(180,120,50,0.25)' }
-        case 'silver':   return { bg: 'rgba(100,120,150,0.1)', text: '#3d5068', border: 'rgba(100,120,150,0.25)' }
-        case 'gold':     return { bg: 'rgba(200,165,20,0.1)',  text: '#7a6108', border: 'rgba(200,165,20,0.25)' }
-        case 'platinum': return { bg: 'rgba(88,104,216,0.1)',  text: '#3a46a8', border: 'rgba(88,104,216,0.25)' }
-        default:         return { bg: 'rgba(140,152,175,0.1)', text: '#5d6a82', border: 'rgba(140,152,175,0.25)' }
+        case 'bronze': return { bg: 'rgba(180,120,50,0.1)', text: '#7a4d12', border: 'rgba(180,120,50,0.25)' }
+        case 'silver': return { bg: 'rgba(100,120,150,0.1)', text: '#3d5068', border: 'rgba(100,120,150,0.25)' }
+        case 'gold': return { bg: 'rgba(200,165,20,0.1)', text: '#7a6108', border: 'rgba(200,165,20,0.25)' }
+        case 'platinum': return { bg: 'rgba(88,104,216,0.1)', text: '#3a46a8', border: 'rgba(88,104,216,0.25)' }
+        default: return { bg: 'rgba(140,152,175,0.1)', text: '#5d6a82', border: 'rgba(140,152,175,0.25)' }
     }
 }
 
 function HotelApplicationDetailsPage() {
-    const { id }     = useParams()
-    const dispatch   = useDispatch()
-    const navigate   = useNavigate()
+    const { id } = useParams()
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
-    const hotel       = useSelector(selectHotelDetails)
-    const status      = useSelector(selectHotelDetailsStatus)
-    const error       = useSelector(selectHotelDetailsError)
+    const hotel = useSelector(selectHotelDetails)
+    const status = useSelector(selectHotelDetailsStatus)
+    const error = useSelector(selectHotelDetailsError)
     const deleteStatus = useSelector(selectDeleteStatus)
-    const deleteError  = useSelector(selectDeleteError)
+    const deleteError = useSelector(selectDeleteError)
 
     const loadHotel = useCallback(() => { dispatch(fetchHotel(id)) }, [dispatch, id])
     useEffect(() => { loadHotel() }, [loadHotel])
@@ -67,9 +67,9 @@ function HotelApplicationDetailsPage() {
     }
 
     const hasPlaceId = Boolean(hotel?.googleMapsData?.placeId)
-    const thumbnail  = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 1200)
-    const certLevel  = hotel?.scoring?.certificationLevel || 'None'
-    const certStyle  = certColor(certLevel)
+    const thumbnail = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 1200)
+    const certLevel = hotel?.scoring?.certificationLevel || 'None'
+    const certStyle = certColor(certLevel)
 
     return (
         <>
@@ -86,31 +86,31 @@ function HotelApplicationDetailsPage() {
                     overflow: 'hidden',
                 }}>
                     {thumbnail ? (
-                        <div style={{ 
-                            position: 'absolute', 
-                            inset: 0, 
-                            background: 'linear-gradient(180deg, rgba(30,42,80,0.4) 0%, rgba(30,42,80,0.1) 40%, rgba(240,244,252,1) 100%)' 
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'linear-gradient(180deg, rgba(30,42,80,0.4) 0%, rgba(30,42,80,0.1) 40%, rgba(240,244,252,1) 100%)'
                         }} />
                     ) : null}
                 </div>
 
                 {/* Overlapping Glass Card */}
-                <div style={{ 
-                    padding: '0 clamp(1.5rem, 3vw, 2rem)', 
-                    position: 'relative', 
-                    zIndex: 1, 
+                <div style={{
+                    padding: '0 clamp(1.5rem, 3vw, 2rem)',
+                    position: 'relative',
+                    zIndex: 1,
                     marginTop: thumbnail ? '-6.5rem' : '-4rem',
                     marginBottom: '1rem',
                 }}>
-                    <div style={{ 
-                        background: 'rgba(255,255,255,0.88)', 
-                        backdropFilter: 'blur(24px) saturate(200%)', 
+                    <div style={{
+                        background: 'rgba(255,255,255,0.88)',
+                        backdropFilter: 'blur(24px) saturate(200%)',
                         WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-                        borderRadius: '1.5rem', 
-                        padding: '2rem 2.25rem', 
+                        borderRadius: '1.5rem',
+                        padding: '2rem 2.25rem',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.8) inset',
                         border: '1px solid rgba(207,216,230,0.5)',
-                        display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' 
+                        display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem'
                     }}>
                         <div>
                             {/* Breadcrumb */}
@@ -309,7 +309,7 @@ function HotelApplicationDetailsPage() {
                                         </div>
                                         {hasPlaceId ? (
                                             <Link
-                                                to='/certificate-management'
+                                                to='/certificate-application/certificates'
                                                 className='ca-btn-secondary'
                                                 style={{ fontSize: '0.78rem', height: '2.4rem', flexShrink: 0 }}
                                             >
@@ -362,10 +362,10 @@ function HotelApplicationDetailsPage() {
                                         </div>
                                         <div className='ca-contact-value' style={{ marginTop: '0.4rem' }}>
                                             {hotel?.businessInfo?.contact?.website ? (
-                                                <a 
-                                                    href={hotel.businessInfo.contact.website.startsWith('http') ? hotel.businessInfo.contact.website : `https://${hotel.businessInfo.contact.website}`} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
+                                                <a
+                                                    href={hotel.businessInfo.contact.website.startsWith('http') ? hotel.businessInfo.contact.website : `https://${hotel.businessInfo.contact.website}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
                                                     className="ca-btn-secondary"
                                                     style={{ display: 'inline-flex', padding: '0 0.8rem', height: '2.1rem', fontSize: '0.75rem', gap: '0.3rem', width: 'fit-content', textDecoration: 'none' }}
                                                 >
