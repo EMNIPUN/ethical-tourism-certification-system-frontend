@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Building2, MapPin, Mail, BadgeCheck } from 'lucide-react'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -56,7 +57,12 @@ function AllHotelsPage() {
       <div className='flex min-h-screen w-full flex-col gap-5'>
         <SearchNavbar user={user} />
 
-        <section className='w-full px-4 pt-4 sm:px-6 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.38 }}
+          className='w-full px-4 pt-4 sm:px-6 lg:px-8'
+        >
           <div className='glass-panel rounded-3xl border border-white/70 bg-white/84 p-6'>
             <p className='text-xs font-semibold uppercase tracking-[0.15em] text-[#7b88a0]'>Directory</p>
             <h1 className='mt-2 text-3xl font-semibold text-[#17253f] sm:text-4xl'>All Certified Hotels</h1>
@@ -65,7 +71,7 @@ function AllHotelsPage() {
               trust indicators, and traveler feedback.
             </p>
           </div>
-        </section>
+        </motion.section>
 
         <section className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
           {contactsStatus === 'loading' ? (
@@ -83,8 +89,12 @@ function AllHotelsPage() {
           {contactsStatus === 'succeeded' ? (
             <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
               {sortedHotels.map((hotel) => (
-                <article
+                <motion.article
                   key={hotel.hotelId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  whileHover={{ y: -2 }}
                   className='glass-panel rounded-3xl border border-white/70 bg-white/88 p-5 shadow-[0_16px_40px_-34px_rgba(27,40,80,0.4)]'
                 >
                   <div className='flex items-start justify-between gap-3'>
@@ -119,7 +129,7 @@ function AllHotelsPage() {
                     <Building2 size={15} />
                     View Details
                   </button>
-                </article>
+                </motion.article>
               ))}
             </div>
           ) : null}
