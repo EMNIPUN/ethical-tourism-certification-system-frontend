@@ -189,8 +189,8 @@ function AdminLayout() {
             </div>
           </header>
 
-          <div className='app-scrollbar flex-1 overflow-y-auto p-8'>
-            <div className='mx-auto max-w-[1400px]'>
+          <div className='app-scrollbar flex-1 overflow-y-auto px-4 py-8'>
+            <div>
               <Outlet />
             </div>
           </div>
