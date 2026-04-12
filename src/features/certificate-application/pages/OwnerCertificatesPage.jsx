@@ -2,6 +2,8 @@ import {
     Award,
     Calendar,
     CheckCircle2,
+    ChevronDown,
+    ChevronRight,
     Clock,
     Copy,
     ExternalLink,
@@ -375,6 +377,8 @@ function SkeletonRows() {
 function PendingReviewSection({ items, status, error }) {
     if (status === 'idle') return null
 
+    const [collapsed, setCollapsed] = useState(true)
+
     return (
         <section className='ca-animate-up-1' style={{
             background: '#ffffff',
@@ -391,6 +395,7 @@ function PendingReviewSection({ items, status, error }) {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.75rem',
+                cursor: 'pointer',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
                     <div style={{ width: '2rem', height: '2rem', borderRadius: '0.55rem', background: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -401,73 +406,101 @@ function PendingReviewSection({ items, status, error }) {
                         <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>Hotels that passed AI review and are awaiting audit or issuance</p>
                     </div>
                 </div>
-                <span style={{ padding: '0.25rem 0.65rem', borderRadius: '999px', background: 'rgba(245,158,11,0.10)', color: '#b45309', fontSize: '0.7rem', fontWeight: 800 }}>
-                    {status === 'loading' ? 'Loading…' : `${items.length} hotel${items.length !== 1 ? 's' : ''}`}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ padding: '0.25rem 0.65rem', borderRadius: '999px', background: 'rgba(245,158,11,0.10)', color: '#b45309', fontSize: '0.7rem', fontWeight: 800 }}>
+                        {status === 'loading' ? 'Loading…' : `${items.length} hotel${items.length !== 1 ? 's' : ''}`}
+                    </span>
+                    <button
+                        type='button'
+                        onClick={() => setCollapsed((v) => !v)}
+                        aria-expanded={!collapsed}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '2rem',
+                            height: '2rem',
+                            borderRadius: '0.65rem',
+                            border: '1px solid rgba(226,232,240,0.9)',
+                            background: '#fff',
+                            color: '#475569',
+                            cursor: 'pointer',
+                        }}
+                        title={collapsed ? 'Expand' : 'Collapse'}
+                    >
+                        {collapsed ? (
+                            <ChevronRight size={16} strokeWidth={2.7} />
+                        ) : (
+                            <ChevronDown size={16} strokeWidth={2.7} />
+                        )}
+                    </button>
+                </div>
             </div>
 
-            {status === 'failed' ? (
-                <div style={{ padding: '1rem 1.25rem', color: '#b91c1c', fontWeight: 700, fontSize: '0.85rem' }}>
-                    {error || 'Failed to load pending review hotels'}
-                </div>
-            ) : (
-                <div style={{ padding: '0.85rem 1.25rem' }}>
-                    {status === 'loading' ? (
-                        <div className='ca-skeleton' style={{ height: '2.4rem', width: '100%', borderRadius: '0.75rem' }} />
-                    ) : items.length === 0 ? (
-                        <p style={{ margin: 0, color: '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
-                            No pending review hotels right now.
-                        </p>
-                    ) : (
-                        <div style={{ display: 'grid', gap: '0.6rem' }}>
-                            {items.map((row) => {
-                                const hotel = row?.hotel
-                                const name = hotel?.businessInfo?.name || 'Untitled Property'
-                                const type = hotel?.businessInfo?.businessType || 'Hotel'
-                                const id = row?.hotelId || hotel?._id || row?.hotelRequestId
-                                const auditStatus = String(row?.auditScore?.status || 'pending')
-                                const stage = String(row?.stage || '')
+            {!collapsed ? (
+                status === 'failed' ? (
+                    <div style={{ padding: '1rem 1.25rem', color: '#b91c1c', fontWeight: 700, fontSize: '0.85rem' }}>
+                        {error || 'Failed to load pending review hotels'}
+                    </div>
+                ) : (
+                    <div style={{ padding: '0.85rem 1.25rem' }}>
+                        {status === 'loading' ? (
+                            <div className='ca-skeleton' style={{ height: '2.4rem', width: '100%', borderRadius: '0.75rem' }} />
+                        ) : items.length === 0 ? (
+                            <p style={{ margin: 0, color: '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
+                                No pending review hotels right now.
+                            </p>
+                        ) : (
+                            <div style={{ display: 'grid', gap: '0.6rem' }}>
+                                {items.map((row) => {
+                                    const hotel = row?.hotel
+                                    const name = hotel?.businessInfo?.name || 'Untitled Property'
+                                    const type = hotel?.businessInfo?.businessType || 'Hotel'
+                                    const id = row?.hotelId || hotel?._id || row?.hotelRequestId
+                                    const auditStatus = String(row?.auditScore?.status || 'pending')
+                                    const stage = String(row?.stage || '')
 
-                                return (
-                                    <div key={String(id)} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        gap: '1rem',
-                                        padding: '0.85rem 0.95rem',
-                                        borderRadius: '0.9rem',
-                                        border: '1px solid rgba(226,232,240,0.8)',
-                                        background: 'linear-gradient(135deg, rgba(255,251,235,0.65) 0%, rgba(255,255,255,1) 70%)',
-                                    }}>
-                                        <div style={{ minWidth: 0 }}>
-                                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</p>
-                                            <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
-                                                {type} • AI: Passed • Audit: {auditStatus}{stage === 'PENDING_CERTIFICATE' ? ' • Pending certificate' : ''}
-                                            </p>
-                                        </div>
-                                        <Link to={`/certificate-application/${encodeURIComponent(hotel?._id || row?.hotelId)}`} style={{
-                                            display: 'inline-flex',
+                                    return (
+                                        <div key={String(id)} style={{
+                                            display: 'flex',
                                             alignItems: 'center',
-                                            gap: '0.4rem',
-                                            padding: '0.55rem 0.85rem',
-                                            borderRadius: '0.7rem',
-                                            background: '#fff',
-                                            border: '1px solid rgba(226,232,240,0.9)',
-                                            textDecoration: 'none',
-                                            fontSize: '0.78rem',
-                                            fontWeight: 800,
-                                            color: '#475569',
-                                            whiteSpace: 'nowrap',
+                                            justifyContent: 'space-between',
+                                            gap: '1rem',
+                                            padding: '0.85rem 0.95rem',
+                                            borderRadius: '0.9rem',
+                                            border: '1px solid rgba(226,232,240,0.8)',
+                                            background: 'linear-gradient(135deg, rgba(255,251,235,0.65) 0%, rgba(255,255,255,1) 70%)',
                                         }}>
-                                            <Eye size={14} strokeWidth={2.5} /> View
-                                        </Link>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    )}
-                </div>
-            )}
+                                            <div style={{ minWidth: 0 }}>
+                                                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</p>
+                                                <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
+                                                    {type} • AI: Passed • Audit: {auditStatus}{stage === 'PENDING_CERTIFICATE' ? ' • Pending certificate' : ''}
+                                                </p>
+                                            </div>
+                                            <Link to={`/certificate-application/${encodeURIComponent(hotel?._id || row?.hotelId)}`} style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.4rem',
+                                                padding: '0.55rem 0.85rem',
+                                                borderRadius: '0.7rem',
+                                                background: '#fff',
+                                                border: '1px solid rgba(226,232,240,0.9)',
+                                                textDecoration: 'none',
+                                                fontSize: '0.78rem',
+                                                fontWeight: 800,
+                                                color: '#475569',
+                                                whiteSpace: 'nowrap',
+                                            }}>
+                                                <Eye size={14} strokeWidth={2.5} /> View
+                                            </Link>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )
+            ) : null}
         </section>
     )
 }
