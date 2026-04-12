@@ -12,7 +12,7 @@ import {
     TrendingUp,
     Star,
 } from 'lucide-react'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AsyncState from '../components/AsyncState'
@@ -28,7 +28,12 @@ import { fetchHotel, submitHotelDelete } from '../store/certificateApplicationSl
 /** Upgrade Google CDN thumbnail to higher resolution by replacing size params */
 function upgradeGoogleImageUrl(url, width = 1200) {
     if (!url) return url
-    return url
+    const normalized = String(url)
+        .trim()
+        .replace(/^http:\/\//i, 'https://')
+        .replace(/^\/\//, 'https://')
+
+    return normalized
         .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
         .replace(/=s\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
 }
@@ -67,7 +72,11 @@ function HotelApplicationDetailsPage() {
     }
 
     const hasPlaceId = Boolean(hotel?.googleMapsData?.placeId)
-    const thumbnail = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 1200)
+    const [imageFailed, setImageFailed] = useState(false)
+    const thumbnail = useMemo(() => {
+        if (imageFailed) return ''
+        return upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 1200)
+    }, [hotel?.googleMapsData?.thumbnail, imageFailed])
     const certLevel = hotel?.scoring?.certificationLevel || 'None'
     const certStyle = certColor(certLevel)
 
@@ -78,13 +87,28 @@ function HotelApplicationDetailsPage() {
                 {/* Cover photo banner */}
                 <div style={{
                     height: thumbnail ? '18rem' : '8rem',
-                    background: thumbnail
-                        ? `url('${thumbnail}') center/cover no-repeat`
-                        : 'linear-gradient(135deg, rgba(88,104,216,0.12), rgba(88,104,216,0.03))',
+                    background: 'linear-gradient(135deg, rgba(88,104,216,0.12), rgba(88,104,216,0.03))',
                     position: 'relative',
                     borderRadius: '1.75rem',
                     overflow: 'hidden',
                 }}>
+                    {thumbnail ? (
+                        <img
+                            src={thumbnail}
+                            alt=''
+                            loading='lazy'
+                            referrerPolicy='no-referrer'
+                            crossOrigin='anonymous'
+                            onError={() => setImageFailed(true)}
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                            }}
+                        />
+                    ) : null}
                     {thumbnail ? (
                         <div style={{
                             position: 'absolute',

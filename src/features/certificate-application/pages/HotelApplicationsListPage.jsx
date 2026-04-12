@@ -12,7 +12,7 @@ import {
     TrendingUp,
     X,
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import AsyncState from '../components/AsyncState'
@@ -28,7 +28,12 @@ import { fetchHotels, setHotelsQuery } from '../store/certificateApplicationSlic
 /** Upgrade Google CDN thumbnail to higher resolution by replacing size params */
 function upgradeGoogleImageUrl(url, width = 600) {
     if (!url) return url
-    return url
+    const normalized = String(url)
+        .trim()
+        .replace(/^http:\/\//i, 'https://')
+        .replace(/^\/\//, 'https://')
+
+    return normalized
         .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
         .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
 }
@@ -64,7 +69,11 @@ function HotelCard({ hotel, index }) {
     const googleScore = hotel?.scoring?.googleReviewScore
     const dataScore   = hotel?.scoring?.dataCompletionScore
     const hasMatch    = Boolean(hotel?.googleMapsData?.placeId)
-    const thumbnail   = upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 600)
+    const [imageFailed, setImageFailed] = useState(false)
+    const thumbnail = useMemo(() => {
+        if (imageFailed) return ''
+        return upgradeGoogleImageUrl(hotel?.googleMapsData?.thumbnail, 600)
+    }, [hotel?.googleMapsData?.thumbnail, imageFailed])
     
     const badgeColors = getCertColors(certLevel)
 
@@ -96,12 +105,27 @@ function HotelCard({ hotel, index }) {
             {/* Cover image */}
             <div style={{
                 height: '11rem',
-                background: thumbnail
-                    ? `url('${thumbnail}') center/cover no-repeat`
-                    : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+                background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
+                {thumbnail ? (
+                    <img
+                        src={thumbnail}
+                        alt=''
+                        loading='lazy'
+                        referrerPolicy='no-referrer'
+                        crossOrigin='anonymous'
+                        onError={() => setImageFailed(true)}
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                    />
+                ) : null}
                 {thumbnail && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%)' }} />}
                 {!thumbnail && <Building2 size={36} strokeWidth={1} style={{ color: '#94a3b8' }} />}
                 
