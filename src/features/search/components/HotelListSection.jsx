@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowRight, BadgeCheck, Filter, Grid2x2, List, MapPin, Sparkles } from 'lucide-react'
 
 const MOCK_HOTEL_IMAGES = [
@@ -129,8 +130,13 @@ function HotelListSection({
   const quickDistricts = QUICK_DISTRICTS.filter((district) => availableDistricts.includes(district))
 
   return (
-    <div>
-      <div className='flex flex-col gap-3 rounded-3xl border border-[#dbe4f1] bg-[linear-gradient(145deg,#ffffff,#f7faff)] p-4 shadow-[0_18px_35px_-30px_rgba(20,31,54,0.45)] lg:flex-row lg:items-center lg:justify-between'>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04, duration: 0.35 }}
+        className='flex flex-col gap-3 rounded-3xl border border-[#dbe4f1] bg-[linear-gradient(145deg,#ffffff,#f7faff)] p-4 shadow-[0_18px_35px_-30px_rgba(20,31,54,0.45)] lg:flex-row lg:items-center lg:justify-between'
+      >
         <div>
           <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7d8ca7]'>Hotel intelligence desk</p>
           <h2 className='mt-1 text-xl font-semibold text-[#17253f]'>
@@ -165,7 +171,7 @@ function HotelListSection({
             AI ranking
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {activeError ? <div className='notice-error mt-4'>{activeError}</div> : null}
 
@@ -275,7 +281,8 @@ function HotelListSection({
           </div>
         ) : null}
 
-        <div
+        <motion.div
+          layout
           className={[
             'mt-4 grid gap-3',
             viewMode === 'grid' ? 'xl:grid-cols-2' : 'grid-cols-1',
@@ -317,8 +324,14 @@ function HotelListSection({
             const trustProgress = Math.max(0, Math.min(100, Number(trustScore || 0)))
 
             return (
-              <button
+              <motion.button
                 key={String(hotelId)}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.995 }}
                 type='button'
                 onClick={() => onSelectHotel(hotelId, activeTab)}
                 className={[
@@ -397,12 +410,12 @@ function HotelListSection({
                     </div>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             )
           })}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
