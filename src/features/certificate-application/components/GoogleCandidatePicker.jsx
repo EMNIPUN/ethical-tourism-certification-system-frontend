@@ -1,4 +1,5 @@
 import { CheckCircle2, MapPin, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 /**
  * Google's image CDN supports arbitrary resizing via URL params.
@@ -6,10 +7,14 @@ import { CheckCircle2, MapPin, Search } from 'lucide-react'
  */
 function upgradeGoogleImageUrl(url, width = 800) {
     if (!url) return url
+    const normalized = String(url)
+        .trim()
+        .replace(/^http:\/\//i, 'https://')
+        .replace(/^\/\//, 'https://')
     // Replace =wNNN-hNNN-... or =sNNN patterns
-    return url
+    return normalized
         .replace(/=w\d+-h\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
-        .replace(/=s\d+(-[^=]*)?$/,      `=w${width}-h${Math.round(width * 0.66)}-k-no`)
+        .replace(/=s\d+(-[^=]*)?$/, `=w${width}-h${Math.round(width * 0.66)}-k-no`)
 }
 
 function confidenceClass(conf) {
@@ -21,10 +26,14 @@ function confidenceClass(conf) {
 function CandidateCard({ candidate, selected, onSelect }) {
     // Backend returns confidence as 0-100; normalize to 0-1 for display math
     const rawConf = candidate?.confidence
-    const conf    = typeof rawConf === 'number'
+    const conf = typeof rawConf === 'number'
         ? (rawConf > 1 ? rawConf / 100 : rawConf)
         : null
-    const thumbnail = upgradeGoogleImageUrl(candidate?.thumbnail, 800)
+    const [imageFailed, setImageFailed] = useState(false)
+    const thumbnail = useMemo(() => {
+        if (imageFailed) return ''
+        return upgradeGoogleImageUrl(candidate?.thumbnail, 800)
+    }, [candidate?.thumbnail, imageFailed])
 
     return (
         <button
@@ -36,13 +45,28 @@ function CandidateCard({ candidate, selected, onSelect }) {
             {/* Thumbnail cover */}
             <div style={{
                 height: '7rem',
-                background: thumbnail
-                    ? `url('${thumbnail}') center/cover no-repeat`
-                    : 'linear-gradient(135deg, rgba(88,104,216,0.08) 0%, rgba(88,104,216,0.03) 100%)',
+                background: 'linear-gradient(135deg, rgba(88,104,216,0.08) 0%, rgba(88,104,216,0.03) 100%)',
                 position: 'relative',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderBottom: '1px solid rgba(207,216,230,0.6)',
             }}>
+                {thumbnail ? (
+                    <img
+                        src={thumbnail}
+                        alt=''
+                        loading='lazy'
+                        referrerPolicy='no-referrer'
+                        crossOrigin='anonymous'
+                        onError={() => setImageFailed(true)}
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                    />
+                ) : null}
                 {!thumbnail && <MapPin size={22} strokeWidth={1.4} style={{ color: 'rgba(88,104,216,0.25)' }} />}
 
                 {/* Confidence badge on image */}
@@ -52,7 +76,7 @@ function CandidateCard({ candidate, selected, onSelect }) {
                         backdropFilter: 'blur(6px)',
                         background: conf >= 0.75
                             ? 'rgba(31,108,68,0.88)' : conf >= 0.45
-                            ? 'rgba(146,98,10,0.88)' : 'rgba(160,64,16,0.88)',
+                                ? 'rgba(146,98,10,0.88)' : 'rgba(160,64,16,0.88)',
                         color: '#fff',
                         borderRadius: '999px',
                         padding: '0.2rem 0.6rem',
