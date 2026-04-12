@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Compass, Globe2, ShieldCheck, Sparkles } from 'lucide-react'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -56,7 +57,12 @@ function DiscoveryPage() {
       <div className='flex min-h-screen w-full flex-col gap-5'>
         <SearchNavbar user={user} />
 
-        <section className='w-full px-4 pt-4 sm:px-6 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.38 }}
+          className='w-full px-4 pt-4 sm:px-6 lg:px-8'
+        >
           <div className='glass-panel rounded-3xl border border-white/70 bg-white/84 p-6'>
             <p className='text-xs font-semibold uppercase tracking-[0.15em] text-[#7b88a0]'>Discovery</p>
             <h1 className='mt-2 text-3xl font-semibold text-[#17253f] sm:text-4xl'>Explore Ethical Destinations</h1>
@@ -80,7 +86,7 @@ function DiscoveryPage() {
               </article>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         <section className='w-full px-4 pb-8 sm:px-6 lg:px-8'>
           <section className='mb-4 rounded-3xl border border-white/70 bg-white/88 p-5'>
@@ -99,8 +105,12 @@ function DiscoveryPage() {
 
             <div className='mt-4 grid gap-3 md:grid-cols-3'>
               {DISCOVERY_IMAGES.map((image) => (
-                <article
+                <motion.article
                   key={image.url}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.24 }}
+                  whileHover={{ y: -2 }}
                   className='group overflow-hidden rounded-2xl border border-[#d6dff0] bg-[#f9fbff]'
                 >
                   <div className='relative h-48 overflow-hidden'>
@@ -116,7 +126,7 @@ function DiscoveryPage() {
                     <h4 className='text-base font-semibold text-[#1d2b49]'>{image.title}</h4>
                     <p className='mt-1 text-sm text-[#63738e]'>{image.subtitle}</p>
                   </div>
-                </article>
+                </motion.article>
               ))}
             </div>
           </section>

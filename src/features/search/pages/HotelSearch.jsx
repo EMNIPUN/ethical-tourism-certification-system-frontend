@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Sparkles, Zap } from 'lucide-react'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -133,7 +134,12 @@ function HotelSearch() {
           isRefreshingRecommendations={isRecommendationsLoading}
         />
 
-        <section className='glass-panel w-full rounded-none border-x-0 border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:px-6 sm:py-5 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.35 }}
+          className='glass-panel w-full rounded-none border-x-0 border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:px-6 sm:py-5 lg:px-8'
+        >
           <div className='mt-5'>
             <HotelListSection
               activeTab={activeTab}
@@ -152,9 +158,14 @@ function HotelSearch() {
               formatEmail={formatEmail}
             />
           </div>
-        </section>
+        </motion.section>
 
-        <section className='w-full px-4 pb-6 sm:px-6 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.35 }}
+          className='w-full px-4 pb-6 sm:px-6 lg:px-8'
+        >
           <div className='grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.68fr)]'>
           <article className='glass-panel rounded-3xl border border-white/70 bg-white/80 p-5'>
             <div className='flex items-start gap-3'>
@@ -187,7 +198,7 @@ function HotelSearch() {
             </div>
           </article>
           </div>
-        </section>
+        </motion.section>
       </div>
     </main>
   )
