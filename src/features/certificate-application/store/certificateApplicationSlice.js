@@ -7,6 +7,7 @@ import {
   getHotelById,
   listHotels,
   listOwnerCertificates,
+  listOwnerPendingReviewHotels,
   updateHotelApplication,
 } from '../api/certificateApplicationApi'
 
@@ -86,6 +87,20 @@ export const fetchOwnerCertificates = createAsyncThunk(
       return list
     } catch (error) {
       return rejectWithValue(extractErrorMessage(error, 'Failed to load certificates'))
+    }
+  },
+)
+
+export const fetchOwnerPendingReviewHotels = createAsyncThunk(
+  'certificateApplication/fetchOwnerPendingReviewHotels',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const token = requireAuthToken(getState)
+      const response = await listOwnerPendingReviewHotels(token)
+      const list = Array.isArray(response?.data) ? response.data : []
+      return list
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Failed to load pending review hotels'))
     }
   },
 )
@@ -194,6 +209,11 @@ const initialState = {
     status: 'idle',
     error: null,
   },
+  ownerPendingReview: {
+    items: [],
+    status: 'idle',
+    error: null,
+  },
   create: {
     status: 'idle',
     error: null,
@@ -289,6 +309,18 @@ const certificateApplicationSlice = createSlice({
       .addCase(fetchOwnerCertificates.rejected, (state, action) => {
         state.ownerCertificates.status = 'failed'
         state.ownerCertificates.error = action.payload || 'Failed to load certificates'
+      })
+      .addCase(fetchOwnerPendingReviewHotels.pending, (state) => {
+        state.ownerPendingReview.status = 'loading'
+        state.ownerPendingReview.error = null
+      })
+      .addCase(fetchOwnerPendingReviewHotels.fulfilled, (state, action) => {
+        state.ownerPendingReview.status = 'succeeded'
+        state.ownerPendingReview.items = action.payload
+      })
+      .addCase(fetchOwnerPendingReviewHotels.rejected, (state, action) => {
+        state.ownerPendingReview.status = 'failed'
+        state.ownerPendingReview.error = action.payload || 'Failed to load pending review hotels'
       })
       .addCase(fetchHotelCandidates.pending, (state) => {
         state.candidateSearch.status = 'loading'
