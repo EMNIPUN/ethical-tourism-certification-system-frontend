@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -206,7 +207,12 @@ function HotelDetails() {
       <div className='flex min-h-screen w-full flex-col gap-5'>
         <SearchNavbar user={user} />
 
-        <section className='w-full px-4 pt-4 sm:px-6 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32 }}
+          className='w-full px-4 pt-4 sm:px-6 lg:px-8'
+        >
           <button
             type='button'
             onClick={() => goToSearch('discover')}
@@ -215,9 +221,14 @@ function HotelDetails() {
             <ArrowLeft size={15} />
             Back to hotel list
           </button>
-        </section>
+        </motion.section>
 
-        <section className='glass-panel w-full rounded-none border-x-0 border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:px-6 sm:py-5 lg:px-8'>
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06, duration: 0.34 }}
+          className='glass-panel w-full rounded-none border-x-0 border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_45px_-36px_rgba(18,29,48,0.45)] sm:px-6 sm:py-5 lg:px-8'
+        >
           <HotelDetailsPanel
             selectedTitle={selectedTitle}
             selectedHotelStatus={selectedHotelStatus}
@@ -246,7 +257,7 @@ function HotelDetails() {
             beginEditFeedback={beginEditFeedback}
             handleDeleteFeedback={handleDeleteFeedback}
           />
-        </section>
+        </motion.section>
       </div>
     </main>
   )

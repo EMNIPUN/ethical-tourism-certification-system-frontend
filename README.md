@@ -1,152 +1,252 @@
-# Frontend Guide (React + Vite)
+# Ethical Tourism Certification System Frontend
 
-This frontend uses a **feature-first architecture** so team members can work in parallel with fewer merge conflicts.
+Frontend application for the Ethical Tourism Certification platform, built with React, Vite, Tailwind CSS, and Framer Motion for modern, responsive UI with professional animations.
 
-The main goal of this README is to explain:
-- the folder structure,
-- what should go in each folder,
-- and how to add new frontend work correctly.
+## Quick Overview
+- Project: Ethical Tourism Certification System (Frontend)
+- Purpose: Provide user interface for hotel certification, search, application, and management workflows
+- Stack: React 19.2.4, Vite 8.0.1, Tailwind CSS 4.2.2, Framer Motion 12.38.0, Redux, React Router
 
-## Tech Stack
+## Key Features
+- Modern React 19 with Vite for fast development and optimized builds
+- Feature-based modular component architecture (auth, search, certification, audit, admin)
+- Redux state management for centralized data management
+- React Router for SPA navigation with nested routing
+- Tailwind CSS for responsive design with custom color palette
+- Framer Motion animations for professional UI transitions and interactions
+- JWT authentication with token refresh mechanism
+- Multi-role user interface (admin, auditor, hotel manager, user)
+- Responsive design for mobile, tablet, and desktop devices
+- API integration with backend services
 
-- React 19
-- Vite 8
-- React Router
-- Redux Toolkit + React Redux
-- Tailwind CSS v4
-- ESLint
+## Project Structure
+```text
+ethical-tourism-certification-system-frontend/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── providers/         # Redux Provider, Auth Provider setup
+│   │   ├── router/            # Route configuration, feature routes
+│   │   └── store/             # Redux store, actions, reducers
+│   ├── features/
+│   │   ├── admin/             # Admin dashboard and controls
+│   │   ├── audit/             # Audit review and management
+│   │   ├── auth/              # Login, register, authentication flows
+│   │   ├── certificate-application/  # Cert application forms
+│   │   ├── certificate-management/   # Cert lifecycle management
+│   │   ├── common/            # Shared feature utilities
+│   │   ├── home/              # Landing page
+│   │   ├── hotel-dashboard/   # Hotel owner dashboard
+│   │   └── search/            # Hotel search with Framer Motion animations
+│   ├── shared/
+│   │   ├── api/               # API service calls
+│   │   ├── components/        # Reusable UI components
+│   │   ├── constants/         # App-wide constants
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── styles/            # Global styles, Tailwind config
+│   │   └── utils/             # Helper utilities
+│   ├── assets/                # Images, icons, media
+│   ├── App.jsx                # Root app component
+│   ├── main.jsx               # React entry point
+│   └── index.css              # Global styles
+├── vite.config.js
+├── eslint.config.js
+├── tailwind.config.js
+├── package.json
+├── index.html
+└── docs/
+    ├── ARCHITECTURE.md        # Frontend architecture overview
+    └── CONTRIBUTING.md        # Development contribution guidelines
+```
 
-## Getting Started
+## Documentation and Module Guidelines
+- Frontend architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Contributing guidelines: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
+- Search module styling: [src/features/search/](src/features/search/)
+- Auth module flows: [src/features/auth/](src/features/auth/)
 
-### 1. Install dependencies
+## Local Development
 
+### Prerequisites
+- Node.js 22+
+- npm
+- Backend API running (see backend README)
+
+### Installation
 ```bash
 npm install
 ```
 
-### 2. Configure environment variables
-
-Create or update `.env`:
+### Environment Variables
+Create a `.env` file in the frontend root:
 
 ```env
-VITE_API_BASE_URL=https://ethical-tourism-certification-syste.vercel.app/api/v1
+VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_ENV=development
 ```
 
 Notes:
-- `src/shared/api/apiClient.js` reads `VITE_API_BASE_URL`.
-- If `VITE_API_BASE_URL` is missing, it falls back to `http://localhost:5000/api/v1`.
-- `BACKEND_URL` in `.env` is currently not used by the frontend code.
+- `src/shared/api/apiClient.js` reads `VITE_API_BASE_URL`
+- If `VITE_API_BASE_URL` is missing, it falls back to `http://localhost:5000/api/v1`
 
-Vercel frontend deployment note:
-- In your frontend Vercel project settings, add an Environment Variable:
-	- Key: `VITE_API_BASE_URL`
-	- Value: `https://ethical-tourism-certification-syste.vercel.app/api/v1`
-	- Environments: `Production`, `Preview`, and optionally `Development`
-
-### 3. Run development server
-
+### Run Development Server
 ```bash
 npm run dev
 ```
 
-### 4. Other scripts
+The app will be available at `http://localhost:5173` (or the port shown in terminal).
 
+## Building for Production
+
+### Build Command
 ```bash
 npm run build
+```
+
+This creates an optimized production build in the `dist/` directory with:
+- Code splitting
+- Tree shaking
+- Asset optimization
+- CSS minification
+
+### Preview Production Build Locally
+```bash
 npm run preview
-npm run lint
 ```
 
-## Project Structure
 
-```text
-frontend/
-|- docs/
-|  |- ARCHITECTURE.md
-|  `- CONTRIBUTING.md
-|- public/
-|  |- favicon.svg
-|  `- icons.svg
-|- src/
-|  |- app/
-|  |  |- providers/
-|  |  |  `- AppProviders.jsx
-|  |  |- router/
-|  |  |  |- AppRoutes.jsx
-|  |  |  `- featureRoutes.js
-|  |  `- store/
-|  |     |- index.js
-|  |     |- rootReducer.js
-|  |     |- hooks.js
-|  |     `- README.md
-|  |- assets/
-|  |- components/                      # global shared UI (currently placeholder)
-|  |- features/
-|  |  |- admin/
-|  |  |- auth/
-|  |  |- audit/
-|  |  |- certificate-application/
-|  |  |- certificate-management/
-|  |  |- home/
-|  |  `- search/
-|  |- shared/
-|  |  |- api/
-|  |  |  `- apiClient.js
-|  |  |- constants/                    # placeholder
-|  |  |- hooks/                        # placeholder
-|  |  |- styles/                       # placeholder
-|  |  `- utils/                        # placeholder
-|  |- utils/                           # placeholder
-|  |- App.jsx
-|  |- main.jsx
-|  `- index.css
-|- .env
-|- eslint.config.js
-|- index.html
-|- vite.config.js
-`- package.json
-```
+## Deployment
+
+### Frontend Deployment Platform and Setup
+- Platform: Vercel (recommended for Vite apps)
+- Build command: `npm run build`
+- Output directory: `dist`
+
+Setup steps:
+1. Push frontend code to your Git repository.
+2. Import repository into Vercel dashboard.
+3. Configure environment variables in Vercel dashboard (VITE_API_BASE_URL, etc.).
+4. Deploy and verify app loads and backend connections work.
+
+### Environment Variables (Production)
+Define these in your deployment environment:
+- `VITE_API_BASE_URL` - Production backend API URL
+- `VITE_ENV` - Set to `production`
+
+### Custom Domain (Optional)
+Configure custom domain in Vercel project settings after initial deployment.
+
+## Deployment Evidence (Screenshot Placeholders)
+
+Use this section to add your submission screenshots.
+
+### 1. Vercel Frontend Deployment Dashboard
+Insert screenshot path below:
+
+![Frontend deployment dashboard screenshot](deployment/frontend-vercel-dashboard.png)
+
+> Replace `deployment/frontend-vercel-dashboard.png` with your actual screenshot path.
+
+### 2. Live Frontend Application
+Insert screenshot path below:
+
+![Frontend live app screenshot](deployment/frontend-live-app.png)
+
+> Replace `deployment/frontend-live-app.png` with your actual screenshot path.
+
+### 3. Search Module with Framer Motion Animations
+Insert screenshot path below:
+
+![Search module screenshot](deployment/frontend-search-module.png)
+
+> Replace `deployment/frontend-search-module.png` with your actual screenshot path.
+
+### 4. Authentication & User Dashboard
+Insert screenshot path below:
+
+![Frontend auth dashboard screenshot](deployment/frontend-auth-dashboard.png)
+
+> Replace `deployment/frontend-auth-dashboard.png` with your actual screenshot path.
+
+## Troubleshooting
+
+### Development Issues
+- `VITE_API_BASE_URL` not connecting: verify backend is running and URL is correct
+- Hot Module Replacement (HMR) issues: restart dev server with `npm run dev`
+- Port 5173 already in use: change port in `vite.config.js` or use `npm run dev -- --port 3000`
+
+### Build Issues
+- Build fails with large bundle: check for unused dependencies, use `npm run build -- --analyze`
+- Environment variables not loaded: ensure `.env` file is in root directory
+- CSS not applied: verify Tailwind config paths in `vite.config.js`
+
+### Runtime Issues
+- API calls failing (CORS): verify backend CORS settings and `VITE_API_BASE_URL`
+- Authentication loops: check token storage and refresh mechanism in Redux store
+- Components not animating: verify Framer Motion is installed (`npm list framer-motion`)
 
 ## Folder Responsibilities (What Goes Where)
 
-### `src/app/` (application wiring only)
-
+### `src/app/` (Application Wiring Only)
 Use this folder for global app setup:
-- providers (`Provider`, `BrowserRouter`, bootstrapping),
-- root routing composition,
-- store configuration.
+- Providers (`Provider`, `BrowserRouter`, bootstrapping)
+- Root routing composition
+- Store configuration
 
 Do not put feature-specific UI or business logic here.
 
-### `src/features/<feature-name>/` (main work area)
-
-Each domain feature lives in its own folder.  
-Examples: `auth`, `audit`, `certificate-management`, `search`.
+### `src/features/<feature-name>/` (Main Work Area)
+Each domain feature lives in its own folder. Examples: `auth`, `audit`, `certificate-management`, `search`.
 
 Inside each feature:
-- `api/`: API calls for that feature (use `apiRequest` from `src/shared/api/apiClient.js`).
-- `components/`: reusable UI pieces used only by this feature.
-- `pages/`: route-level screens for this feature.
-- `routes/`: feature-local route definitions (export a `*Routes` component).
-- `store/`: Redux slice + selectors for feature state.
-- `styles/`: feature-specific CSS only when needed.
-- `hooks/`, `utils/` (optional): feature-specific hooks/helpers.
+- `api/`: API calls for that feature (use `apiRequest` from `src/shared/api/apiClient.js`)
+- `components/`: Reusable UI pieces used only by this feature
+- `pages/`: Route-level screens for this feature
+- `routes/`: Feature-local route definitions
+- `store/`: Redux slice + selectors for feature state
+- `styles/`: Feature-specific CSS only when needed
+- `hooks/`, `utils/` (optional): Feature-specific hooks/helpers
 
-### `src/shared/` (cross-feature reusable code)
-
+### `src/shared/` (Cross-Feature Reusable Code)
 Use this for code shared by many features:
-- shared API client,
-- shared constants,
-- shared hooks,
-- shared styles and utility helpers.
+- Shared API client
+- Shared constants
+- Shared hooks
+- Shared styles and utility helpers
 
 If code is only used by one feature, keep it inside that feature.
 
-### `src/components/` and `src/utils/`
+## Useful Commands
+```bash
+npm run dev              # Start dev server
+npm run build            # Build for production
+npm run preview          # Preview production build
+npm run lint             # Check code quality
+npm run lint:fix         # Fix linting issues
+npm run test             # Run tests (if configured)
+npm run test:e2e         # Run E2E tests (if configured)
+```
 
-These are currently placeholders.  
-Prefer `src/features/*` and `src/shared/*` first.  
-Only add to these folders if your team agrees on a clear global convention.
+## Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Performance Optimization
+- Code splitting via Vite
+- Tree-shaking of unused code
+- Lazy loading of feature routes
+- Image optimization in build process
+- CSS Tailwind purging in production
+
+## Additional Resources
+- [React Documentation](https://react.dev)
+- [Vite Guide](https://vitejs.dev)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Framer Motion](https://www.framer.com/motion/)
+- [Redux Toolkit](https://redux-toolkit.js.org)
+- [React Router](https://reactrouter.com)
 
 ### `docs/`
 
