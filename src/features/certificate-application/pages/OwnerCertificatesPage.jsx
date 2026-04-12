@@ -4,7 +4,6 @@ import {
     CheckCircle2,
     Clock,
     Copy,
-    Download,
     ExternalLink,
     Eye,
     RefreshCw,
@@ -22,9 +21,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
     selectOwnerCertificatesItems,
     selectOwnerCertificatesStatus,
-    selectOwnerCertificatesError
+    selectOwnerCertificatesError,
+    selectOwnerPendingReviewItems,
+    selectOwnerPendingReviewStatus,
+    selectOwnerPendingReviewError,
 } from '../store/certificateApplicationSelectors'
-import { fetchOwnerCertificates } from '../store/certificateApplicationSlice'
+import { fetchOwnerCertificates, fetchOwnerPendingReviewHotels } from '../store/certificateApplicationSlice'
 
 /* ── Helpers ────────────────────────────────────────────────────── */
 function toDate(value) {
@@ -141,7 +143,7 @@ function useCopyToClipboard() {
 }
 
 /* ── Action Button ──────────────────────────────────────────────── */
-function ActionBtn({ icon: Icon, label, onClick, variant = 'default' }) {
+function ActionBtn({ icon: Icon, label, onClick, variant = 'default', disabled = false }) {
     const styles = {
         default: { bg: '#fff', color: '#475569', border: 'rgba(226,232,240,0.9)', hoverBg: '#f8fafc' },
         primary: { bg: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', border: 'rgba(88,104,216,0.4)', hoverBg: 'linear-gradient(135deg, #4a52c9 0%, #3f44b5 100%)' },
@@ -151,7 +153,8 @@ function ActionBtn({ icon: Icon, label, onClick, variant = 'default' }) {
 
     return (
         <button
-            onClick={onClick}
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
             style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                 padding: '0.55rem 0.9rem', borderRadius: '0.65rem',
@@ -159,9 +162,19 @@ function ActionBtn({ icon: Icon, label, onClick, variant = 'default' }) {
                 fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 whiteSpace: 'nowrap',
+                opacity: disabled ? 0.6 : 1,
+                cursor: disabled ? 'not-allowed' : 'pointer',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = s.hoverBg; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = s.bg; e.currentTarget.style.transform = 'none' }}
+            onMouseEnter={e => {
+                if (disabled) return
+                e.currentTarget.style.background = s.hoverBg
+                e.currentTarget.style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={e => {
+                if (disabled) return
+                e.currentTarget.style.background = s.bg
+                e.currentTarget.style.transform = 'none'
+            }}
         >
             <Icon size={14} strokeWidth={2.5} />{label}
         </button>
@@ -169,7 +182,7 @@ function ActionBtn({ icon: Icon, label, onClick, variant = 'default' }) {
 }
 
 /* ── Featured Certificate (expanded view) ───────────────────────── */
-function FeaturedCertificate({ cert, onCopy, copied }) {
+function FeaturedCertificate({ cert, onCopy, copied, onViewPdf, isViewingPdf }) {
     const status = String(cert.status || '').toUpperCase()
     const level = String(cert.level || '').toUpperCase()
     const sSt = getStatus(status)
@@ -177,38 +190,6 @@ function FeaturedCertificate({ cert, onCopy, copied }) {
     const hotelName = cert.hotelId?.businessInfo?.name || 'Unknown Hotel'
     const trustScore = cert.trustScore ?? 0
     const thumbnail = cert.hotelId?.googleMapsData?.thumbnail || null
-
-    function handleDownload() {
-        // Build a simple downloadable certificate summary
-        const content = [
-            `ETHICAL TOURISM CERTIFICATION`,
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-            ``,
-            `Certificate Number: ${cert.certificateNumber}`,
-            `Hotel: ${hotelName}`,
-            `Level: ${level}`,
-            `Status: ${status}`,
-            `Trust Score: ${trustScore}`,
-            ``,
-            `Issued: ${formatDateFull(cert.issuedDate)}`,
-            `Expires: ${formatDateFull(cert.expiryDate)}`,
-            `Renewals: ${cert.renewalCount ?? 0}`,
-            ``,
-            `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-            `This certificate confirms compliance with`,
-            `ethical tourism standards and practices.`,
-            ``,
-            `Verification: ${window.location.origin}/verify/${cert.certificateNumber}`,
-        ].join('\n')
-
-        const blob = new Blob([content], { type: 'text/plain' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `certificate-${cert.certificateNumber}.txt`
-        a.click()
-        URL.revokeObjectURL(url)
-    }
 
     return (
         <div className='ca-animate-up-1' style={{
@@ -306,7 +287,13 @@ function FeaturedCertificate({ cert, onCopy, copied }) {
 
                 {/* Actions */}
                 <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(226,232,240,0.6)' }}>
-                    <ActionBtn icon={Download} label="Download" onClick={handleDownload} variant="primary" />
+                    <ActionBtn
+                        icon={Eye}
+                        label={isViewingPdf ? 'Opening…' : 'View PDF'}
+                        onClick={() => onViewPdf(cert)}
+                        variant="primary"
+                        disabled={isViewingPdf}
+                    />
                     <ActionBtn icon={copied ? CheckCircle2 : Copy} label={copied ? "Copied!" : "Copy ID"} onClick={() => onCopy(cert.certificateNumber)} variant={copied ? "success" : "default"} />
                     <ActionBtn icon={ExternalLink} label="Share" onClick={() => onCopy(`${window.location.origin}/verify/${cert.certificateNumber}`)} />
                     <ActionBtn icon={Eye} label="View Application" onClick={() => { if (cert.hotelId?._id) window.location.href = `/certificate-application/${cert.hotelId._id}` }} />
@@ -384,6 +371,107 @@ function SkeletonRows() {
     ))
 }
 
+/* ── Pending review list (AI passed, audit pending) ────────────── */
+function PendingReviewSection({ items, status, error }) {
+    if (status === 'idle') return null
+
+    return (
+        <section className='ca-animate-up-1' style={{
+            background: '#ffffff',
+            borderRadius: '1.25rem',
+            border: '1px solid rgba(226,232,240,0.8)',
+            boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)',
+            overflow: 'hidden',
+            marginBottom: '1.25rem',
+        }}>
+            <div style={{
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid rgba(226,232,240,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                    <div style={{ width: '2rem', height: '2rem', borderRadius: '0.55rem', background: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Clock size={14} strokeWidth={2.5} style={{ color: '#f59e0b' }} />
+                    </div>
+                    <div>
+                        <h3 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>Pending Review</h3>
+                        <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>Hotels that passed AI review and are awaiting audit or issuance</p>
+                    </div>
+                </div>
+                <span style={{ padding: '0.25rem 0.65rem', borderRadius: '999px', background: 'rgba(245,158,11,0.10)', color: '#b45309', fontSize: '0.7rem', fontWeight: 800 }}>
+                    {status === 'loading' ? 'Loading…' : `${items.length} hotel${items.length !== 1 ? 's' : ''}`}
+                </span>
+            </div>
+
+            {status === 'failed' ? (
+                <div style={{ padding: '1rem 1.25rem', color: '#b91c1c', fontWeight: 700, fontSize: '0.85rem' }}>
+                    {error || 'Failed to load pending review hotels'}
+                </div>
+            ) : (
+                <div style={{ padding: '0.85rem 1.25rem' }}>
+                    {status === 'loading' ? (
+                        <div className='ca-skeleton' style={{ height: '2.4rem', width: '100%', borderRadius: '0.75rem' }} />
+                    ) : items.length === 0 ? (
+                        <p style={{ margin: 0, color: '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>
+                            No pending review hotels right now.
+                        </p>
+                    ) : (
+                        <div style={{ display: 'grid', gap: '0.6rem' }}>
+                            {items.map((row) => {
+                                const hotel = row?.hotel
+                                const name = hotel?.businessInfo?.name || 'Untitled Property'
+                                const type = hotel?.businessInfo?.businessType || 'Hotel'
+                                const id = row?.hotelId || hotel?._id || row?.hotelRequestId
+                                const auditStatus = String(row?.auditScore?.status || 'pending')
+                                const stage = String(row?.stage || '')
+
+                                return (
+                                    <div key={String(id)} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        gap: '1rem',
+                                        padding: '0.85rem 0.95rem',
+                                        borderRadius: '0.9rem',
+                                        border: '1px solid rgba(226,232,240,0.8)',
+                                        background: 'linear-gradient(135deg, rgba(255,251,235,0.65) 0%, rgba(255,255,255,1) 70%)',
+                                    }}>
+                                        <div style={{ minWidth: 0 }}>
+                                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</p>
+                                            <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
+                                                {type} • AI: Passed • Audit: {auditStatus}{stage === 'PENDING_CERTIFICATE' ? ' • Pending certificate' : ''}
+                                            </p>
+                                        </div>
+                                        <Link to={`/certificate-application/${encodeURIComponent(hotel?._id || row?.hotelId)}`} style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.4rem',
+                                            padding: '0.55rem 0.85rem',
+                                            borderRadius: '0.7rem',
+                                            background: '#fff',
+                                            border: '1px solid rgba(226,232,240,0.9)',
+                                            textDecoration: 'none',
+                                            fontSize: '0.78rem',
+                                            fontWeight: 800,
+                                            color: '#475569',
+                                            whiteSpace: 'nowrap',
+                                        }}>
+                                            <Eye size={14} strokeWidth={2.5} /> View
+                                        </Link>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+        </section>
+    )
+}
+
 /* ── Main page ──────────────────────────────────────────────────── */
 function OwnerCertificatesPage() {
     const dispatch = useDispatch()
@@ -391,14 +479,60 @@ function OwnerCertificatesPage() {
     const status = useSelector(selectOwnerCertificatesStatus)
     const error = useSelector(selectOwnerCertificatesError)
 
+    const pendingReviewItems = useSelector(selectOwnerPendingReviewItems)
+    const pendingReviewStatus = useSelector(selectOwnerPendingReviewStatus)
+    const pendingReviewError = useSelector(selectOwnerPendingReviewError)
+
     const [selected, setSelected] = useState(null)
     const { copied, copy } = useCopyToClipboard()
+    const [viewingPdfFor, setViewingPdfFor] = useState(null)
 
     useEffect(() => {
         if (status === 'idle') {
             dispatch(fetchOwnerCertificates())
         }
     }, [status, dispatch])
+
+    useEffect(() => {
+        if (pendingReviewStatus === 'idle') {
+            dispatch(fetchOwnerPendingReviewHotels())
+        }
+    }, [pendingReviewStatus, dispatch])
+
+    const handleRetry = useCallback(() => {
+        dispatch(fetchOwnerCertificates())
+        dispatch(fetchOwnerPendingReviewHotels())
+    }, [dispatch])
+
+    const handleViewPdf = useCallback(async (cert) => {
+        const certificateNumber = cert?.certificateNumber
+        if (!certificateNumber) return
+
+        const token = getStoredToken()
+        if (!token) {
+            alert('Please log in again to view this certificate.')
+            return
+        }
+
+        setViewingPdfFor(certificateNumber)
+        try {
+            const response = await apiRequest(
+                `/certification/certificates/owner/${encodeURIComponent(certificateNumber)}/download-link`,
+                { method: 'GET', token },
+            )
+
+            const url = response?.data?.url
+            if (!url) {
+                throw new Error('Certificate download link is not available')
+            }
+
+            window.open(url, '_blank', 'noopener,noreferrer')
+        } catch (e) {
+            alert(e?.message || 'Failed to open certificate PDF')
+        } finally {
+            setViewingPdfFor(null)
+        }
+    }, [])
 
     // Auto-select the first active cert when certificates load and we haven't selected one
     useEffect(() => {
@@ -493,12 +627,18 @@ function OwnerCertificatesPage() {
             </header>
 
             <div style={{ width: '100%', margin: '0 auto' }}>
+                <PendingReviewSection
+                    items={pendingReviewItems}
+                    status={pendingReviewStatus}
+                    error={pendingReviewError}
+                />
+
                 {/* ── Error state ────────── */}
                 {status === 'failed' && (
                     <div className='ca-animate-up-1' style={{ padding: '2.5rem 2rem', background: '#ffffff', borderRadius: '1.25rem', border: '1px solid rgba(239,68,68,0.2)', textAlign: 'center', boxShadow: '0 4px 20px -10px rgba(15,23,42,0.05)', marginBottom: '1.5rem' }}>
                         <XCircle size={40} strokeWidth={1.5} style={{ color: '#ef4444', margin: '0 auto 1rem' }} />
                         <p style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 700, color: '#b91c1c' }}>{error}</p>
-                        <button onClick={fetchOwnerCertificates} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.2rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px -4px rgba(88,104,216,0.4)' }}>
+                        <button onClick={handleRetry} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.2rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #5868d8 0%, #4a52c9 100%)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px -4px rgba(88,104,216,0.4)' }}>
                             <RefreshCw size={15} strokeWidth={2.5} /> Retry
                         </button>
                     </div>
@@ -587,7 +727,13 @@ function OwnerCertificatesPage() {
                         {/* RIGHT: Detail Panel */}
                         {status === 'succeeded' && selected && (
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                <FeaturedCertificate cert={selected} onCopy={copy} copied={copied} />
+                                <FeaturedCertificate
+                                    cert={selected}
+                                    onCopy={copy}
+                                    copied={copied}
+                                    onViewPdf={handleViewPdf}
+                                    isViewingPdf={viewingPdfFor === selected?.certificateNumber}
+                                />
                             </div>
                         )}
                     </div>

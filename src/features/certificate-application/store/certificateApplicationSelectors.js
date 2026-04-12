@@ -34,3 +34,7 @@ export const selectDeleteError = (state) => state.certificateApplication.delete.
 export const selectOwnerCertificatesItems = (state) => state.certificateApplication.ownerCertificates.items
 export const selectOwnerCertificatesStatus = (state) => state.certificateApplication.ownerCertificates.status
 export const selectOwnerCertificatesError = (state) => state.certificateApplication.ownerCertificates.error
+
+export const selectOwnerPendingReviewItems = (state) => state.certificateApplication.ownerPendingReview.items
+export const selectOwnerPendingReviewStatus = (state) => state.certificateApplication.ownerPendingReview.status
+export const selectOwnerPendingReviewError = (state) => state.certificateApplication.ownerPendingReview.error

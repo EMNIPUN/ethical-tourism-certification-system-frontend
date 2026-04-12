@@ -156,3 +156,10 @@ export function listOwnerCertificates(token) {
         token,
     })
 }
+
+export function listOwnerPendingReviewHotels(token) {
+    return apiRequest('/certification/certificates/owner/pending-review', {
+        method: 'GET',
+        token,
+    })
+}
