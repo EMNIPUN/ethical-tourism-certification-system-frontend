@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Building2, Compass, LayoutDashboard, Home, Menu, Sparkles, UserCircle2, X } from 'lucide-react'
 import LogoutButton from '../../auth/components/LogoutButton'
 
@@ -22,7 +23,12 @@ function SearchNavbar({ user }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
 
   return (
-    <nav className='glass-panel sticky top-0 z-20 w-full rounded-none border-x-0 border-t-0 border-b border-white/70 bg-white/88 px-4 py-3.5 shadow-[0_18px_45px_-34px_rgba(27,40,80,0.42)] backdrop-blur-md sm:px-6 lg:px-8'>
+    <motion.nav
+      initial={{ opacity: 0, y: -18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+      className='glass-panel sticky top-0 z-20 w-full rounded-none border-x-0 border-t-0 border-b border-white/70 bg-white/88 px-4 py-3.5 shadow-[0_18px_45px_-34px_rgba(27,40,80,0.42)] backdrop-blur-md sm:px-6 lg:px-8'
+    >
       <div className='flex items-center justify-between gap-3 lg:hidden'>
         <div className='flex items-center gap-3'>
           <div className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#5868d8] text-white shadow-[0_14px_26px_-18px_rgba(39,54,122,0.7)]'>
@@ -61,17 +67,32 @@ function SearchNavbar({ user }) {
           </div>
         </div>
 
-        <div className='flex flex-wrap items-center gap-2'>
+        <motion.div
+          className='flex flex-wrap items-center gap-2'
+          initial='hidden'
+          animate='visible'
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+          }}
+        >
           {navItems.map((item) => {
             const Icon = item.icon
             return (
-              <NavLink key={item.to} to={item.to} className={navLinkClassName}>
-                <Icon size={15} />
-                {item.label}
-              </NavLink>
+              <motion.div
+                key={item.to}
+                variants={{ hidden: { opacity: 0, y: -6 }, visible: { opacity: 1, y: 0 } }}
+                whileHover={{ y: -1 }}
+                transition={{ duration: 0.18 }}
+              >
+                <NavLink to={item.to} className={navLinkClassName}>
+                  <Icon size={15} />
+                  {item.label}
+                </NavLink>
+              </motion.div>
             )
           })}
-        </div>
+        </motion.div>
 
         <div className='flex items-center gap-3'>
           <div className='hidden text-right sm:block'>
@@ -85,7 +106,10 @@ function SearchNavbar({ user }) {
         </div>
       </div>
 
-      <div
+      <motion.div
+        initial={false}
+        animate={isMobileNavOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         className={[
           'mt-3 overflow-hidden rounded-2xl border border-[#cfd8e6] bg-white transition-[max-height,opacity,transform] duration-200 lg:hidden',
           isMobileNavOpen ? 'max-h-105 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1 pointer-events-none',
@@ -119,8 +143,8 @@ function SearchNavbar({ user }) {
           </div>
           <LogoutButton className='rounded-xl border border-[#cfd8e6] bg-white px-4 py-3.5 text-sm font-semibold text-[#61708a] transition hover:bg-[#f7f9fc]' />
         </div>
-      </div>
-    </nav>
+      </motion.div>
+    </motion.nav>
   )
 }
 

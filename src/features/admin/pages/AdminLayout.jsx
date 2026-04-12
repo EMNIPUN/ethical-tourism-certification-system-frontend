@@ -8,7 +8,6 @@ import {
   ClipboardCheck,
   FilePlus2,
   ListChecks,
-  LayoutDashboard,
   Search,
   ShieldCheck,
   Hotel,
@@ -20,12 +19,11 @@ import { NavLink, Outlet } from 'react-router-dom'
 import LogoutButton from '../../auth/components/LogoutButton'
 
 const sidebarLinks = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/audit-initialize', label: 'Initialize Audit', icon: FilePlus2 },
   { to: '/admin/certificate-management', label: 'Certificates', icon: ShieldCheck },
-  { to: '/admin/user-management', label: 'Users', icon: Users },
+  { to: '/admin/audit-initialize', label: 'Initialize Audit', icon: FilePlus2 },
+  // { to: '/admin/user-management', label: 'Users', icon: Users },
   { to: '/admin/audit-management', label: 'Audits', icon: ClipboardCheck },
-  { to: '/admin/hotel-management', label: 'Hotels', icon: Hotel },
+  // { to: '/admin/hotel-management', label: 'Hotels', icon: Hotel },
 ]
 
 const certificateManagementSubLinks = [
@@ -50,12 +48,12 @@ function AdminLayout() {
           {/* Logo & Toggle */}
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-10`}>
             {!isCollapsed && <p className='text-2xl font-black tracking-tight text-[#1f2b49]'>Certiguard</p>}
-            <button 
+            {/* <button 
               onClick={() => setIsCollapsed(!isCollapsed)}
               className='flex h-8 w-8 items-center justify-center rounded-lg bg-[#f0f4ff] text-[var(--brand-700)] hover:bg-[var(--brand-600)] hover:text-white transition shadow-sm'
             >
               {isCollapsed ? <Menu size={16} /> : <ChevronLeft size={16} />}
-            </button>
+            </button> */}
           </div>
 
           {!isCollapsed && <p className='mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#8d98af]'>Main Menu</p>}
@@ -189,8 +187,8 @@ function AdminLayout() {
             </div>
           </header>
 
-          <div className='app-scrollbar flex-1 overflow-y-auto px-4 py-8'>
-            <div>
+          <div className='app-scrollbar flex-1 overflow-y-auto p-8'>
+            <div className='mx-auto width-full '>
               <Outlet />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { CheckCircle2, Globe2, RefreshCw, Search, Sparkles, UserCircle2, Zap } from 'lucide-react'
 
 const HERO_IMAGES = [
@@ -36,7 +37,12 @@ function SearchHero({
   }, [])
 
   return (
-    <section className='relative w-full overflow-hidden rounded-none border-x-0 border border-white/70 px-4 py-5 shadow-[0_28px_65px_-44px_rgba(18,29,58,0.55)] sm:px-6 sm:py-6 lg:px-8'>
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: 'easeOut' }}
+      className='relative w-full overflow-hidden rounded-none border-x-0 border border-white/70 px-4 py-5 shadow-[0_28px_65px_-44px_rgba(18,29,58,0.55)] sm:px-6 sm:py-6 lg:px-8'
+    >
       <div className='absolute inset-0'>
         {HERO_IMAGES.map((image, imageIndex) => (
           <div
@@ -55,7 +61,12 @@ function SearchHero({
         {HERO_IMAGES[activeImageIndex].label}
       </div>
 
-      <div className='relative flex min-h-135 flex-col justify-between gap-6 rounded-4xl border border-white/20 bg-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-sm sm:p-6 lg:min-h-145 lg:p-8'>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.99 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.08, duration: 0.45 }}
+        className='relative flex min-h-135 flex-col justify-between gap-6 rounded-4xl border border-white/20 bg-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-sm sm:p-6 lg:min-h-145 lg:p-8'
+      >
         <div className='flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between'>
           <div className='max-w-3xl rounded-4xl border border-white/18 bg-white/18 p-5 shadow-[0_18px_40px_-26px_rgba(27,40,80,0.7)] backdrop-blur-sm sm:p-6'>
             <div className='badge-chip border-white/20 bg-white/20 text-white'>
@@ -108,18 +119,22 @@ function SearchHero({
             />
           </label>
 
-          <button
+          <motion.button
             type='submit'
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             className='inline-flex h-14 items-center justify-center rounded-2xl border border-[#cfd8e6] bg-white px-6 text-sm font-semibold text-[#1f2a44] transition hover:bg-[#f7f9fc]'
           >
             Search now
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type='button'
             onClick={onRefreshRecommendations}
             disabled={isRefreshingRecommendations}
             aria-busy={isRefreshingRecommendations}
+            whileHover={isRefreshingRecommendations ? undefined : { y: -1 }}
+            whileTap={isRefreshingRecommendations ? undefined : { scale: 0.98 }}
             className={[
               'inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-6 text-sm font-semibold text-white transition focus:outline-none focus:ring-4 focus:ring-[rgba(111,124,255,0.28)]',
               isRefreshingRecommendations
@@ -136,16 +151,18 @@ function SearchHero({
             ) : (
               'AI ranking'
             )}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type='button'
             onClick={onShowAll}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
             className='inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[#cfd8e6] bg-white/90 px-4 text-xs font-semibold text-[#61708a] backdrop-blur-sm transition hover:bg-white lg:col-start-2'
           >
             <RefreshCw size={14} />
             Show all results
-          </button>
+          </motion.button>
         </form>
 
         <div className='flex flex-wrap items-center gap-2 text-xs text-white/90'>
@@ -158,8 +175,8 @@ function SearchHero({
             Contacts and recommendations via backend search module
           </span>
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   )
 }
 

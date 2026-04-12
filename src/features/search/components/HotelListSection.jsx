@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowRight, BadgeCheck, Filter, Grid2x2, List, MapPin, Sparkles } from 'lucide-react'
 
 const MOCK_HOTEL_IMAGES = [
@@ -69,6 +70,22 @@ function getMockImage(index) {
   return MOCK_HOTEL_IMAGES[index % MOCK_HOTEL_IMAGES.length]
 }
 
+function resolveHotelImage(hotel, index) {
+  const thumbnail = hotel?.hotelImage?.thumbnail || hotel?.googleMapsData?.thumbnail
+
+  if (thumbnail) {
+    return {
+      url: thumbnail,
+      isFallback: false,
+    }
+  }
+
+  return {
+    url: getMockImage(index),
+    isFallback: true,
+  }
+}
+
 function normalizeText(value) {
   return String(value || '')
     .toLowerCase()
@@ -129,8 +146,13 @@ function HotelListSection({
   const quickDistricts = QUICK_DISTRICTS.filter((district) => availableDistricts.includes(district))
 
   return (
-    <div>
-      <div className='flex flex-col gap-3 rounded-3xl border border-[#dbe4f1] bg-[linear-gradient(145deg,#ffffff,#f7faff)] p-4 shadow-[0_18px_35px_-30px_rgba(20,31,54,0.45)] lg:flex-row lg:items-center lg:justify-between'>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04, duration: 0.35 }}
+        className='flex flex-col gap-3 rounded-3xl border border-[#dbe4f1] bg-[linear-gradient(145deg,#ffffff,#f7faff)] p-4 shadow-[0_18px_35px_-30px_rgba(20,31,54,0.45)] lg:flex-row lg:items-center lg:justify-between'
+      >
         <div>
           <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7d8ca7]'>Hotel intelligence desk</p>
           <h2 className='mt-1 text-xl font-semibold text-[#17253f]'>
@@ -165,7 +187,7 @@ function HotelListSection({
             AI ranking
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {activeError ? <div className='notice-error mt-4'>{activeError}</div> : null}
 
@@ -275,7 +297,8 @@ function HotelListSection({
           </div>
         ) : null}
 
-        <div
+        <motion.div
+          layout
           className={[
             'mt-4 grid gap-3',
             viewMode === 'grid' ? 'xl:grid-cols-2' : 'grid-cols-1',
@@ -308,6 +331,7 @@ function HotelListSection({
 
           {districtFilteredHotels.map((hotel, hotelIndex) => {
             const hotelId = hotel.hotelId || hotel.hotelId?._id || hotel._id
+            const hotelName = hotel.hotelName || hotel.businessInfo?.name || 'Unnamed hotel'
             const isSelected = String(selectedHotelId) === String(hotelId)
             const rating = hotel.feedbackRating ?? hotel.feedbackSummary?.averageRating ?? 0
             const reviewCount = hotel.reviewCount ?? hotel.feedbackSummary?.reviewCount ?? 0
@@ -315,31 +339,61 @@ function HotelListSection({
             const score = hotel.combinedScore ?? hotel.certificate?.trustScore ?? 0
             const trustTone = getTrustTone(Number(trustScore || 0))
             const trustProgress = Math.max(0, Math.min(100, Number(trustScore || 0)))
+            const hotelImage = resolveHotelImage(hotel, hotelIndex)
 
             return (
-              <button
+              <motion.button
                 key={String(hotelId)}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.995 }}
                 type='button'
                 onClick={() => onSelectHotel(hotelId, activeTab)}
                 className={[
-                  'rounded-3xl border p-4 text-left transition',
+                  'group rounded-3xl border p-4 text-left transition',
                   isSelected
                     ? 'border-(--brand-700) bg-[#f6f8ff] shadow-[0_20px_40px_-34px_rgba(39,54,122,0.7)]'
                     : 'border-[#dce4f1] bg-white hover:border-[#bfcbea] hover:bg-[#fbfcff] hover:shadow-[0_18px_35px_-30px_rgba(20,31,54,0.35)]',
                 ].join(' ')}
               >
-                <div className={['grid gap-4', viewMode === 'grid' ? 'lg:grid-cols-[240px_minmax(0,1fr)]' : 'lg:grid-cols-[300px_minmax(0,1fr)]'].join(' ')}>
-                  <div className='relative overflow-hidden rounded-2xl border border-[#dbe4f1]'>
+                <div className={['grid gap-4', viewMode === 'grid' ? 'lg:grid-cols-[280px_minmax(0,1fr)]' : 'lg:grid-cols-[340px_minmax(0,1fr)]'].join(' ')}>
+                  <div
+                    className={[
+                      'relative overflow-hidden rounded-2xl border',
+                      hotelImage.isFallback
+                        ? 'border-[#dbe4f1]'
+                        : 'border-[#9db1df] ring-2 ring-[#d9e4fb] shadow-[0_18px_35px_-24px_rgba(58,86,156,0.45)]',
+                    ].join(' ')}
+                  >
                     <img
-                      src={getMockImage(hotelIndex)}
-                      alt='Mock hotel preview'
-                      className='h-44 w-full object-cover'
+                      src={hotelImage.url}
+                      alt={`${hotelName} preview`}
+                      className={[
+                        'h-64 w-full object-cover transition-transform duration-300',
+                        hotelImage.isFallback ? '' : 'group-hover:scale-[1.04]',
+                      ].join(' ')}
                       loading='lazy'
+                      onError={(event) => {
+                        const fallbackImage = getMockImage(hotelIndex)
+                        if (event.currentTarget.src !== fallbackImage) {
+                          event.currentTarget.src = fallbackImage
+                        }
+                      }}
                     />
                     <div className='absolute inset-x-0 bottom-0 bg-[linear-gradient(180deg,transparent,rgba(17,27,48,0.72))] p-3'>
                       <p className='text-[10px] font-semibold uppercase tracking-[0.16em] text-white/80'>Image preview</p>
-                      <p className='text-sm font-semibold text-white'>Mock image, integration pending</p>
+                      <p className='text-sm font-semibold text-white'>
+                        {hotelImage.isFallback ? 'Mock image fallback' : 'Google Maps preview'}
+                      </p>
                     </div>
+                    {!hotelImage.isFallback ? (
+                      <div className='absolute left-3 top-3 rounded-full border border-[#d8e4fb] bg-[#eef4ff] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#2d4d8f]'>
+                        Main image
+                      </div>
+                    ) : null}
                   </div>
 
                   <div>
@@ -347,7 +401,7 @@ function HotelListSection({
                       <div>
                         <div className='flex flex-wrap items-center gap-2'>
                           <h3 className='text-lg font-semibold text-[#16243d]'>
-                            {hotel.hotelName || hotel.businessInfo?.name || 'Unnamed hotel'}
+                            {hotelName}
                           </h3>
                           <span className='rounded-full border border-[#d7e1ef] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#52627d]'>
                             {formatCertificateLevel(hotel.certificateLevel || hotel.certificate?.level)}
@@ -397,12 +451,12 @@ function HotelListSection({
                     </div>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             )
           })}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
