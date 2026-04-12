@@ -84,13 +84,25 @@ function InitializeAudit() {
           auditApi.getAllAudits({}, token)
         ])
 
-        // Get IDs of hotels that already have an audit
-        const auditedHotelIds = new Set((auditsRes.data || []).map(a => 
-          typeof a.hotel === 'object' ? a.hotel._id : a.hotel
-        ))
+        // Normalize API payloads to avoid runtime crashes on malformed/null rows.
+        const auditRows = Array.isArray(auditsRes.data) ? auditsRes.data.filter(Boolean) : []
+        const hotelRows = Array.isArray(hotelsRes.data) ? hotelsRes.data.filter(Boolean) : []
+        const auditorRows = Array.isArray(auditorsRes.data) ? auditorsRes.data.filter(Boolean) : []
+
+        // Get IDs of hotels that already have an audit.
+        const auditedHotelIds = new Set(
+          auditRows
+            .map((a) => {
+              const hotel = a?.hotel
+              if (!hotel) return null
+              if (typeof hotel === 'object') return hotel?._id || null
+              return hotel
+            })
+            .filter(Boolean)
+        )
 
         // Filter out hotels that already have an audit
-        const availableHotels = (hotelsRes.data || []).filter(h => !auditedHotelIds.has(h._id))
+        const availableHotels = hotelRows.filter((h) => h?._id && !auditedHotelIds.has(h._id))
 
         // Match sorting requirement: sorted by date and time (newest first)
         const sortedHotels = availableHotels.sort((a, b) => 
@@ -98,7 +110,7 @@ function InitializeAudit() {
         )
 
         setHotels(sortedHotels)
-        setAuditors(auditorsRes.data || [])
+        setAuditors(auditorRows)
       } catch (err) {
         console.error('Initialization fetch error:', err)
         setError(err.message)
