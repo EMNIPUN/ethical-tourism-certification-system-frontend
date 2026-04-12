@@ -38,6 +38,16 @@ const GALLERY_SECTIONS = [
   { key: 'outdoor', title: 'Outdoor collection', description: 'Gardens, pool, and eco landscape', icon: Trees },
 ]
 
+function mergeUniqueImages(...imageGroups) {
+  return Array.from(
+    new Set(
+      imageGroups
+        .flat()
+        .filter((value) => typeof value === 'string' && value.trim().length > 0),
+    ),
+  )
+}
+
 function resolveLevelTheme(level) {
   const normalized = String(level || '').toUpperCase()
 
@@ -113,12 +123,15 @@ function HotelDetailsPanel({
   const levelTheme = resolveLevelTheme(selectedLevel)
 
   const imageCollections = useMemo(() => {
+    const mainHotelImage = selectedHotel?.hotelImage?.thumbnail || selectedHotel?.googleMapsData?.thumbnail || null
     const hotelImages = selectedHotel?.media?.hotelImages || selectedHotel?.images?.hotel || []
     const roomImages = selectedHotel?.media?.roomImages || selectedHotel?.images?.rooms || []
     const outdoorImages = selectedHotel?.media?.outdoorImages || selectedHotel?.images?.outdoor || []
 
+    const mergedHotelImages = mergeUniqueImages([mainHotelImage], hotelImages, MOCK_IMAGE_COLLECTIONS.hotel)
+
     return {
-      hotel: hotelImages.length ? hotelImages : MOCK_IMAGE_COLLECTIONS.hotel,
+      hotel: mergedHotelImages.length ? mergedHotelImages : MOCK_IMAGE_COLLECTIONS.hotel,
       rooms: roomImages.length ? roomImages : MOCK_IMAGE_COLLECTIONS.rooms,
       outdoor: outdoorImages.length ? outdoorImages : MOCK_IMAGE_COLLECTIONS.outdoor,
     }
@@ -229,22 +242,39 @@ function HotelDetailsPanel({
                     </div>
 
                     <div className='grid grid-cols-3 gap-2'>
-                      {images.slice(0, 3).map((imageUrl, index) => (
+                      {images.slice(0, 3).map((imageUrl, index) => {
+                        const isMainImage = section.key === 'hotel' && index === 0
+
+                        return (
                         <button
                           key={`${section.key}-${index}`}
                           type='button'
                           onClick={() => openGalleryAtIndex(sectionStartIndex + index)}
-                          className='group relative overflow-hidden rounded-lg border border-[#d8e2f1]'
+                          className={[
+                            'group relative overflow-hidden rounded-lg border',
+                            isMainImage
+                              ? 'col-span-2 border-[#9db1df] ring-2 ring-[#d9e4fb] shadow-[0_16px_32px_-24px_rgba(58,86,156,0.55)]'
+                              : 'border-[#d8e2f1]',
+                          ].join(' ')}
                         >
                           <img
                             src={imageUrl}
                             alt={`${section.title} preview ${index + 1}`}
-                            className='h-24 w-full object-cover transition duration-200 group-hover:scale-105'
+                            className={[
+                              'w-full object-cover transition duration-200 group-hover:scale-105',
+                              isMainImage ? 'h-32' : 'h-24',
+                            ].join(' ')}
                             loading='lazy'
                           />
                           <span className='absolute inset-0 bg-black/0 transition group-hover:bg-black/20' />
+                          {isMainImage ? (
+                            <span className='absolute left-2 top-2 rounded-full border border-[#d8e4fb] bg-[#eef4ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#2d4d8f]'>
+                              Main image
+                            </span>
+                          ) : null}
                         </button>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )
