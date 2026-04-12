@@ -143,28 +143,16 @@ Use this section to add your submission screenshots.
 ### 1. Vercel Frontend Deployment Dashboard
 Insert screenshot path below:
 
-![Frontend deployment dashboard screenshot](deployment/frontend-vercel-dashboard.png)
+![photo_2026-04-12_10-52-13](https://github.com/user-attachments/assets/fe9fe29f-64de-447d-a8a1-11bb46d8f25f)
 
 > Replace `deployment/frontend-vercel-dashboard.png` with your actual screenshot path.
 
 ### 2. Live Frontend Application
 Insert screenshot path below:
 
-![Frontend live app screenshot](deployment/frontend-live-app.png)
+![photo_2026-04-12_10-52-16](https://github.com/user-attachments/assets/8ad69da1-8078-44fd-9471-1d0e0445b60d)
 
 > Replace `deployment/frontend-live-app.png` with your actual screenshot path.
-
-### 3. Search Module with Framer Motion Animations
-Insert screenshot path below:
-
-![Search module screenshot](deployment/frontend-search-module.png)
-
-> Replace `deployment/frontend-search-module.png` with your actual screenshot path.
-
-### 4. Authentication & User Dashboard
-Insert screenshot path below:
-
-![Frontend auth dashboard screenshot](deployment/frontend-auth-dashboard.png)
 
 > Replace `deployment/frontend-auth-dashboard.png` with your actual screenshot path.
 
