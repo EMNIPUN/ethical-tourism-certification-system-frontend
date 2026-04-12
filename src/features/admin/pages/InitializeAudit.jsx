@@ -85,9 +85,17 @@ function InitializeAudit() {
         ])
 
         // Get IDs of hotels that already have an audit
-        const auditedHotelIds = new Set((auditsRes.data || []).map(a => 
-          typeof a.hotel === 'object' ? a.hotel._id : a.hotel
-        ))
+        // NOTE: some audits may have hotel=null; typeof null === 'object'
+        const auditedHotelIds = new Set(
+          (auditsRes.data || [])
+            .map((a) => {
+              if (a?.hotel && typeof a.hotel === 'object') {
+                return a.hotel._id
+              }
+              return a?.hotel
+            })
+            .filter(Boolean)
+        )
 
         // Filter out hotels that already have an audit
         const availableHotels = (hotelsRes.data || []).filter(h => !auditedHotelIds.has(h._id))
