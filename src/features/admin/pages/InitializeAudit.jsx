@@ -101,7 +101,7 @@ function InitializeAudit() {
         const availableHotels = (hotelsRes.data || []).filter(h => !auditedHotelIds.has(h._id))
 
         // Match sorting requirement: sorted by date and time (newest first)
-        const sortedHotels = availableHotels.sort((a, b) => 
+        const sortedHotels = availableHotels.sort((a, b) =>
           new Date(b.createdAt) - new Date(a.createdAt)
         )
 
